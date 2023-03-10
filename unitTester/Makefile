@@ -1,11 +1,11 @@
 NAME = unitTester
 
-SRC = 	mainTester.cpp	\
+SRC = 	mainTester.cpp
 		
 
 OBJ  = $(SRC:.cpp=.o)
 
-INCLUDES =	Checker.hpp\
+INCLUDES =	Checker.hpp
 			
 
 FLAGS = -Wall -Werror -Wextra -g3 -fsanitize=address

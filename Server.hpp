@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:20:01 by ecamara           #+#    #+#             */
-/*   Updated: 2023/03/10 16:49:37 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/03/10 19:33:23 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,12 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-
+#include <string>
+#include <cstdio>
+#include <unistd.h>
 #include "irc.h"
+
+#define SERVER_FAILURE -1
 
 class Server
 {
@@ -29,16 +33,20 @@ class Server
 		~Server();
 
 		void	run();
+		void	setSocket(t_serverInput serverCreateInfo);
+		void	acceptConnection();
+		void	listenConnection();
+	private:
 		void	newClient();
 		void	cleanUp();
 
-	private:
-		void	bind();
-
 		int server_fd;
-		struct sockaddr_in address;
+		int	status;
+		int	accptConnection;
+		t_serverInput serverInfo;
+			//struct sockaddr_in address;
+			//std::string password;
 		std::vector<int> clientFd;
-
 		
 };
 
