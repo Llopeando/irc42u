@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:22:37 by ullorent          #+#    #+#             */
-/*   Updated: 2023/03/10 19:50:34 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/03/17 19:41:13 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void    serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
     if (argc != 3)
         throw std::runtime_error("bad arguments!"); //ya veremos si hacer excepciones definidas
 
-   //si ok se rellena struct
+    //RELLENAR STRUCT
     int port = std::atoi(argv[0]); //y de paso chequea si es un int valido
     serverInfo->password = std::string(argv[1]);
 	serverInfo->address.sin_family = AF_INET;
