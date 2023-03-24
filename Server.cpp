@@ -31,11 +31,13 @@
 /* --- Constructors and destructor --- */
 Server::Server()
 {
-	pollfds.reserve(10);
+	/*
+		socket() Devuelve el fd, se guarda en pollfds[0] 
+	*/
 	pollfds.resize(1);
 	pollfds[0].events = POLLIN | POLLOUT;
 	
-	//Crear socket - Devuelve el fd, se guarda en pollfds[0] 
+	//
 	if ((pollfds[0].fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SERVER_FAILURE)
 	{
 		perror("socket failed");
@@ -56,80 +58,52 @@ Server::~Server()
 
 /* --- MAIN PROGRAM --- */
 
-
-// 1 SOCKET DE SERVIDOR - Lo crea con todos sus datos (fd, puerto, adress...) y bind()
 void	Server::setSocket(t_serverInput serverInfo)
 {
-	//la estructura con el address (struct) y la password viene rellena y se asigna a la de nuestro server
+	/*
+		1 SOCKET DE SERVIDOR - Lo crea con todos sus datos (fd, puerto, adress...) y bind()
+		La estructura con el address (struct) y la password viene rellena y se asigna a la de nuestro server
+		Bind [servidor - address] - union de fd y puerto
+		Tenemos socket de servidor, con todos sus datos (fd, puerto, adress...) y bindeado
+	*/
 	this->serverInfo = serverInfo;
-	
-	//Bind [servidor - address] - union de fd y puerto
 	if (bind(pollfds[0].fd, (const struct sockaddr*)&serverInfo.address, sizeof(serverInfo.address)) == SERVER_FAILURE)
 	{
 		perror("socket bind failed");
 		exit(EXIT_FAILURE);
 	}
-	//Tenemos socket de servidor, con todos sus datos (fd, puerto, adress...) y bindeado
 }
-
-void Server::iterFds(pollfd *add, size_t length)
-{
-	size_t i;
-	
-	i = 0;
-	while (i < length)
-	{
-		writeFds(add[i]);
-		i++;
-	}
-}
-
-void Server::writeFds(pollfd &pollfd)
-{
-	if (pollfd.revents & POLLIN)
-	{
-		//printf("message receive\n");
-		handleTCPClient(pollfd.fd);
-	}
-}
-
-
-// 2a EVENTOS - Entradas, salidas y peticiones de escrituras 
 
 void	Server::checkFds(int events)
 {
+	/*
+		EVENTOS - Entradas, salidas y peticiones de escrituras 
+		Eventos de entrada y salida: pollfd[0].fd que es el servidor
+		Resto de eventos recibidos, chequear pollfd * a ver cual ha cambiado hasta llegar al numero de eventos recibidos (contar con los del server)
+	*/
 	(void)events;
-	//Eventos de entrada y salida: pollfd[0].fd que es el servidor
+
 	if (pollfds[0].revents & POLLIN)
 	{
 		printf("--------server receive input\n");
 		acceptConnection();
 	}
-	//Resto de eventos recibidos, chequear pollfd * a ver cual ha cambiado hasta llegar al numero de eventos recibidos (contar con los del server)
-	/*while (events)
-	{
-		//iterar y chequear event y revent de cada cliente, si ha cambiado
-		events--;
-	}*/
-
-	//prueba de eneko de mandar una a a todos los clientes:
-	//writeFds<pollfd>(pollfds[1]);
-	iterFds(pollfds.data() + 1, pollfds.size() - 1);
+	iterFds(&Server::readClientsInput);//arreglar
 }
 
-// 2 BUCLE CORE DEL PROGRAMA - Preparar el fd_server y el array de clientes para recibir eventos (listen(), poll() y accept()) 
 void	Server::run(){
-	
-	// ESTO ES UNA PRUEBA DE LECTURA PARA CLIENTE
-	//char c;
-	//int current_fds;
+	/*
+		BUCLE CORE DEL PROGRAMA - Preparar el fd_server y el array de clientes para recibir eventos (listen(), poll() y accept()) 
+		listenConnection() abre el fd del server patra que quede a la espera
+		Espera de escrituras y salidas de todos los clientes activos: rellena events y revents en cada cliente si recibe evento y devuelve numero de clientes con eventos
+		pregunta: gestiona las entradas y salidas o solo las escrituras y lecturas?????
+	*/
 	int events;
 	
-	listenConnection(); // abre el fd del server patra que quede a la espera
+	listenConnection();
 	while(1)
 	{
-		//Espera de escrituras y salidas de todos los clientes activos: rellena events y revents en cada cliente si recibe evento y devuelve numero de clientes con eventos
-		events = poll(pollfds.data(), static_cast<nfds_t>(pollfds.size()), 200); //pregunta: gestiona las entradas y salidas o solo las escrituras y lecturas?????
+		events = poll(&pollfds.front(), static_cast<nfds_t>(pollfds.size()), 200); 
 		//std::cout << "Poll - numero de eventos recibidos : " << events << std::endl;
 		if (events < 0)
 		{
@@ -155,35 +129,88 @@ void	Server::listenConnection() {
 	}
 }
 void	Server::acceptConnection() {
-	int client_fd; // el int que devuelve accept() es el fd del cliente que guardamos en nuestro vector (ClientFd)
-	unsigned int size = static_cast<unsigned int>(sizeof(serverInfo.address)); // lo necesita accept() y lo rellena: the actual size of the peer address.
+	/*
+		client_fd El int que devuelve accept() es el fd del cliente que guardamos en nuestro vector (ClientFd)
+		size Lo necesita accept() y lo rellena: the actual size of the peer address.
+		accept() Al aceptar a un cliente recibe un int = el fd del cliente 
+		resize() Crear nueva structura pollfd (resize) y rellenar el fd de esa struct de cliente
+	*/
+	unsigned int size = static_cast<unsigned int>(sizeof(serverInfo.address));
+	struct pollfd new_client;
 	
 	std::cout << "accepting" << std::endl;
-	//al aceptar a un cliente recibe un int = el fd del cliente 
-	if ((client_fd = accept(pollfds[0].fd, (struct sockaddr *)&serverInfo.address, &size)) == SERVER_FAILURE)
+	if ((new_client.fd = accept(pollfds[0].fd, (struct sockaddr *)&serverInfo.address, &size)) == SERVER_FAILURE)
 	{
 		perror("connection refused");
 		return;
 	}
-	//Crear nueva structura pollfd (resize) y rellenar el fd de esa struct de cliente
-	pollfds.resize(pollfds.size() + 1);
-	pollfds[pollfds.size() - 1].fd = client_fd;
-	pollfds[pollfds.size() - 1].events = POLLOUT | POLLIN;
+	new_client.events = POLLOUT | POLLIN;
+	handleNewUser(new_client);
 
-	
-	//Cliente ha entrado
-	std::cout << "----------Cliente ha entrado en el fd : " << client_fd << " en la posicion " << pollfds.size() - 1 << std::endl;
+	pollfds.push_back(new_client);
+
+	std::cout << "----------Cliente ha entrado en el fd : " << new_client.fd << " en la posicion " << pollfds.size() - 1 << std::endl;
 }
 
+int	Server::handleNewUser(struct pollfd pollfd)
+{
+	std::string password;
+
+	//password() t_serverInput serverInfo
+	
+}
 
 void handleTCPClient(int client_fd) {
+	/*
+		recv() Recibimos el mensaje del cliente
+	
+	*/
 	char	echoBuffer[RCVBUFSIZE];
 	int	recvMsgSize;
 
-	// Aqui recibimos el mensaje del cliente
 	if ((recvMsgSize = recv(client_fd, echoBuffer, RCVBUFSIZE, 0)) == SERVER_FAILURE)
 		perror("recv failed");
-	//if (send(client_fd, echoBuffer, recvMsgSize, 0) != recvMsgSize)
-	//	perror("send failed");
+	if (send(client_fd, echoBuffer, recvMsgSize, 0) != recvMsgSize)
+		perror("send failed");
 	write(1, echoBuffer, recvMsgSize);
+}
+
+/* -----UTILS -----*/
+
+void Server::readClientsInput(pollfd &pollfd)
+{
+	if (pollfd.revents & POLLIN)
+	{
+		//printf("message receive\n");
+		handleTCPClient(pollfd.fd);
+	}
+}
+
+void Server::iterFds(void (Server::*func)(pollfd &pollfd))
+{
+	size_t i;
+	std::deque<struct pollfd>::iterator it;
+
+	it = pollfds.begin() + 1;
+	i = 0;
+	while (it != pollfds.end())
+	{
+		(this->*func)(*it);
+		it++;
+	}
+}
+
+/*----------- UTILS CHANNELS -----------*/
+
+void	Server::createChannel(std::string name)
+{
+	channels.push_back(Channel(name, &pollfds));
+}
+
+void	Server::deleteChannel(size_t channelIndex)
+{
+	std::deque<Channel>::iterator it;
+
+	it += channelIndex;
+	channels.erase(it);
 }

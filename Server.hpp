@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:20:01 by ecamara           #+#    #+#             */
-/*   Updated: 2023/03/17 19:50:53 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/03/24 18:05:24 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,9 @@
 #include <cstdio>
 #include <unistd.h>
 #include <poll.h>
+#include <deque>
 #include "irc.h"
+#include "Channel.hpp"
 
 
 class Server
@@ -39,22 +41,27 @@ class Server
 
 		void	run();
 		void	setSocket(t_serverInput serverCreateInfo);
-		void	acceptConnection();
-		void	listenConnection();
-		void	checkFds(int events);
-		void	iterFds(pollfd *add, size_t length);
-		void	writeFds(pollfd &pollfd);
+		
 	private:
 		void	newClient();
 		void	cleanUp();
+		void	acceptConnection();
+		void	listenConnection();
+		void	checkFds(int events);
+		void	iterFds(void (Server::*func)(pollfd &pollfd));
+		void	readClientsInput(pollfd &pollfd);
+		void	createChannel(std::string name);
+		void	deleteChannel(size_t channelIndex);
+		int		handleNewUser(struct pollfd pollfd);
 
 		int	status;
 		int	accptConnection;
 		t_serverInput serverInfo;
 			//struct sockaddr_in address;
 			//std::string password;
-		std::vector<struct pollfd> pollfds;
-		
+		std::deque<struct pollfd> pollfds;
+		std::deque<uint8_t> userChannel;
+		std::deque<Channel> channels;
 };
 
 void handleTCPClient(int client_fd);

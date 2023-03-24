@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   irc.h                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:14:43 by ecamara           #+#    #+#             */
-/*   Updated: 2023/03/17 19:45:12 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/03/24 17:20:11 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,4 @@ typedef struct s_serverInput{
 	struct sockaddr_in address;
 	std::string password;
 }t_serverInput;
-
-
-void handleTCPClient(int client_fd);
 
