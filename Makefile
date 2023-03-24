@@ -6,16 +6,20 @@
 #    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/03/10 19:50:34 by ullorent         ###   ########.fr        #
+#    Updated: 2023/03/24 21:12:16 by ullorent         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ircserv
 
 CPPSRC = Server.cpp \
+Client.cpp \
+Channel.cpp \
 main.cpp \
 
 CPPINCLUDE = Server.hpp \
+Channel.hpp \
+Client.hpp \
 irc.h \
 
 CPPOSRC = $(CPPSRC:.cpp=.o)

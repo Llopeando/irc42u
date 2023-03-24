@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 16:47:46 by ecamara           #+#    #+#             */
-/*   Updated: 2023/03/24 17:58:32 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/03/24 20:16:23 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ class Channel
 	public:
 		Channel(std::string name, std::deque<struct pollfd> *pollfds);
 		~Channel();
+
+		const char	*getName();
 	private:
 		std::string name;
 		std::deque<struct pollfd> *pollfds;

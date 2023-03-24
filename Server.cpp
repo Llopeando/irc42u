@@ -65,6 +65,7 @@ void	Server::setSocket(t_serverInput serverInfo)
 		La estructura con el address (struct) y la password viene rellena y se asigna a la de nuestro server
 		Bind [servidor - address] - union de fd y puerto
 		Tenemos socket de servidor, con todos sus datos (fd, puerto, adress...) y bindeado
+		Después de inicializar el socket con bind, lo seteamos a modo "No bloqueante" para el cliente
 	*/
 	this->serverInfo = serverInfo;
 	if (bind(pollfds[0].fd, (const struct sockaddr*)&serverInfo.address, sizeof(serverInfo.address)) == SERVER_FAILURE)
@@ -72,6 +73,8 @@ void	Server::setSocket(t_serverInput serverInfo)
 		perror("socket bind failed");
 		exit(EXIT_FAILURE);
 	}
+	
+	fcntl(pollfds[0].fd, F_SETFL, O_NONBLOCK);
 }
 
 void	Server::checkFds(int events)
@@ -88,7 +91,7 @@ void	Server::checkFds(int events)
 		printf("--------server receive input\n");
 		acceptConnection();
 	}
-	iterFds(&Server::readClientsInput);//arreglar
+	iterFds(&Server::handleEvents);//arreglar
 }
 
 void	Server::run(){
@@ -110,9 +113,6 @@ void	Server::run(){
 			perror("error-event detected");
 			return;
 		}
-		
-		//unsigned int	clntLen = sizeof(serverInfo.address); // length de la estructura de datos de address
-		//std::cout << clntLen << std::endl;
 		checkFds(events); // 2a - EVENTOS
 	}
 }
@@ -137,7 +137,7 @@ void	Server::acceptConnection() {
 	*/
 	unsigned int size = static_cast<unsigned int>(sizeof(serverInfo.address));
 	struct pollfd new_client;
-	
+
 	std::cout << "accepting" << std::endl;
 	if ((new_client.fd = accept(pollfds[0].fd, (struct sockaddr *)&serverInfo.address, &size)) == SERVER_FAILURE)
 	{
@@ -145,57 +145,125 @@ void	Server::acceptConnection() {
 		return;
 	}
 	new_client.events = POLLOUT | POLLIN;
-	handleNewUser(new_client);
-
+	//handleNewUser(new_client);
 	pollfds.push_back(new_client);
-
+	clients.push_back(Client());
 	std::cout << "----------Cliente ha entrado en el fd : " << new_client.fd << " en la posicion " << pollfds.size() - 1 << std::endl;
+	sendMsgUser(new_client.fd, "👋 Welcome! Please, introduce the server password:\n");
 }
 
-int	Server::handleNewUser(struct pollfd pollfd)
-{
-	std::string password;
 
-	//password() t_serverInput serverInfo
-	
-}
 
-void handleTCPClient(int client_fd) {
+std::string Server::readTCPInput(int client_fd) {
 	/*
 		recv() Recibimos el mensaje del cliente
 	
 	*/
-	char	echoBuffer[RCVBUFSIZE];
+	char echoBuffer[RCVBUFSIZE];
 	int	recvMsgSize;
 
-	if ((recvMsgSize = recv(client_fd, echoBuffer, RCVBUFSIZE, 0)) == SERVER_FAILURE)
-		perror("recv failed");
-	if (send(client_fd, echoBuffer, recvMsgSize, 0) != recvMsgSize)
-		perror("send failed");
-	write(1, echoBuffer, recvMsgSize);
+	memset(echoBuffer, 0, RCVBUFSIZE);
+	recvMsgSize = recv(client_fd, echoBuffer, sizeof(echoBuffer), 0);
+	if (recvMsgSize == SERVER_FAILURE)
+	{
+		perror("recv failed, debug here");
+		return (NULL);
+	}
+	return std::string(echoBuffer);
 }
 
 /* -----UTILS -----*/
+bool Server::checkPassword(uint32_t index, std::string input) {
+	//input = input.substr(0, input.size() - 2);
+	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
+	std::cout << "[" << input << "]" << "[" << this->serverInfo.password << "]" << std::endl;
+	if (input == this->serverInfo.password) {
+		sendMsgUser(this->pollfds[index].fd, "✅ SUCCESS... Connecting to the server...\n\n // Please, select a channel by writing the number on the right //\n[CH1] ➡️  1 \n[CH2] ➡️  2\n[CH3] ➡️  3\n-> ");
+		clients[index].setState(CL_STATE_SELECT_CHANNEL);
+		//showChannelsUser(this->pollfds[index].fd);
+	}
+	else
+		sendMsgUser(this->pollfds[index].fd, "❌ Incorrect password! Please, try again\n");
+		return false;
+}
 
-void Server::readClientsInput(pollfd &pollfd)
-{
-	if (pollfd.revents & POLLIN)
+bool Server::joinChannel(uint32_t index, std::string input) {
+	uint8_t channelIndex;
+
+	try
 	{
-		//printf("message receive\n");
-		handleTCPClient(pollfd.fd);
+		channelIndex = std::atoi(input.c_str());
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+
+	if (channelIndex < channels.size()) {
+		sendMsgUser(this->pollfds[index].fd, "✅ SUCCESS\nYou've been successfully connected to the channel, WELCOME!");
+		//channels[channelIndex].addClient();
+		clients[index].setState(CL_STATE_IN_CHANNEL);
+	
+	}
+	else
+		sendMsgUser(this->pollfds[index].fd, "❌ Incorrect channel, please try again.\n-> ");
+		return false;
+}
+
+// void Server::writeInChannel(uint32_t index, uint)
+// {
+
+// }
+
+void Server::showChannelsUser(int fd)
+{
+	sendMsgUser(fd, "💭 Chat channels:\n");
+	for(std::deque<Channel>::iterator it = channels.begin() + 1; it != channels.end(); it++)
+	{
+		sendMsgUser(fd, "\t");
+		sendMsgUser(fd, "➡️ ");
+		sendMsgUser(fd, (*it).getName());
+		sendMsgUser(fd, "\n");
 	}
 }
 
-void Server::iterFds(void (Server::*func)(pollfd &pollfd))
+
+
+void Server::handleEvents(uint32_t index)
 {
-	size_t i;
+	/*
+		Despues d ela password, de alguna manera hay que rellenar la info de cliente (nickname, username, role.....), como rellenamos el objeto creadoclient sin abrir input y solo con eventos ??
+	*/
+	if (pollfds[index].revents & POLLIN)
+	{
+		//printf("message receive\n");
+		std::string input = readTCPInput(pollfds[index].fd);
+		switch (clients[index].getState())
+		{
+			default:
+				break;
+			case CL_STATE_PASSWORD:
+				checkPassword(index, input);
+				break;
+		
+			case CL_STATE_SELECT_CHANNEL:
+				joinChannel(index, input);
+				break;
+			// case CL_STATE_IN_CHANNEL:
+			// 	writeInChannel(input);
+			// 	break;
+		}
+	}
+}
+
+void Server::iterFds(void (Server::*func)(uint32_t index))
+{
 	std::deque<struct pollfd>::iterator it;
 
 	it = pollfds.begin() + 1;
-	i = 0;
 	while (it != pollfds.end())
 	{
-		(this->*func)(*it);
+		(this->*func)(static_cast<uint32_t>(it - pollfds.begin()));
 		it++;
 	}
 }
@@ -214,3 +282,12 @@ void	Server::deleteChannel(size_t channelIndex)
 	it += channelIndex;
 	channels.erase(it);
 }
+
+void Server::sendMsgUser(int fd, char const *str) {
+	send(fd, str, strlen(str), 0);
+}
+// bool Server::writeInChannel(std::string input)
+// {
+	
+
+// }

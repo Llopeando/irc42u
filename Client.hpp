@@ -1,27 +1,36 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Channel.cpp                                        :+:      :+:    :+:   */
+/*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/24 20:30:41 by ullorent          #+#    #+#             */
-/*   Updated: 2023/03/24 20:30:54 by ullorent         ###   ########.fr       */
+/*   Created: 2023/03/24 19:03:45 by ullorent          #+#    #+#             */
+/*   Updated: 2023/03/24 20:28:54 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Channel.hpp"
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
-Channel::Channel(std::string name, std::deque<struct pollfd> *pollfds)
+#include <iostream>
+#include "irc.h"
+
+class Client
 {
-	this->name = name;
-	this->pollfds = pollfds;
-}
+	public:
+		Client(/* args */);
+		~Client();
 
-Channel::~Channel() {
-	
-}
+		uint8_t getState();
+		void	setState(uint8_t state);
+	private:
+		std::string nickname;
+		std::string username;
+		//uint8_t channel;
+		//uint8_t role;
+		uint8_t state;
+		bool	active;
+};
 
-const char	*Channel::getName() {
-	return (name.c_str());
-}
+#endif

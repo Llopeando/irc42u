@@ -3,17 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:20:01 by ecamara           #+#    #+#             */
-/*   Updated: 2023/03/24 18:05:24 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/03/24 20:58:22 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
-
-#define SERVER_FAILURE -1
 
 #define RCVBUFSIZE 32
 
@@ -29,8 +27,10 @@
 #include <unistd.h>
 #include <poll.h>
 #include <deque>
+#include <fcntl.h>
 #include "irc.h"
 #include "Channel.hpp"
+#include "Client.hpp"
 
 
 class Server
@@ -48,11 +48,20 @@ class Server
 		void	acceptConnection();
 		void	listenConnection();
 		void	checkFds(int events);
-		void	iterFds(void (Server::*func)(pollfd &pollfd));
-		void	readClientsInput(pollfd &pollfd);
+		void	iterFds(void (Server::*func)(uint32_t index));
+		void	handleEvents(uint32_t index);
 		void	createChannel(std::string name);
 		void	deleteChannel(size_t channelIndex);
+		std::string readTCPInput(int client_fd);
 		int		handleNewUser(struct pollfd pollfd);
+		int		selectChannel(uint32_t index, struct pollfd pollfd);
+
+		bool	checkPassword(uint32_t index, std::string input);
+		bool	joinChannel(uint32_t index, std::string input);
+		//bool	writeInChannel(std::string input);
+
+		void	sendMsgUser(int fd, char const *str);
+		void	showChannelsUser(int fd);
 
 		int	status;
 		int	accptConnection;
@@ -60,10 +69,8 @@ class Server
 			//struct sockaddr_in address;
 			//std::string password;
 		std::deque<struct pollfd> pollfds;
-		std::deque<uint8_t> userChannel;
+		std::deque<Client> clients;
 		std::deque<Channel> channels;
 };
-
-void handleTCPClient(int client_fd);
 
 #endif
