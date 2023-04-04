@@ -6,11 +6,11 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:22:37 by ullorent          #+#    #+#             */
-/*   Updated: 2023/03/24 18:20:27 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/04/04 16:51:40 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
+#include "../include/Server.hpp"
 
 void    serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
 {

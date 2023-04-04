@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 16:47:46 by ecamara           #+#    #+#             */
-/*   Updated: 2023/03/24 20:16:23 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/04/04 17:21:46 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,5 @@ class Channel
 		const char	*getName();
 	private:
 		std::string name;
-		std::deque<struct pollfd> *pollfds;
 		std::deque<size_t> userIndex;
-		
-}; 
+};

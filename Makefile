@@ -6,21 +6,21 @@
 #    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/03/24 21:12:16 by ullorent         ###   ########.fr        #
+#    Updated: 2023/04/04 17:23:10 by ullorent         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ircserv
 
-CPPSRC = Server.cpp \
-Client.cpp \
-Channel.cpp \
-main.cpp \
+CPPSRC = src/Server.cpp \
+src/Client.cpp \
+src/Channel.cpp \
+src/main.cpp \
 
-CPPINCLUDE = Server.hpp \
-Channel.hpp \
-Client.hpp \
-irc.h \
+CPPINCLUDE = include/Server.hpp \
+include/Channel.hpp \
+include/Client.hpp \
+include/irc.h \
 
 CPPOSRC = $(CPPSRC:.cpp=.o)
 
@@ -37,8 +37,8 @@ $(NAME): $(CPPOSRC) $(CPPINCLUDE)
 	@echo "\033[92mircserv has been successfully compiled!\033[0m"
 
 clean:
-	@rm -rf *.o
-	@rm -rf *.dSYM
+	@rm -rf src/*.o
+	@rm -rf src/*.dSYM
 
 fclean: clean
 	@rm -rf $(NAME)

@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 
-#include "Server.hpp"
+#include "../include/Server.hpp"
 
 /* SERVER
 	AF_INET == ipv4
@@ -43,8 +43,24 @@ Server::Server()
 		perror("socket failed");
 		exit(EXIT_FAILURE);
 	}
-	//std::cout << "Fd de servidor : " << pollfds[0].fd << std::endl;
+	commands.cmd[0] = "nickname_edit";
+	commands.cmd[1] = "password_edit";
+	commands.cmd[2] = "role_edit";
+	commands.cmd[3] = "join_channel";
+	commands.cmd[4] = "leave_server";
+	commands.cmd[5] = "susurro";
+	commands.cmd[6] = "leave_channel";
+	commands.cmd[7] = "/0";
+	commands.func[0] = &Server::nickname_edit;
+	commands.func[1] = &Server::password_edit;
+	commands.func[2] = &Server::role_edit;
+	commands.func[3] = &Server::join_channel;
+	commands.func[4] = &Server::leave_channel;
+	commands.func[5] = &Server::leave_server;
+	commands.func[6] = &Server::susurro;
+	commands.func[7] = NULL;
 	
+	//std::cout << "Fd de servidor : " << pollfds[0].fd << std::endl;
 }
 
 Server::~Server()
@@ -117,9 +133,9 @@ void	Server::run(){
 	}
 }
 
-/* --- Functions --- */
-
-
+/* ----------------------------------------------------------- */
+/* Client connection and listen functions */
+/* ----------------------------------------------------------- */
 void	Server::listenConnection() {
 	std::cout << "listening" << std::endl;
 	if (listen(pollfds[0].fd, 3) == SERVER_FAILURE)
@@ -149,7 +165,7 @@ void	Server::acceptConnection() {
 	pollfds.push_back(new_client);
 	clients.push_back(Client());
 	std::cout << "----------Cliente ha entrado en el fd : " << new_client.fd << " en la posicion " << pollfds.size() - 1 << std::endl;
-	sendMsgUser(new_client.fd, "👋 Welcome! Please, introduce the server password:\n");
+	sendMsgUser(new_client.fd, "👋 Welcome! Please, introduce the server password:\n🔐 ");
 }
 
 
@@ -173,18 +189,56 @@ std::string Server::readTCPInput(int client_fd) {
 }
 
 /* -----UTILS -----*/
-bool Server::checkPassword(uint32_t index, std::string input) {
+bool Server::checkServerPassword(Client *client, uint32_t index, std::string input) {
 	//input = input.substr(0, input.size() - 2);
 	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
-	std::cout << "[" << input << "]" << "[" << this->serverInfo.password << "]" << std::endl;
+	//std::cout << "[" << input << "]" << "[" << this->serverInfo.password << "]" << std::endl;
 	if (input == this->serverInfo.password) {
-		sendMsgUser(this->pollfds[index].fd, "✅ SUCCESS... Connecting to the server...\n\n // Please, select a channel by writing the number on the right //\n[CH1] ➡️  1 \n[CH2] ➡️  2\n[CH3] ➡️  3\n-> ");
-		clients[index].setState(CL_STATE_SELECT_CHANNEL);
+		sendMsgUser(this->pollfds[index].fd, "✅ SUCCESS... Connecting to the server...\n");
+		client->setState(CL_STATE_SELECT_USERNAME);
+		sendMsgUser(this->pollfds[index].fd, "\n🧑 Enter your \033[1;37musername\033[0m: ");
 		//showChannelsUser(this->pollfds[index].fd);
+		return true;
 	}
-	else
-		sendMsgUser(this->pollfds[index].fd, "❌ Incorrect password! Please, try again\n");
+	else {
+		sendMsgUser(this->pollfds[index].fd, "❌ Incorrect password! Please, try again\n🔐 ");
 		return false;
+	}
+}
+
+bool Server::selectUsername(Client *client, uint32_t index, std::string input)
+{
+	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
+	if (input == findUsername()) {
+		client->setState(CL_STATE_INTRODUCE_PERSONAL_PASSWORD);
+		sendMsgUser(this->pollfds[index].fd, "\n🔐 Enter your \033[1;37mpersonal password\033[0m: ");
+		return true;
+	}
+	else {
+		sendMsgUser(this->pollfds[index].fd, "❌ This user was already taken! Please, type another username\n📩 ");
+		return false;
+	}
+}
+
+bool Server::checkPassword(Client *client, uint32_t index, std::string input)
+{
+	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
+	if (input == findUsernamePassword()) {
+		client->setState(CL_STATE_SELECT_NICKNAME);
+		sendMsgUser(this->pollfds[index].fd, "\n🗣️ Enter your \033[1;37desired nickname to chat\033[0m: ");
+		return true;
+	}
+	else {
+		sendMsgUser(this->pollfds[index].fd, "❌ Wrong username password! Please, try again\n🔐 ");
+		return false;
+	}
+}
+
+void Server::selectNickname(Client *client, uint32_t index, std::string input)
+{
+	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
+	client->setState(CL_STATE_LOBBY);
+	sendMsgUser(this->pollfds[index].fd, "\n👋 All good! Welcome to the 'A O I R C' chat lobby!\n");
 }
 
 bool Server::joinChannel(uint32_t index, std::string input) {
@@ -227,31 +281,70 @@ void Server::showChannelsUser(int fd)
 	}
 }
 
+/*	MICROSHELL
+	-Es comand????
+		Depende el estado en el que esta, solo va a comparar ciertos comandos. Estado: 4 o 5 
+	-SI no es cmand
+		escribir en canal 
+*/
+void Server::microshell(uint32_t index, std::string &input)
+{
+	
+	std::string cmd = input.substr(0, input.find(' '));
+	uint32_t max;
+	uint32_t i;
 
+	if (registered[index].getState() == CL_STATE_LOBBY) 
+		max = 5;
+	if (registered[index].getState() == CL_STATE_IN_CHANNEL)
+		max = 8;
+	for(i= 0; i < max; i++ )
+		if (commands.cmd[i] == cmd)
+			(this->*(Server::commands.func[i]))(index);
+	if (i = max)
+		//quieroescribirenmicanal() ; ------------------------------------------------> REHACER
+
+}
 
 void Server::handleEvents(uint32_t index)
 {
 	/*
-		Despues d ela password, de alguna manera hay que rellenar la info de cliente (nickname, username, role.....), como rellenamos el objeto creadoclient sin abrir input y solo con eventos ??
+		1- Puntero client. Chequear si el evento viene de un usuario registrado o de uno temporal. Ahora mismo el ciebte esta en active[]
+			-> ¿true? == se ha registrado 
+
+			-> ¿false? = no se ha registrado
+				-accede al array de temporales para la info de cliente
+		
 	*/
 	if (pollfds[index].revents & POLLIN)
 	{
-		//printf("message receive\n");
 		std::string input = readTCPInput(pollfds[index].fd);
-		switch (clients[index].getState())
+		Client *client;
+		if (actives[index].registered) //si esta aqui esta en el array REGISTERED
 		{
-			default:
-				break;
-			case CL_STATE_PASSWORD:
-				checkPassword(index, input);
-				break;
-		
-			case CL_STATE_SELECT_CHANNEL:
-				joinChannel(index, input);
-				break;
-			// case CL_STATE_IN_CHANNEL:
-			// 	writeInChannel(input);
-			// 	break;
+			client = &registered[index];
+			microshell(index, input);
+		}
+		else //si esta aqui esta en el array TEMPORAL
+		{
+			client = &tempClients[index];
+			switch (client->getState())
+			{
+				default:
+					break;
+				case CL_STATE_SERVER_PASSWORD:
+					checkServerPassword(client, index, input);
+					break;
+				case CL_STATE_SELECT_USERNAME:
+					selectUsername(client, index, input);
+					break;
+				case CL_STATE_INTRODUCE_PERSONAL_PASSWORD://Cuando completa este estado pasa al array de REGISTRADO
+					checkPassword(client, index, input);
+					break;
+				case CL_STATE_SELECT_NICKNAME:
+					selectNickname(client, index, input);
+					break;
+			}
 		}
 	}
 }
@@ -291,3 +384,44 @@ void Server::sendMsgUser(int fd, char const *str) {
 	
 
 // }
+
+
+/////UTILS COMANDS////
+
+
+void Server::nickname_edit(uint32_t index){
+
+	 
+	
+};
+		
+void Server::password_edit(uint32_t index){
+
+	
+};
+		
+void Server::role_edit(uint32_t index){
+
+	
+};
+
+void Server::join_channel(uint32_t index){
+
+	//depende del estado (IN_CHANNEL)tiene que hacer leave + join
+	
+};;
+
+void Server::leave_channel(uint32_t index){
+
+	
+};;
+
+void Server::leave_server(uint32_t index){
+
+	
+};
+
+void Server::susurro(uint32_t index){
+
+	
+};
