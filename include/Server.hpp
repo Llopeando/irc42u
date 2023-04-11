@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:20:01 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/05 11:43:17 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/04/11 20:31:28 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
-
 class Server
 {
 	public:
@@ -41,7 +40,7 @@ class Server
 
 		void	run();
 		void	setSocket(t_serverInput serverCreateInfo);
-		
+		void	printServerStatus();
 	private:
 
 		void	acceptConnection();
@@ -49,10 +48,11 @@ class Server
 
 		void	handleEvents(uint32_t index);
 		
-		bool	checkServerPassword(Client *client, uint32_t index, std::string &input);
-		bool	selectUsername(Client *client, uint32_t index, std::string &input);
-		bool	checkPassword(Client *client, uint32_t index, std::string &input);
-		void	selectNickname(Client *client, uint32_t index, std::string &input);
+		bool	checkServerPassword(t_tempClient *newClient, uint32_t index, std::string &input);
+		void	loginChoice(t_tempClient *newClient, uint32_t index, std::string &input);
+		bool	selectUsername(t_tempClient *newClient, uint32_t index, std::string &input);
+		bool	checkPassword(t_tempClient *newClient, uint32_t index, std::string &input);
+		void	selectNickname(t_tempClient *newClient, uint32_t index, std::string &input);
 
 		void	microshell(uint32_t index, std::string &input);
 		void	nickname_edit(uint32_t index, std::string &argument);
@@ -67,7 +67,6 @@ class Server
 
 		void		checkFds(int events);
 		void		iterFds(void (Server::*func)(uint32_t index));
-		bool		assertClientPassword(const std::string &username, const std::string &password)const;
 		uint32_t	findUsername(const std::string &username)const;
 		std::string	readTCPInput(int client_fd);
 
@@ -81,16 +80,19 @@ class Server
 		int		handleNewUser(struct pollfd pollfd);
 		int		selectChannel(uint32_t index, struct pollfd pollfd);
 
-
+		bool	assertClientPassword(uint32_t indexActive, const std::string &password) const;
 		int	status;
 		int	accptConnection;
 		t_serverInput serverInfo;
 			//struct sockaddr_in address;
 			//std::string password;
 		std::deque<struct pollfd> pollfds;
-		std::deque<activeIndex> actives;
+		std::deque<t_activeIndex> actives;
+
+		std::deque<t_tempClient> tempClients;
 		std::deque<Client> registered;
-		std::deque<Client> tempClients;
+		
+	
 		std::deque<Channel> channels;
 		t_commands commands;
 		

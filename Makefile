@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
+#    By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/04/04 17:23:10 by ullorent         ###   ########.fr        #
+#    Updated: 2023/04/11 18:53:21 by ecamara          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ include/irc.h \
 
 CPPOSRC = $(CPPSRC:.cpp=.o)
 
-CPPFLAGS = -Wall -Werror -Wextra
+CPPFLAGS = -Wall -Werror -Wextra -std=c++98
 CLANGCMD = c++
 
 all: $(NAME)

@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 20:26:04 by ullorent          #+#    #+#             */
-/*   Updated: 2023/04/05 11:46:23 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/04/11 18:35:27 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,4 +30,34 @@ uint8_t	Client::getState() const
 void	Client::setState(uint8_t state)
 {
 	this->state = state;
+}
+
+std::string Client::getUsername()const
+{ 
+	return(username);
+}
+
+
+void Client::setUsername(std::string username)
+{
+	this->username = username;
+}
+
+void Client::setNickname(std::string nickname)
+{
+	this->nickname = nickname;
+}
+
+void Client::setPassword(std::string password) //ya veremos, esto no es muy seguro
+{
+	this->password = password;
+}
+
+
+bool Client::checkPassword(std::string pass)const {
+
+	if (this->password == pass)
+		return (true);
+	else
+		return (false);
 }
