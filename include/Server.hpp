@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:20:01 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/04 19:48:08 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/04/05 11:43:17 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,39 +43,44 @@ class Server
 		void	setSocket(t_serverInput serverCreateInfo);
 		
 	private:
-		void	newClient();
-		void	cleanUp();
+
 		void	acceptConnection();
 		void	listenConnection();
-		void	checkFds(int events);
-		void	iterFds(void (Server::*func)(uint32_t index));
+
 		void	handleEvents(uint32_t index);
+		
+		bool	checkServerPassword(Client *client, uint32_t index, std::string &input);
+		bool	selectUsername(Client *client, uint32_t index, std::string &input);
+		bool	checkPassword(Client *client, uint32_t index, std::string &input);
+		void	selectNickname(Client *client, uint32_t index, std::string &input);
+
+		void	microshell(uint32_t index, std::string &input);
+		void	nickname_edit(uint32_t index, std::string &argument);
+		void	password_edit(uint32_t index, std::string &argument);
+		void	role_edit(uint32_t index, std::string &argument);
+		void	join_channel(uint32_t index, std::string &argument);
+		void	leave_channel(uint32_t index, std::string &argument);
+		void	leave_server(uint32_t index, std::string &argument);
+		void	susurro(uint32_t index, std::string &argument);
 		void	createChannel(std::string name);
 		void	deleteChannel(size_t channelIndex);
-		std::string readTCPInput(int client_fd);
+
+		void		checkFds(int events);
+		void		iterFds(void (Server::*func)(uint32_t index));
+		bool		assertClientPassword(const std::string &username, const std::string &password)const;
+		uint32_t	findUsername(const std::string &username)const;
+		std::string	readTCPInput(int client_fd);
+
+		bool	joinChannel(uint32_t index, std::string input);
+		//bool	writeInChannel(std::string input);
+		void	newClient();
+		void	cleanUp();
+		void	sendMsgUser(int fd, char const *str) const;
+		void	showChannelsUser(int fd)const;
+
 		int		handleNewUser(struct pollfd pollfd);
 		int		selectChannel(uint32_t index, struct pollfd pollfd);
 
-		bool	checkServerPassword(Client *client, uint32_t index, std::string input);
-		bool	selectUsername(Client *client, uint32_t index, std::string input);
-		bool	checkPassword(Client *client, uint32_t index, std::string input);
-		void	selectNickname(Client *client, uint32_t index, std::string input);
-		bool	joinChannel(uint32_t index, std::string input);
-		//bool	writeInChannel(std::string input);
-
-		void	sendMsgUser(int fd, char const *str);
-		void	showChannelsUser(int fd);
-
-		void microshell(uint32_t index, std::string &input);
-
-		//funciones de comandos///
-		void nickname_edit();
-		void password_edit();
-		void role_edit();
-		void join_channel();
-		void leave_channel();
-		void leave_server();
-		void susurro();
 
 		int	status;
 		int	accptConnection;

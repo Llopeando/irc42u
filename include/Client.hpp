@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 19:03:45 by ullorent          #+#    #+#             */
-/*   Updated: 2023/03/24 20:28:54 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/04/05 11:45:42 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ class Client
 		Client(/* args */);
 		~Client();
 
-		uint8_t getState();
+		uint8_t getState()const;
 		void	setState(uint8_t state);
 	private:
 		std::string nickname;

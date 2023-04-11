@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   irc.h                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:14:43 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/04 19:37:29 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/04/05 11:25:55 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,5 +48,5 @@ typedef struct activeIndex
 typedef struct s_commands
 {
 	std::string cmd[8];
-	void (Server::*func[8])(uint32_t index);
+	void (Server::*func[8])(uint32_t index, std::string argument);
 }t_commands;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 20:30:41 by ullorent          #+#    #+#             */
-/*   Updated: 2023/04/04 17:23:37 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/04/05 11:45:09 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,6 @@ Channel::~Channel() {
 	
 }
 
-const char	*Channel::getName() {
+const char	*Channel::getName() const{
 	return (name.c_str());
 }
