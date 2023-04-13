@@ -64,6 +64,7 @@ Server::Server()
 	registeredTemp.setNickname("Root");
 	registered.push_back(registeredTemp);
 
+	createChannel("Lobby", registered[0], 0);
 }
 
 Server::~Server()
@@ -125,7 +126,7 @@ void	Server::run(){
 	}
 }
 
-void	Server::printServerStatus()
+void	Server::printServerStatus() const
 {
 	static clock_t last_time = 0;
 	clock_t now ;
@@ -138,16 +139,34 @@ void	Server::printServerStatus()
 	if (timeElapsed > 5)
 	{
 		system("clear");
-		std::cout << "------- SERVER STATUS ---------\n";
+		std::cout << "\033[1;37m≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡\033[0m 🖥️  \033[1;37;43mSERVER STATUS\033[0m ℹ️  \033[1;37m≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡\033[0m\n";
 	
-		std::cout << "ACTIVE USERS: " << actives.size() << '\n';
+		std::cout << "\033[1;37m🖥️  👥 SERVER ACTIVE USERS: \033[0m" << actives.size() << '\n' << std::endl;
 
-		std::cout << "TEMP USERS: " << tempClients.size() << '\n';
+		std::cout << "\033[1;37m🔶 👥 TEMP USERS (waiting to login or register): \033[0m" << tempClients.size() << '\n';
 		for(uint32_t i = 0; i < tempClients.size(); i++)
-			std::cout << "\tTemp Client [" << i << "] : username(" << tempClients[i].tempClient.getUsername() << ") new:(" << tempClients[i].newClient << ")" << std::endl;
-		std::cout << "REGISTERED USERS: " << registered.size() << "\n";
+		{
+			if (tempClients[i].tempClient.getUsername() == "server")
+				std::cout << "\t\033[1;37m[" << i << "] \033[0m: username(\033[1;33m" << tempClients[i].tempClient.getUsername() << "\033[0m) new:(" << tempClients[i].newClient << ")" << std::endl;
+			else
+				std::cout << "\t\033[1;37m[" << i << "] \033[0m: username(\033[1;37m" << tempClients[i].tempClient.getUsername() << "\033[0m) new:(" << tempClients[i].newClient << ")" << std::endl;
+		}
+
+		std::cout << "\033[1;37m✅ 👥 REGISTERED USERS: \033[0m" << registered.size() << "\n";
 		for(uint32_t i = 0; i < registered.size(); i++)
-			std::cout << "\tRegistered Client [" << i << "] : username(" << registered[i].getUsername() << ")\n";
+		{
+			if (registered[i].getUsername() == "ROOT")
+				std::cout << "\t\033[1;37m[" << i << "] \033[0m: username(\033[1;31m" << registered[i].getUsername() << "\033[0m)\n";
+			else
+				std::cout << "\t\033[1;37m[" << i << "] \033[0m: username(\033[1;37m" << registered[i].getUsername() << "\033[0m)\n";
+		}
+
+		std::cout << "\n\033[1;37m💭 CHANNELS LIST: \033[0m" << "\n";
+		for(uint32_t i = 0; i < channels.size(); i++)
+		{
+			std::cout << "\t\033[1;37m[" << channels[i].getName() << "]\033[0m" << std::endl;
+		}
+		std::cout << "\n\033[1;33m🟨 DEBUG LOG (if any)\033[0m" << std::endl;
 		last_time = now;
 	}
 }
@@ -163,9 +182,11 @@ void	Server::checkFds(int events)
 	printServerStatus();
 	if (pollfds[0].revents & POLLIN)
 	{
-		printf("-------- INCOMING REQUEST RECIEVED --------\n");
+		printf("-------- INCOMING REQUEST RECEIVED --------\n");
 		acceptConnection();
 	}
+	//chequea evento a evento o hacemos events--  ? para ir chequeando hasta que no haya y no tener que recorrrer todo
+
 	iterFds(&Server::handleEvents);//arreglar
 }
 
@@ -176,7 +197,7 @@ void	Server::checkFds(int events)
 
 
 void	Server::listenConnection() {
-	std::cout << "listening" << std::endl;
+	std::cout << "Server started, im listening" << std::endl;
 	if (listen(pollfds[0].fd, 3) == SERVER_FAILURE)
 	{
 		perror("listening process failure");
@@ -194,7 +215,7 @@ void	Server::acceptConnection() {
 	unsigned int size = static_cast<unsigned int>(sizeof(serverInfo.address));
 	struct pollfd new_client;
 
-	std::cout << "accepting" << std::endl;
+	std::cout << "The connection has been accepted, continuing" << std::endl;
 	if ((new_client.fd = accept(pollfds[0].fd, (struct sockaddr *)&serverInfo.address, &size)) == SERVER_FAILURE)
 	{
 		perror("connection refused");
@@ -216,7 +237,8 @@ void	Server::acceptConnection() {
 	tempClients.push_back(tempClient);
 
 	//std::cout << "----------Cliente ha entrado en el fd : " << new_client.fd << " en la posicion de pollfds y actives en [" << pollfds.size() - 1 << "]"<< std::endl;
-	sendMsgUser(new_client.fd, "👋 Welcome! Please, introduce the server password:\n🔐 ");
+	sendMsgUser(new_client.fd, "👋 Welcome! Please, introduce the \033[1;37mserver password\033[0m:\n🔐 ");
+
 }
 
 
@@ -238,10 +260,12 @@ void Server::handleEvents(uint32_t index)
 	if (pollfds[index].revents & POLLIN)
 	{
 		std::string input = readTCPInput(pollfds[index].fd);
+		
 		if (actives[index].registered) //si esta aqui esta en el array REGISTERED
 		{
-			Client *registeredClient;
-			registeredClient = &registered[index];
+			//Client *registeredClient;
+			uint32_t channel = registered[actives[index].index].getChannel();
+			channels[channel].broadcast(index, input);
 			//microshell(index, input);
 		}
 		else //si esta aqui esta en el array TEMPORAL
@@ -281,16 +305,15 @@ void Server::handleEvents(uint32_t index)
 bool Server::checkServerPassword(t_tempClient *client, uint32_t indexAct, std::string &input)
 {
 	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
-
-	if (input == this->serverInfo.password) {
-		sendMsgUser(this->pollfds[indexAct].fd, "✅ SUCCESS... Connecting to the server...\n");
+	if (input == serverInfo.password) {
+		sendMsgUser(pollfds[indexAct].fd, "\n\033[1;42m✅ OK! Let's continue\033[0m\n");
 		client->tempClient.setState(CL_STATE_LOG_IN);
-		sendMsgUser(this->pollfds[indexAct].fd, "\n❓ If you have an account in this chat, \033[1;37mwrite 0\033[0m. If not, \033[1;37mwrite 1\033[0m: ");
+		sendMsgUser(pollfds[indexAct].fd, "❓ If you have an account on this chat, \033[1;37mwrite 0\033[0m. If not, \033[1;37mwrite 1\033[0m: ");
 		//sendMsgUser(this->pollfds[index].fd, "\n🧑 Enter your \033[1;37musername\033[0m: ");
 		return true;
 	}
 	else {
-		sendMsgUser(this->pollfds[indexAct].fd, "❌ Incorrect password! Please, try again\n🔐 ");
+		sendMsgUser(this->pollfds[indexAct].fd, "\033[1;31m❌ Incorrect password! Please, try again\033[0m\n🔐 ");
 		return false;
 	}
 }
@@ -312,7 +335,7 @@ void Server::loginChoice(t_tempClient *client, uint32_t indexAct, std::string &i
 	}
 	else
 	{
-		sendMsgUser(pollfds[indexAct].fd, "❌ Incorrect option! Please, try again\n ");
+		sendMsgUser(pollfds[indexAct].fd, "\033[1;31m❌ Incorrect option! Please, try again\033[0m\n❓ ");
 	}
 }
 
@@ -332,14 +355,14 @@ bool Server::selectUsername(t_tempClient *client, uint32_t indexAct, std::string
 		}
 		else //no username
 		{
-			sendMsgUser(this->pollfds[indexAct].fd, "❌ This user does not exist\n📩 ");
+			sendMsgUser(this->pollfds[indexAct].fd, "\033[1;31m❌ This user does not exist, please try again.\033[0m\n📝 ");
 			return false;
 		}
 	}
 	else // sign up
 	{
 		if (findUsername(input))
-			sendMsgUser(this->pollfds[indexAct].fd, "❌ This username was already taken! Please, type another username\n📩 ");
+			sendMsgUser(this->pollfds[indexAct].fd, "\033[1;31m❌ This username has already been taken! Please, type another username.\033[0m\n📝 ");
 		else//register
 		{
 			client->tempClient.setUsername(input);
@@ -367,7 +390,7 @@ bool Server::checkPassword(t_tempClient *client, uint32_t indexAct, std::string 
 		}
 		else // wrong
 		{
-			sendMsgUser(this->pollfds[indexAct].fd, "❌ Incorrect password! Please, try again\n🔐 ");
+			sendMsgUser(this->pollfds[indexAct].fd, "\033[1;31m❌ Incorrect password! Please, try again\033[0m\n🔐 ");
 		}
 	}
 	else // sign up 
@@ -378,40 +401,53 @@ bool Server::checkPassword(t_tempClient *client, uint32_t indexAct, std::string 
 	}
 	return false;
 }
-
 void Server::selectNickname(t_tempClient *client, uint32_t indexAct, std::string &input)
 {
 	input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
 	
-	if (!actives[indexAct].registered)
-	{
-		if (findUsername(client->tempClient.getUsername()))
-		{
-			sendMsgUser(pollfds[indexAct].fd, "Someone was faster\n");
-			tempClients[actives[indexAct].index].tempClient.setState(CL_STATE_SELECT_USERNAME);
-			return;
-		}
-	}
 	client->tempClient.setNickname(input);
 	client->tempClient.setState(CL_STATE_LOBBY);
-	sendMsgUser(this->pollfds[indexAct].fd, "\n\033[1;32m👋 All good! Welcome to the\033[0m \033[1;33m'A O I R C'\033[0m \033[1;32mchat lobby!\033[0m\n");
-
-	//change to the registered array;
-	registered.push_back(client->tempClient);
-	actives[indexAct].registered = true;
-	uint32_t indexTemp = actives[indexAct].index;
-	actives[indexAct].index = registered.size() - 1;
-	std::cout << "TEMP INDEX " << indexTemp << "\n";
-	std::deque<t_tempClient>::iterator it = std::begin(tempClients) + indexTemp; // iterator to second element
-	tempClients.erase(it);
-	//-1 to every index of temps bigger than tempindex;
-	for (uint32_t i = 0; i < actives.size(); i++)
+	if (!client->newClient)
 	{
-		if (!actives[i].registered && actives[i].index > indexTemp)
-			actives[i].index--;
+		/*uint32_t indexTemp = actives[indexAct].index;
+		std::deque<t_tempClient>::iterator it = std::begin(tempClients) + indexTemp; 
+		tempClients.erase(it);
+		//-1 to every index of temps bigger than tempindex;
+		for (uint32_t i = 0; i < actives.size(); i++)
+		{
+			if (!actives[i].registered && actives[i].index > indexTemp)
+				actives[i].index--;
+		}
+		actives[indexAct].registered = true;*/
+		tempToRegistered(indexAct);
+		actives[indexAct].index = findUsername(client->tempClient.getUsername());
 	}
+	else
+	{
+		//change to the registered array;
+		registered.push_back(client->tempClient);
+		tempToRegistered(indexAct);
+		actives[indexAct].index = registered.size() - 1;
+	}
+	sendMsgUser(pollfds[indexAct].fd, "\n\033[1;42m👋 Welcome to the \033[1;33m'A O I R C' \033[1;42;37mchat server!\033[0m\n");
+	joinChannel(indexAct, "Lobby");//es bool, recoger el true? en el caso de lobby igual no 
+	
 }
 
+void Server::tempToRegistered(uint32_t indexAct)
+{
+		//eliminar user de temp
+		uint32_t indexTemp = actives[indexAct].index;
+		std::deque<t_tempClient>::iterator it = std::begin(tempClients) + indexTemp; 
+		tempClients.erase(it);
+		//-1 to every index of temps bigger than tempindex;
+		for (uint32_t i = 0; i < actives.size(); i++)
+		{
+			if (!actives[i].registered && actives[i].index > indexTemp)
+				actives[i].index--;
+		}
+		actives[indexAct].registered = true;
+}
 
 /* ------------------------------------------------------------ */
 /*							MICROSHELL							*/
@@ -482,9 +518,19 @@ void Server::susurro(uint32_t index, std::string &argument){
 	
 }
 */
-void	Server::createChannel(std::string name)
+void	Server::createChannel(std::string name, Client &client, uint32_t indexAct)
 {
-	channels.push_back(Channel(name, &pollfds));
+	//check role
+	if (client.getRole() != CL_ROOT)
+	{
+		if (findChannel(name))
+		{
+			sendMsgUser(pollfds[indexAct].fd, "\033[1;31m❌ This channel already exists! Please, choose another channel name.\033[0m\n");
+		}
+		else
+			channels.push_back(Channel(name, client.getUsername(), &pollfds, &actives, &registered));
+	}
+
 }
 
 void	Server::deleteChannel(size_t channelIndex)
@@ -499,29 +545,25 @@ void	Server::deleteChannel(size_t channelIndex)
 /*							OBSOLETE							*/
 /* ------------------------------------------------------------ */
 
-/*
-bool Server::joinChannel(uint32_t index, std::string input) {
+
+bool Server::joinChannel(uint32_t indexAct, std::string input) {
+	
 	uint8_t channelIndex;
 
-	try
-	{
-		channelIndex = std::atoi(input.c_str());
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-	}
+	channelIndex = findChannel(input);
 
-	if (channelIndex < channels.size()) {
-		sendMsgUser(this->pollfds[index].fd, "✅ SUCCESS\nYou've been successfully connected to the channel, WELCOME!");
-		//channels[channelIndex].addClient();
-		clients[index].setState(CL_STATE_IN_CHANNEL);
+	if (channelIndex < channels.size())
+	{
+		channels[channelIndex].addClient(indexAct);
+		sendMsgUser(pollfds[indexAct].fd, "✅ You've been successfully connected to the channel!\n");
+		//deberia mandar el mensaje el propio channel
+		registered[actives[indexAct].index].setState(CL_STATE_IN_CHANNEL);
 	
 	}
 	else
-		sendMsgUser(this->pollfds[index].fd, "❌ Incorrect channel, please try again.\n-> ");
+		sendMsgUser(pollfds[indexAct].fd, "❌ Incorrect channel, please try again.\n-> ");
 		return false;
-}*/
+}
 
 // void Server::writeInChannel(uint32_t index, uint)
 // {
@@ -545,17 +587,31 @@ void Server::showChannelsUser(int fd) const
 /*							UTILS								*/
 /* ------------------------------------------------------------ */
 
+uint32_t	Server::findChannel(const std::string &name) const
+{
+	for (uint32_t i =0;i < channels.size();i++)
+	{
+		if (channels[i].getName() == name)
+			return i;
+	}
+	return (0);
+}
 
 void Server::iterFds(void (Server::*func)(uint32_t index))
 {
-	std::deque<struct pollfd>::iterator it;
-
+	(void )func;
+	for(uint32_t i = 1; i < actives.size();i++)
+	{
+		handleEvents(i);
+	}
+/*
 	it = pollfds.begin() + 1;
 	while (it != pollfds.end())
 	{
-		(this->*func)(static_cast<uint32_t>(it - pollfds.begin()));
+		handleEvents(index);
+		//(this->*func)(static_cast<uint32_t>(it - pollfds.begin()));
 		it++;
-	}
+	}*/
 }
 
 std::string Server::readTCPInput(int client_fd) {
@@ -571,16 +627,10 @@ std::string Server::readTCPInput(int client_fd) {
 	if (recvMsgSize == SERVER_FAILURE)
 	{
 		perror("recv failed, debug here");
-		return (NULL);
+		//exit (EXIT_FAILURE);
+		return (std::string(nullptr));
 	}
-	return std::string(echoBuffer);
-}
-
-void Server::sendMsgUser(int fd, char const *str) const
-{
-	int buffer_size = 65536;
-	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size));
-	send(fd, str, strlen(str), 0);
+	return std::string(echoBuffer, recvMsgSize);
 }
 
 uint32_t	Server::findUsername(const std::string &username) const
@@ -619,3 +669,9 @@ bool	Server::assertClientPassword(uint32_t indexAct, const std::string &password
 	return (false);
 }
 
+void Server::sendMsgUser(int fd, char const *str) const
+{
+	int buffer_size = 65536;
+	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size));
+	send(fd, str, strlen(str), 0);
+}

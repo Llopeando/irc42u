@@ -6,54 +6,59 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 20:26:04 by ullorent          #+#    #+#             */
-/*   Updated: 2023/04/11 18:35:27 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/04/13 20:09:04 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Client.hpp"
 
-Client::Client()
-{
-	this->state = CL_STATE_SERVER_PASSWORD;
-	this->active = CL_STATE_ACTIVE;
+/* --- CONSTRUCTORS and DESTRUCTOR --- */
+Client::Client() {
+	state = CL_STATE_SERVER_PASSWORD;
+	active = CL_STATE_ACTIVE;
+	channel = 0;
 }
 
 Client::~Client() {
 	return ;
 }
 
-uint8_t	Client::getState() const
-{
+/* --- DATA SETTERS --- */
+uint8_t	Client::getState() const {
 	return state;
 }
 
-void	Client::setState(uint8_t state)
-{
+void	Client::setState(uint8_t state) {
 	this->state = state;
 }
 
-std::string Client::getUsername()const
-{ 
-	return(username);
-}
-
-
-void Client::setUsername(std::string username)
-{
+void Client::setUsername(std::string username) {
 	this->username = username;
 }
 
-void Client::setNickname(std::string nickname)
-{
+void Client::setNickname(std::string nickname) {
 	this->nickname = nickname;
 }
 
-void Client::setPassword(std::string password) //ya veremos, esto no es muy seguro
-{
+void Client::setPassword(std::string password) { //ya veremos, esto no es muy seguro
 	this->password = password;
 }
 
+/* --- DATA GETTERS --- */
+std::string	Client::getUsername() const {
+	return (username);
+}
 
+uint32_t	Client::getChannel() const {
+	return (channel);
+}
+
+uint32_t	Client::getRole()const
+{
+	return (role);
+}
+
+/* --- CHECKER FUNCTIONS --- */
 bool Client::checkPassword(std::string pass)const {
 
 	if (this->password == pass)

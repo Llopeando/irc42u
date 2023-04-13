@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 17:22:37 by ullorent          #+#    #+#             */
-/*   Updated: 2023/04/04 16:51:40 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/04/13 20:09:05 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,7 @@
 
 void    serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
 {
-	
 	//check ( argumentos = 2 , puerto y password, puerto valido,...)
-    
     if (argc != 3)
         throw std::runtime_error("bad arguments!"); //ya veremos si hacer excepciones definidas
 
@@ -31,7 +29,8 @@ void    serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
 int	main(int argc, char *argv[])
 {
     t_serverInput serverInfo;
-    try{
+
+    try {
         serverCreateInfo(argv + 1, argc, &serverInfo);
     }
     catch (const std::exception& e) {
@@ -41,5 +40,6 @@ int	main(int argc, char *argv[])
 	Server	*server = new Server();
 	server->setSocket(serverInfo);
     server->run();
+    delete server;
     return (0);
 }

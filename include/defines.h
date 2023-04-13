@@ -1,21 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   irc.h                                              :+:      :+:    :+:   */
+/*   defines.h                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/10 16:14:43 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/11 19:01:32 by ecamara          ###   ########.fr       */
+/*   Created: 2023/04/13 17:54:32 by ecamara           #+#    #+#             */
+/*   Updated: 2023/04/13 20:01:47 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
-
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include "Client.hpp"
-
+#ifndef DEFINES_H
+#define DEFINES_H
 
 #define SERVER_FAILURE -1
 #define CL_STATE_SERVER_PASSWORD 0
@@ -29,30 +25,8 @@
 #define CL_STATE_ACTIVE 1
 #define CL_STATE_INACTIVE 0
 
-typedef struct s_serverInput{
-	struct sockaddr_in address;
-	std::string password;
-}t_serverInput;
+#define CL_ROOT 1
 
+#define RCVBUFSIZE 32
 
-typedef struct s_tempClient
-{
-	Client		tempClient;
-	bool		newClient;
-}t_tempClient;
-
-typedef struct activeIndex
-{
-	bool		registered;
-	uint32_t	index;
-}t_activeIndex;
-
-class Server;
-
-typedef struct s_commands
-{
-	std::string cmd[8];
-	void (Server::*func[8])(uint32_t index, std::string argument);
-}t_commands;
-
-#include "Server.hpp"
+#endif

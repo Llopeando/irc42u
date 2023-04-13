@@ -6,17 +6,14 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:20:01 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/11 20:31:28 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/04/13 20:09:05 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
-# define SERVER_HPP
-
-#define RCVBUFSIZE 32
+#define SERVER_HPP
 
 #include <iostream>
-#include <vector>
 #include <cstring>
 #include <cstdlib>
 #include <unistd.h>
@@ -28,9 +25,29 @@
 #include <poll.h>
 #include <deque>
 #include <fcntl.h>
-#include "irc.h"
+
+#include "defines.h"
 #include "Channel.hpp"
 #include "Client.hpp"
+
+typedef struct s_serverInput{
+	struct sockaddr_in address;
+	std::string password;
+}t_serverInput;
+
+typedef struct s_tempClient
+{
+	Client		tempClient;
+	bool		newClient;
+}t_tempClient;
+
+class Server;
+
+typedef struct s_commands
+{
+	std::string cmd[8];
+	void (Server::*func[8])(uint32_t index, std::string argument);
+}t_commands;
 
 class Server
 {
@@ -40,7 +57,7 @@ class Server
 
 		void	run();
 		void	setSocket(t_serverInput serverCreateInfo);
-		void	printServerStatus();
+		void	printServerStatus() const;
 	private:
 
 		void	acceptConnection();
@@ -53,24 +70,26 @@ class Server
 		bool	selectUsername(t_tempClient *newClient, uint32_t index, std::string &input);
 		bool	checkPassword(t_tempClient *newClient, uint32_t index, std::string &input);
 		void	selectNickname(t_tempClient *newClient, uint32_t index, std::string &input);
+		void	tempToRegistered(uint32_t indexAct);
 
 		void	microshell(uint32_t index, std::string &input);
 		void	nickname_edit(uint32_t index, std::string &argument);
 		void	password_edit(uint32_t index, std::string &argument);
 		void	role_edit(uint32_t index, std::string &argument);
-		void	join_channel(uint32_t index, std::string &argument);
+		bool	joinChannel(uint32_t indexAct, std::string input);
 		void	leave_channel(uint32_t index, std::string &argument);
 		void	leave_server(uint32_t index, std::string &argument);
 		void	susurro(uint32_t index, std::string &argument);
-		void	createChannel(std::string name);
+		void	createChannel(std::string name, Client &client, uint32_t indexAct);
 		void	deleteChannel(size_t channelIndex);
+		uint32_t	findChannel(const std::string &name) const;
 
 		void		checkFds(int events);
 		void		iterFds(void (Server::*func)(uint32_t index));
 		uint32_t	findUsername(const std::string &username)const;
 		std::string	readTCPInput(int client_fd);
 
-		bool	joinChannel(uint32_t index, std::string input);
+
 		//bool	writeInChannel(std::string input);
 		void	newClient();
 		void	cleanUp();

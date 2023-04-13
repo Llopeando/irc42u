@@ -6,7 +6,7 @@
 #    By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/04/11 18:53:21 by ecamara          ###   ########.fr        #
+#    Updated: 2023/04/13 20:09:05 by ecamara          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,11 +20,10 @@ src/main.cpp \
 CPPINCLUDE = include/Server.hpp \
 include/Channel.hpp \
 include/Client.hpp \
-include/irc.h \
 
 CPPOSRC = $(CPPSRC:.cpp=.o)
 
-CPPFLAGS = -Wall -Werror -Wextra -std=c++98
+CPPFLAGS = -Wall -Werror -Wextra -std=c++98 #-g3 -fsanitize=address
 CLANGCMD = c++
 
 all: $(NAME)
