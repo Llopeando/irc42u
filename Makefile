@@ -6,7 +6,7 @@
 #    By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/04/13 20:09:35 by ecamara          ###   ########.fr        #
+#    Updated: 2023/04/21 19:50:39 by ecamara          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,7 +23,7 @@ include/Client.hpp \
 
 CPPOSRC = $(CPPSRC:.cpp=.o)
 
-CPPFLAGS = -Wall -Werror -Wextra -std=c++98 #-g3 -fsanitize=address
+CPPFLAGS = -Wall -Werror -Wextra -std=c++11 #-g3 -fsanitize=address
 CLANGCMD = c++
 
 all: $(NAME)

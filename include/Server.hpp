@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:20:01 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/13 20:09:35 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/04/21 20:03:10 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,17 +29,12 @@
 #include "defines.h"
 #include "Channel.hpp"
 #include "Client.hpp"
+#include "color.h"
 
 typedef struct s_serverInput{
 	struct sockaddr_in address;
 	std::string password;
 }t_serverInput;
-
-typedef struct s_tempClient
-{
-	Client		tempClient;
-	bool		newClient;
-}t_tempClient;
 
 class Server;
 
@@ -65,11 +60,11 @@ class Server
 
 		void	handleEvents(uint32_t index);
 		
-		bool	checkServerPassword(t_tempClient *newClient, uint32_t index, std::string &input);
-		void	loginChoice(t_tempClient *newClient, uint32_t index, std::string &input);
-		bool	selectUsername(t_tempClient *newClient, uint32_t index, std::string &input);
-		bool	checkPassword(t_tempClient *newClient, uint32_t index, std::string &input);
-		void	selectNickname(t_tempClient *newClient, uint32_t index, std::string &input);
+		bool	checkServerPassword(Client *newClient, uint32_t index, std::string &input);
+		void	loginChoice(Client *newClient, uint32_t index, std::string &input);
+		bool	selectUsername(Client *newClient, uint32_t index, std::string &input);
+		bool	checkPassword(Client *newClient, uint32_t index, std::string &input);
+		void	selectNickname(Client *newClient, uint32_t index, std::string &input);
 		void	tempToRegistered(uint32_t indexAct);
 
 		void	microshell(uint32_t index, std::string &input);
@@ -93,7 +88,7 @@ class Server
 		//bool	writeInChannel(std::string input);
 		void	newClient();
 		void	cleanUp();
-		void	sendMsgUser(int fd, char const *str) const;
+		void	sendMsgUser(int fd, const std::string &str) const;
 		void	showChannelsUser(int fd)const;
 
 		int		handleNewUser(struct pollfd pollfd);
@@ -108,7 +103,7 @@ class Server
 		std::deque<struct pollfd> pollfds;
 		std::deque<t_activeIndex> actives;
 
-		std::deque<t_tempClient> tempClients;
+		std::deque<Client> tempClients;
 		std::deque<Client> registered;
 		
 	

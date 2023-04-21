@@ -6,22 +6,47 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 20:26:04 by ullorent          #+#    #+#             */
-/*   Updated: 2023/04/13 20:09:35 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/04/21 20:04:19 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Client.hpp"
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
-Client::Client() {
+Client::Client(){
 	state = CL_STATE_SERVER_PASSWORD;
 	active = CL_STATE_ACTIVE;
 	channel = 0;
+	inputBlock = 1;
+	lastMsgIndex = 0;
+	newClient = 1;
+}
+
+Client::Client(const Client &client)
+{
+	*this = client;
 }
 
 Client::~Client() {
 	return ;
 }
+
+Client& Client::operator=(const Client& client) {
+	if (this != &client) {
+	this->nickname = client.nickname;
+	this->username = client.username;
+	this->password = client.password;
+	this->lastMsgIndex = client.lastMsgIndex;
+	this-> channel = client.channel;
+	this-> role = client.role;
+	this-> state = client.state;
+	this->active = client.active;
+	this->inputBlock = client.inputBlock;
+    }
+    return *this;
+}
+
+
 
 /* --- DATA SETTERS --- */
 uint8_t	Client::getState() const {
@@ -58,6 +83,15 @@ uint32_t	Client::getRole()const
 	return (role);
 }
 
+bool Client::getNewClient() const{
+	return(newClient);
+}
+
+void Client::setNewClient(bool check) {
+	newClient = check;
+}
+
+
 /* --- CHECKER FUNCTIONS --- */
 bool Client::checkPassword(std::string pass)const {
 
@@ -66,3 +100,19 @@ bool Client::checkPassword(std::string pass)const {
 	else
 		return (false);
 }
+
+uint32_t Client::getLastMsgIdx()const{
+	return(lastMsgIndex);
+}
+
+bool Client::getInputBlock()const
+{
+	return inputBlock;
+}
+
+void Client::addLastMsgInx(uint32_t num)
+{
+	lastMsgIndex += num;
+}
+
+void Client::resetLastMsgIdx(){ lastMsgIndex = 0; }
