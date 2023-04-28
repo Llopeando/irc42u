@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:20:01 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/21 20:03:10 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/04/28 17:48:30 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "color.h"
+#include "UsersData.hpp"
 
 typedef struct s_serverInput{
 	struct sockaddr_in address;
@@ -47,11 +48,11 @@ typedef struct s_commands
 class Server
 {
 	public:
-		Server();
+		Server(t_serverInput *serverInput);
 		~Server();
 
 		void	run();
-		void	setSocket(t_serverInput serverCreateInfo);
+		void	setSocket(t_serverInput *serverCreateInfo);
 		void	printServerStatus() const;
 	private:
 
@@ -59,6 +60,8 @@ class Server
 		void	listenConnection();
 
 		void	handleEvents(uint32_t index);
+		
+		void	setCommands();
 		
 		bool	checkServerPassword(Client *newClient, uint32_t index, std::string &input);
 		void	loginChoice(Client *newClient, uint32_t index, std::string &input);
@@ -100,16 +103,19 @@ class Server
 		t_serverInput serverInfo;
 			//struct sockaddr_in address;
 			//std::string password;
-		std::deque<struct pollfd> pollfds;
+			
+	/*	std::deque<struct pollfd> pollfds;
 		std::deque<t_activeIndex> actives;
 
 		std::deque<Client> tempClients;
 		std::deque<Client> registered;
-		
+	*/
 	
 		std::deque<Channel> channels;
+	
 		t_commands commands;
-		
+
+		UsersData *data;
 };
 
 #endif

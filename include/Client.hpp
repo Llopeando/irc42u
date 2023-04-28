@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 19:03:45 by ullorent          #+#    #+#             */
-/*   Updated: 2023/04/21 20:07:55 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/04/28 20:50:33 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,8 @@ class Client
 		void	setState(uint8_t state);
 
 		uint32_t	getRole()const;
+		void		setRole(uint8_t role);
+	
 		void		setUsername(std::string username);
 		std::string	getUsername()const;
 		void		setNickname(std::string nickname);
@@ -43,7 +45,8 @@ class Client
 		bool		getInputBlock()const;
 
 		
-		void		addLastMsgInx(uint32_t num);
+		void		addLastMsgIdx(uint32_t num);
+		void		setLastMsgIdx(uint32_t msgIdx);
 		void		resetLastMsgIdx();
 		bool		checkPassword(std::string pass) const;
 		

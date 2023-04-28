@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 20:26:04 by ullorent          #+#    #+#             */
-/*   Updated: 2023/04/21 20:04:19 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/04/28 20:50:30 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,11 @@ uint32_t	Client::getRole()const
 	return (role);
 }
 
+void Client::setRole(uint8_t role)
+{
+	this->role = role;
+}
+
 bool Client::getNewClient() const{
 	return(newClient);
 }
@@ -110,9 +115,14 @@ bool Client::getInputBlock()const
 	return inputBlock;
 }
 
-void Client::addLastMsgInx(uint32_t num)
+void Client::addLastMsgIdx(uint32_t num)
 {
 	lastMsgIndex += num;
 }
 
 void Client::resetLastMsgIdx(){ lastMsgIndex = 0; }
+
+void Client::setLastMsgIdx(uint32_t msgIdx)
+{
+	lastMsgIndex = msgIdx;
+}

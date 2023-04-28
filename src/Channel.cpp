@@ -13,14 +13,13 @@
 #include "../include/Channel.hpp"
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
-Channel::Channel(std::string name, std::string username, std::deque<struct pollfd> *pollfds, std::deque<t_activeIndex> *actives, std::deque<Client> *registered)
+Channel::Channel(std::string name, std::string username, UsersData *data)
 {
 	this->name = name;
 	creator = username;
-	this->pollfds = pollfds;
-	this->actives = actives;
-	this->registered = registered;
-
+	this->data = data;
+	users.resize(0);
+	numOfUsers = 0;
 }
 
 Channel::~Channel() {
@@ -34,12 +33,12 @@ std::string	const Channel::getName() const{
 
 void Channel::addClient(uint32_t indexAct){
 	users.push_back(indexAct);
-	uint32_t user_pos = users.size() - 1;
+	uint32_t user_pos = numOfUsers;
+	numOfUsers++;
 	std::string msgUser = color::boldyellow + "ℹ️  You are in the " + color::boldyellow + this->name + color::boldgreen + " channel\n" + color::reset;
-	std::string msgChannel = "\nℹ️  "  + (*registered)[(*actives)[indexAct].index].getUsername() + color::boldgreen +  " joined the channel\n" + color::reset;
-	(*registered)[(*actives)[indexAct].index].resetLastMsgIdx(); //resetea el index de log 
-
-	sendMsgUser((*pollfds)[indexAct].fd, msgUser);
+	std::string msgChannel = "\nℹ️  "  + (*data)[indexAct].getUsername() + color::boldgreen +  " joined the channel\n" + color::reset;
+	(*data)[indexAct].resetLastMsgIdx(); //resetea el index de log 
+	sendMsgUser(user_pos, msgUser);
 	sendMsgChannel(user_pos, msgChannel);
 }
 
@@ -50,24 +49,23 @@ void Channel::addClient(uint32_t indexAct){
 
 void	Channel::sendMsgUser(uint32_t user_pos, std::string const &str) const {
 	int buffer_size = 65536;      //en defines?
-
-	setsockopt((*pollfds)[users[user_pos]].fd, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size));
-	send((*pollfds)[users[user_pos]].fd, str.c_str(), str.size(), 0);
+	setsockopt(data->getFd(users[user_pos]), SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size));
+	send(data->getFd(users[user_pos]), str.c_str(), str.size(), 0);
 }
 
 void	Channel::sendMsgChannel(uint32_t user_pos, std::string const &str){
 
 	msg_log.push_back(str);
-	std::string msg = "\033[1;37m<" + (*registered)[(*actives)[users[user_pos]].index].getUsername() + ">\033[0m " + str;
+	std::string msg = "\033[1;37m<" + (*data)[users[user_pos]].getUsername() + ">\033[0m " + str;
 	//sendMsgUser((*pollfds)[users[user_pos]].fd, color::white + "<" + (*registered)[(*actives)[users[user_pos]].index].getUsername() + ">" + color::reset);
-	
+	(*data)[users[user_pos]].addLastMsgIdx(1);
 	for(uint32_t i = 0; i < users.size();i++)
 	{
-		std::cout << color::white << (*registered)[(*actives)[users[i]].index].getUsername() << " ----- " << ((*registered)[(*actives)[users[i]].index].getInputBlock()) << '\n' ;
-		if (i != user_pos && !((*registered)[(*actives)[users[i]].index].getInputBlock()))
+		std::cout << color::white << (*data)[users[i]].getUsername() << " ----- " << (*data)[users[i]].getInputBlock() << '\n' ;
+		if (i != user_pos && !((*data)[users[i]].getInputBlock()))
 		{
 			sendMsgUser(i, msg);
-			(*registered)[(*actives)[users[user_pos]].index].addLastMsgInx(1);
+			(*data)[users[user_pos]].addLastMsgIdx(1);
 		}
 	}
 	
@@ -92,11 +90,13 @@ void	Channel::broadcast(uint32_t indexAct, std::string const &msg) {
 	sendMsgChannel(user_pos, msg);
 }
 
-	void Channel::refresh(uint32_t indexAct)
+void Channel::refresh(uint32_t indexAct)
+{
+	uint32_t user_pos = findUser(indexAct);
+	uint32_t i;
+	for (i = (*data)[indexAct].getLastMsgIdx();i < msg_log.size(); i++)
 	{
-		//uint32_t user_pos = findUser(indexAct);
-		for (uint32_t i = (*registered)[(*actives)[indexAct].index].getLastMsgIdx();i < msg_log.size(); i++)
-		{
-			sendMsgUser((*pollfds)[indexAct].fd, msg_log[i]);
-		}
+		sendMsgUser(user_pos, msg_log[i]);
 	}
+	(*data)[indexAct].addLastMsgIdx(i);
+}

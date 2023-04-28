@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 17:54:32 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/21 18:51:29 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/04/28 19:36:58 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 #define CL_STATE_ACTIVE 1
 #define CL_STATE_INACTIVE 0
 
+#define CL_USER 0
 #define CL_ROOT 1
 
 #define RCVBUFSIZE 32
@@ -53,5 +54,14 @@ namespace color {
 	
 	const std::string boldgreenback =  "\033[1m\033[42m";
 }
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+typedef struct activeIndex
+{
+	bool		registered;
+	uint32_t	index;
+}t_activeIndex;
 
 #endif
