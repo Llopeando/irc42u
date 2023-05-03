@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 16:47:46 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/28 20:50:28 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/05/03 17:43:01 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ class Channel
 		void 				addClient(uint32_t indexAct);
 		void 				broadcast(uint32_t indexAct, std::string const &msg);
 		void				refresh(uint32_t indexAct);
+		void				flushLog(Client &user, uint32_t user_pos);
 	private:
 		uint32_t numOfUsers;
 		UsersData *data;
@@ -51,6 +52,7 @@ class Channel
 		uint32_t	findUser(uint32_t indexAct)const;
 		void		sendMsgUser(uint32_t user_pos, std::string const &str) const;
 		void		sendMsgChannel(uint32_t indexAct, std::string const &str);
+		void		sendInfoChannel(uint32_t user_pos, std::string const &str);
 		
 };
 

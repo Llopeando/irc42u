@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 20:26:04 by ullorent          #+#    #+#             */
-/*   Updated: 2023/04/28 20:50:30 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/05/03 17:01:32 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,9 @@ Client::Client(){
 	state = CL_STATE_SERVER_PASSWORD;
 	active = CL_STATE_ACTIVE;
 	channel = 0;
-	inputBlock = 1;
+	inputBlock = true;
 	lastMsgIndex = 0;
-	newClient = 1;
+	newClient = true;
 }
 
 Client::Client(const Client &client)

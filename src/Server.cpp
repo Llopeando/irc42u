@@ -492,8 +492,8 @@ bool Server::joinChannel(uint32_t indexAct, std::string input) {
 
 	if (channelIndex < channels.size())
 	{
-		channels[channelIndex].addClient(indexAct);
 		sendMsgUser(data->getFd(indexAct), "✅ You've been successfully connected to the channel!\n");
+		channels[channelIndex].addClient(indexAct);
 		//sendMsgUser(pollfds[indexAct].fd, color::red + registered[actives[indexAct].index].getUsername() + color::reset);
 		//deberia mandar el mensaje el propio channel
 		(*data)[indexAct].setState(CL_STATE_IN_CHANNEL);
