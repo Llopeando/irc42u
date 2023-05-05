@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 16:20:01 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/28 17:48:30 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/05/05 20:04:40 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,8 @@
 #include "color.h"
 #include "UsersData.hpp"
 
+std::vector<std::string> split(const std::string &string, char c);
+
 typedef struct s_serverInput{
 	struct sockaddr_in address;
 	std::string password;
@@ -41,9 +43,12 @@ class Server;
 
 typedef struct s_commands
 {
-	std::string cmd[8];
-	void (Server::*func[8])(uint32_t index, std::string argument);
+	const uint32_t	size = 9;
+	std::string	cmd[9];
+	void (Server::*func[9])(uint32_t index, std::string &argument);
 }t_commands;
+
+
 
 class Server
 {
@@ -70,16 +75,19 @@ class Server
 		void	selectNickname(Client *newClient, uint32_t index, std::string &input);
 		void	tempToRegistered(uint32_t indexAct);
 
+
+		void	command(uint32_t indexAct, std::string &input);
 		void	microshell(uint32_t index, std::string &input);
-		void	nickname_edit(uint32_t index, std::string &argument);
-		void	password_edit(uint32_t index, std::string &argument);
-		void	role_edit(uint32_t index, std::string &argument);
-		bool	joinChannel(uint32_t indexAct, std::string input);
-		void	leave_channel(uint32_t index, std::string &argument);
-		void	leave_server(uint32_t index, std::string &argument);
-		void	susurro(uint32_t index, std::string &argument);
-		void	createChannel(std::string name, Client &client, uint32_t indexAct);
-		void	deleteChannel(size_t channelIndex);
+		void	nickname_edit_m(uint32_t indexAct, std::string &argument);
+		void	password_edit_m(uint32_t indexAct, std::string &argument);
+		void	role_edit_m(uint32_t indexAct, std::string &argument);
+		void	join_channel_m(uint32_t indexAct, std::string &input);
+		void	leave_channel_m(uint32_t indexAct, std::string &input);
+		void	leave_server_m(uint32_t indexAct, std::string &argument);
+		void	susurro_m(uint32_t indexAct, std::string &argument);
+		void	createChannel_m(uint32_t indexAct, std::string &argument);
+		void	deleteChannel_m(uint32_t indexAct, std::string &argument);
+		void	myInfo_m(uint32_t indexAct, std::string &argument);
 		uint32_t	findChannel(const std::string &name) const;
 
 		void		checkFds(int events);
@@ -87,6 +95,7 @@ class Server
 		uint32_t	findUsername(const std::string &username)const;
 		std::string	readTCPInput(int client_fd);
 
+		bool checkAdmin(Client *client);
 
 		//bool	writeInChannel(std::string input);
 		void	newClient();
@@ -117,5 +126,7 @@ class Server
 
 		UsersData *data;
 };
+
+
 
 #endif

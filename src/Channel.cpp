@@ -27,7 +27,7 @@ Channel::~Channel() {
 }
 
 /* --- GETTER --- */
-std::string	const Channel::getName() const{
+std::string Channel::getName() const{
 	return (name);
 }
 
@@ -35,11 +35,32 @@ void Channel::addClient(uint32_t indexAct){
 	users.push_back(indexAct);
 	uint32_t user_pos = numOfUsers;
 	numOfUsers++;
-	std::string infoUser = color::boldyellow + "ℹ️  You are in the " + color::boldyellow + this->name + color::boldgreen + " channel\n\n" + color::reset;
-	std::string infoMsg = color::boldgreen +  " joined the channel\n" + color::reset;
+	std::string infoUser = color::boldyellow + "ℹ️  You are in the " + color::boldgreen + this->name + color::boldyellow + " channel\n\n" + color::reset;
+	std::string infoMsg = color::boldgreen +  " joined your channel 👋\n" + color::reset;
 	(*data)[indexAct].resetLastMsgIdx(); //resetea el index de log 
 	sendMsgUser(user_pos, infoUser);
-	sendMsgChannel(user_pos, infoMsg);
+	sendMsgChannel(user_pos, infoMsg, true);
+	(*data)[indexAct].setState(CL_STATE_IN_CHANNEL);
+}
+
+void Channel::removeClient(uint32_t indexAct){
+	
+	//quitarlo del array
+	uint32_t	user_pos = findUser(indexAct);
+	if (user_pos == 0)
+	{
+		return;
+	}
+
+	//reubicar el array ??
+	numOfUsers--;
+	users[user_pos] = users[numOfUsers];
+	users.pop_back();
+	std::string infoUser = color::boldyellow + "ℹ️  You are back to the " + color::boldgreen + "Lobby" + color::boldyellow + " channel\n\n" + color::reset;
+	std::string infoMsg = color::boldgreen +  " left your channel 😢\n" + color::reset;
+	sendMsgUser(user_pos, infoUser);
+	sendMsgChannel(user_pos, infoMsg, true);
+	(*data)[indexAct].setState(CL_STATE_LOBBY);
 }
 
 /* ------------------------------------------------------------ */
@@ -76,10 +97,13 @@ void	Channel::sendInfoChannel(uint32_t user_pos, std::string const &str)
 	}
 }*/
 
-void	Channel::sendMsgChannel(uint32_t user_pos, std::string const &str)
+void	Channel::sendMsgChannel(uint32_t user_pos, std::string const &str, bool val)
 {
-	std::string msg = color::cyan + "<" + (*data)[users[user_pos]].getUsername() + "> " + color::boldwhite + str + color::reset;
-
+	std::string msg;
+	if (val == true)
+		msg = "ℹ️  " + color::cyan + (*data)[users[user_pos]].getUsername() + color::boldwhite + str + color::reset;
+	else
+		msg = color::cyan + "<" + (*data)[users[user_pos]].getUsername() + "> " + color::boldwhite + str + color::reset;
 	msg_log.push_back(msg);
 	flushLog((*data)[users[user_pos]], user_pos);
 	for(uint32_t i = 0; i < users.size();i++)
@@ -98,7 +122,7 @@ uint32_t	Channel::findUser(uint32_t indexAct)const {
 		if (users[i] == indexAct)
 			return i;
 	}
-	return (-1);
+	return (0);
 }
 
 void	Channel::broadcast(uint32_t indexAct, std::string const &msg) {
@@ -108,7 +132,7 @@ void	Channel::broadcast(uint32_t indexAct, std::string const &msg) {
 	if (user_pos > users.size())
 		return ;
 	//std::cout << (*registered)[(*actives)[indexAct].index].getUsername() << " writes: " << msg << '\n' ;
-	sendMsgChannel(user_pos, msg);
+	sendMsgChannel(user_pos, msg, false);
 }
 
 void Channel::refresh(uint32_t indexAct)

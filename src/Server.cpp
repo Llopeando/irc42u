@@ -52,8 +52,7 @@ Server::Server(t_serverInput *serverInput)
 	//registeredTemp.setUsername("ROOT");
 	//registeredTemp.setNickname("Root");
 	//registered.push_back(registeredTemp);
-
-	createChannel("Lobby", (*data)[0], 0);
+	channels.push_back(Channel("Lobby", (*data)[0].getUsername(), data));
 	
 	setSocket(serverInput);
 }
@@ -284,7 +283,7 @@ void Server::loginChoice(Client *client, uint32_t indexAct, std::string &input)
 	}
 	else
 	{
-		sendMsgUser(data->getFd(indexAct), "\033[1;31m❌ Incorrect option! Please, try again\033[0m\n❓ ");
+		sendMsgUser(data->getFd(indexAct), color::boldred + "❌  Incorrect option! Please, try again" + color::reset + "\n❓ ");
 	}
 }
 
@@ -299,24 +298,24 @@ bool Server::selectUsername(Client *client, uint32_t indexAct, std::string &inpu
 		{
 			client->setState(CL_STATE_INTRODUCE_PERSONAL_PASSWORD);
 			client->setUsername(input);
-			sendMsgUser(data->getFd(indexAct), "\n🔐 Enter your \033[1;37mpersonal password\033[0m: ");
+			sendMsgUser(data->getFd(indexAct), "🔐 Enter your " + color::boldwhite + "personal password" + color::reset + ": ");
 			return true;
 		}
 		else //no username
 		{
-			sendMsgUser(data->getFd(indexAct), "\033[1;31m❌ This user does not exist, please try again.\033[0m\n📝 ");
+			sendMsgUser(data->getFd(indexAct), color::boldred + "❌ This user does not exist, please try again." + color::reset + "\n📝 ");
 			return false;
 		}
 	}
 	else // sign up
 	{
 		if (findUsername(input))
-			sendMsgUser(data->getFd(indexAct), "\033[1;31m❌ This username has already been taken! Please, type another username.\033[0m\n📝 ");
+			sendMsgUser(data->getFd(indexAct), color::boldred + "❌ This username was already taken! Please, type another username." + color::reset + "\n📝 ");
 		else//register
 		{
 			client->setUsername(input);
 			client->setState(CL_STATE_INTRODUCE_PERSONAL_PASSWORD);
-			sendMsgUser(data->getFd(indexAct), "🔐 Enter your \033[1;37mpersonal password\033[0m: ");
+			sendMsgUser(data->getFd(indexAct), "🔐 Enter your " + color::boldwhite + "personal password" + color::reset + ": ");
 			return true;
 		}
 	}
@@ -334,19 +333,19 @@ bool Server::checkPassword(Client *client, uint32_t indexAct, std::string &input
 		if (assertClientPassword(indexAct, input)) //pass ok
 		{
 			client->setState(CL_STATE_SELECT_NICKNAME);
-			sendMsgUser(data->getFd(indexAct), "🧑 Enter your desired \033[1;37mnickname\033[0m to chat: ");
+			sendMsgUser(data->getFd(indexAct), "🧑 Enter your desired " + color::boldwhite + "nickname" + color::reset + "to chat: ");
 			return true;
 		}
 		else // wrong
 		{
-			sendMsgUser(data->getFd(indexAct), "\033[1;31m❌ Incorrect password! Please, try again\033[0m\n🔐 ");
+			sendMsgUser(data->getFd(indexAct), color::boldred + "❌ Incorrect password! Please, try again" + color::reset + "\n🔐 ");
 		}
 	}
 	else // sign up 
 	{
 		client->setPassword(input);
 		client->setState(CL_STATE_SELECT_NICKNAME);
-		sendMsgUser(data->getFd(indexAct), "🧑 Enter your desired \033[1;37mnickname\033[0m to chat: ");
+		sendMsgUser(data->getFd(indexAct), "🧑 Enter your desired " + color::boldwhite + "nickname" + color::reset + " to chat: ");
 	}
 	return false;
 }
@@ -379,8 +378,8 @@ void Server::selectNickname(Client *client, uint32_t indexAct, std::string &inpu
 
 		///////////////////////////////////////////////////// 
 	}*/
-	sendMsgUser(data->getFd(indexAct), color::boldgreenback + "\n👋 Welcome to the \033[1;33m'A O I R C' \033[1;42;37mchat server!\033[0m\n" + color::reset);
-	joinChannel(indexAct, "Lobby");//es bool, recoger el true? en el caso de lobby igual no 
+	sendMsgUser(data->getFd(indexAct), color::boldgreenback + "\n👋 Welcome to the " + color::yellow + "'A O I R C' \033[1;42;37mchat server!" + color::reset + "\n");
+	channels[0].addClient(indexAct);//es bool, recoger el true? en el caso de lobby igual no 
 	
 }
 
@@ -390,21 +389,11 @@ void Server::selectNickname(Client *client, uint32_t indexAct, std::string &inpu
 /* ------------------------------------------------------------ */
 
 
-/*	MICROSHELL
-	-Es comand????
+/*
 		Depende el estado en el que esta, solo va a comparar ciertos comandos. Estado: 4 o 5 
-	-SI no es cmand
-		escribir en canal 
+
 */
 
-
-void command(uint32_t index, std::string &input)
-{
-	//std::string comd = "";
-	(void)input;
-	(void)index;
-
-}
 
 void Server::microshell(uint32_t indexAct, std::string &input)
 {
@@ -413,77 +402,182 @@ void Server::microshell(uint32_t indexAct, std::string &input)
 	else if (input[0] == '<')//command
 		command(indexAct, input);
 	else
-	{
 		channels[(*data)[indexAct].getChannel()].broadcast(indexAct, input);
-	}
-}
-/*
-
-void Server::nickname_edit(uint32_t index, std::string &argument){
-
-	 
-	
-}
-		
-void Server::password_edit(uint32_t index, std::string &argument){
-
-	
-}
-		
-void Server::role_edit(uint32_t index, std::string &argument){
-
-	
 }
 
-void Server::join_channel(uint32_t index, std::string &argument){
-
-	//depende del estado (IN_CHANNEL)tiene que hacer leave + join
-	
-}
-
-void Server::leave_channel(uint32_t index, std::string &argument){
-
-	
-}
-
-void Server::leave_server(uint32_t index, std::string &argument){
-
-	
-}
-
-void Server::susurro(uint32_t index, std::string &argument){
-
-	
-}
-*/
-void	Server::createChannel(std::string name, Client &client, uint32_t indexAct)
+std::string getCommand(std::string input)
 {
-	//check role
-	if (client.getRole() == CL_ROOT)
+	std::string result = input.substr(1, input.find('>') - 1);
+	return result;
+}
+void Server::command(uint32_t indexAct, std::string &input)
+{
+	std::string command = getCommand(input);
+	uint32_t i ;
+	for (i = 0; i < commands.size;i++)
 	{
-		if (findChannel(name))
+		if (command == commands.cmd[i])
 		{
-			sendMsgUser(data->getFd(indexAct), color::red + "❌ This channel already exists! Please, choose another channel name.\n" + color::reset);
+			(this->*(commands.func[i]))(indexAct, input);
+			break ;
+	
 		}
-		else
-			channels.push_back(Channel(name, client.getUsername(), data));
+	}
+	if (i == commands.size)
+		sendMsgUser(data->getFd(indexAct), color::boldwhite + "❌ This command " + color::boldyellow + "(" + command + ")" + color::boldwhite + "does not exist!\n" + color::reset);
+}
+
+/* 	------------------------------------------------------------ */
+/*					MICROSHELL COMMADNS							*/
+/* 	------------------------------------------------------------ */
+
+void Server::nickname_edit_m(uint32_t indexAct, std::string &argument)
+{
+	argument.erase(std::remove(argument.begin(), argument.end(), '\n'), argument.end());
+	std::vector<std::string> words = split(argument, ' ');
+	std::cout << "size = " << words.size() << '\n';
+	if (words.size() != 3)
+	{
+		sendMsgUser(data->getFd(indexAct), color::boldred + "❌ Wrong arguments or command!\n" + color::reset);
+		return ;
+	}
+	(*data)[indexAct].setNickname(words[2]);
+	sendMsgUser(data->getFd(indexAct), color::boldred + "Nickname Changed to [" + words[2] + "]\n" + color::reset);
+}
+		
+void Server::password_edit_m(uint32_t indexAct, std::string &argument)
+{
+	argument.erase(std::remove(argument.begin(), argument.end(), '\n'), argument.end());
+	std::vector<std::string> words = split(argument, ' ');
+	if (words.size() != 3)
+	{
+		sendMsgUser(data->getFd(indexAct), color::boldred + "❌ Wrong arguments or command!\n" + color::reset);
+		return ;
+	}
+	(*data)[indexAct].setPassword(words[2]);
+}
+		
+void Server::role_edit_m(uint32_t indexAct, std::string &argument)
+{
+	argument.erase(std::remove(argument.begin(), argument.end(), '\n'), argument.end());
+
+	std::vector<std::string> words = split(argument, ' ');
+	if (words.size() != 2)
+	{
+		sendMsgUser(data->getFd(indexAct), color::boldred + "❌ Wrong arguments or command!\n" + color::reset);
+		return ;
+	}
+	//check ADMIN password
+	if ((*data)[0].checkPassword(words[1]))
+		(*data)[indexAct].setRole(CL_ROOT);
+}
+
+void Server::join_channel_m(uint32_t indexAct, std::string &argument)
+{
+	argument.erase(std::remove(argument.begin(), argument.end(), '\n'), argument.end());
+	std::vector<std::string> words = split(argument, ' ');
+	if (words.size() != 3)
+	{
+		sendMsgUser(data->getFd(indexAct), color::boldred + "❌ Wrong arguments or command!\n" + color::reset);
+		return ;
 	}
 
+	uint32_t	channelIdx = findChannel(words[2]);
+	if((*data)[indexAct].getState() == CL_STATE_IN_CHANNEL) 	//depende del estado (IN_CHANNEL)tiene que hacer leave+ join
+		channels[channelIdx].removeClient(indexAct);
+	if (channelIdx)
+		channels[findChannel(words[2])].addClient(indexAct);
+	else
+		sendMsgUser(data->getFd(indexAct), color::boldred + "❌ This channel does not exist! Please, try again.\n" + color::reset);
 }
-/*
-void	Server::deleteChannel(size_t channelIndex)
+
+void Server::leave_channel_m(uint32_t indexAct, std::string &argument)
 {
+	argument.erase(std::remove(argument.begin(), argument.end(), '\n'), argument.end());
+	(void)argument;
+	if ((*data)[indexAct].getState() != CL_STATE_IN_CHANNEL)
+	{
+		sendMsgUser(data->getFd(indexAct), color::boldred + "❌ You must be in a channel to use this command!\n" + color::reset);
+		return;
+	}
+	channels[(*data)[indexAct].getChannel()].removeClient(indexAct);
+}
+
+void Server::leave_server_m(uint32_t indexAct, std::string &argument)
+{
+	argument.erase(std::remove(argument.begin(), argument.end(), '\n'), argument.end());
+	(void)indexAct;
+	(void)argument;
+	//if((*data)[indexAct].getState() == CL_STATE_IN_CHANNEL) 	//depende del estado (IN_CHANNEL)tiene que hacer leave+ join
+	//	(*data)[index].channel.removeClient(indexAct);
+	//remove de pollfds
+	//remove de Actives
+	//exit 
+}
+
+void Server::susurro_m(uint32_t indexAct, std::string &argument)
+{
+	argument.erase(std::remove(argument.begin(), argument.end(), '\n'), argument.end());
+	(void)indexAct;
+	(void)argument;
+}
+
+void	Server::createChannel_m(uint32_t indexAct, std::string &argument)
+{
+	argument.erase(std::remove(argument.begin(), argument.end(), '\n'), argument.end());
+	std::vector<std::string> words = split(argument, ' ');
+	if (words.size() != 3)
+	{
+		sendMsgUser(data->getFd(indexAct), color::boldred + "❌ Wrong arguments or command!\n" + color::reset);
+		return ;
+	}
+	if ((*data)[indexAct].getRole() != CL_ROOT)
+	{
+		sendMsgUser(data->getFd(indexAct), color::red + "❌ This is an admin only command! Check your roles and try again.\n" + color::reset);
+		return ;
+	}
+	if (findChannel(words[2]))
+	{
+		sendMsgUser(data->getFd(indexAct), color::red + "❌ This channel already exists! Please, choose another channel name.\n" + color::reset);
+		return ;
+	}
+	else
+		channels.push_back(Channel(words[2], (*data)[indexAct].getUsername(), data));
+
+}
+
+void	Server::deleteChannel_m(uint32_t indexAct, std::string &argument)
+{
+	argument.erase(std::remove(argument.begin(), argument.end(), '\n'), argument.end());
+	std::vector<std::string> words = split(argument, ' ');
+
+	if ((*data)[indexAct].getRole() != CL_ROOT)
+	{
+		sendMsgUser(data->getFd(indexAct), color::red + "❌ This is an admin only command! Check your roles and try again.\n" + color::reset);
+		return ;
+	}
 	std::deque<Channel>::iterator it;
 
-	it += channelIndex;
+	it += findChannel(words[2]);
 	channels.erase(it);
 }
-*/
-/* ------------------------------------------------------------ */
-/*							OBSOLETE							*/
-/* ------------------------------------------------------------ */
 
+void	Server::myInfo_m(uint32_t indexAct, std::string &argument)
+{
+	argument.erase(std::remove(argument.begin(), argument.end(), '\n'), argument.end());
+	(void)argument;
+	Client &user = (*data)[indexAct];
+	std::string	msg = "\t\tYour user info:\n";
+				msg += "\t\tUsername: " + user.getUsername() + "\n";
+				msg += "\t\tCurrent Nickname: " + user.getNickname() + "\n";
+				msg += "\t\tCurrent Channel: " + channels[user.getChannel()].getName() + "\n";
+				msg += "\t\tCurrent role: " + std::to_string(user.getRole()) + "\n";
+				msg += "\t\tCurrent state: " + std::to_string(user.getState()) + "\n";
+				
+	sendMsgUser(data->getFd(indexAct), msg);
+}
 
+/*
 bool Server::joinChannel(uint32_t indexAct, std::string input) {
 	
 	uint8_t channelIndex;
@@ -492,7 +586,7 @@ bool Server::joinChannel(uint32_t indexAct, std::string input) {
 
 	if (channelIndex < channels.size())
 	{
-		sendMsgUser(data->getFd(indexAct), "✅ You've been successfully connected to the channel!\n");
+		sendMsgUser(data->getFd(indexAct), color::boldgreen + "✅ You've been successfully connected to the channel!\n" + color::reset);
 		channels[channelIndex].addClient(indexAct);
 		//sendMsgUser(pollfds[indexAct].fd, color::red + registered[actives[indexAct].index].getUsername() + color::reset);
 		//deberia mandar el mensaje el propio channel
@@ -502,14 +596,9 @@ bool Server::joinChannel(uint32_t indexAct, std::string input) {
 	else
 		sendMsgUser(data->getFd(indexAct), color::red + "❌ Incorrect channel, please try again.\n-> " + color::reset);
 		return false;
-}
+}*/
 
-// void Server::writeInChannel(uint32_t index, uint)
-// {
-
-// }
-/*
-void Server::showChannelsUser(int fd) const
+/*void Server::showChannels_m(int fd) const
 {
 	sendMsgUser(fd, "💭 Chat channels:\n");
 	for(std::deque<Channel>::iterator it = channels.begin() + 1; it != channels.end(); it++)
@@ -519,8 +608,8 @@ void Server::showChannelsUser(int fd) const
 		sendMsgUser(fd, (*it).getName());
 		sendMsgUser(fd, "\n");
 	}
-}
-*/
+}*/
+
 
 /* ------------------------------------------------------------ */
 /*							UTILS								*/
@@ -603,28 +692,35 @@ void Server::sendMsgUser(int fd, const std::string &str) const
 	send(fd, str.c_str(), str.size(), 0);
 }
 
-
+bool checkAdmin(Client *client) {
+	if (client->getRole() == CL_ROOT)
+		return true;
+	else
+		return false;
+}
 
 //////////    INIT SETTINGS   ///////
 
 void Server::setCommands()
 {
-	commands.cmd[0] = "nickname_edit";
-	commands.cmd[1] = "password_edit";
-	commands.cmd[2] = "role_edit";
-	commands.cmd[3] = "join_channel";
-	commands.cmd[4] = "leave_server";
+	commands.cmd[0] = "change nickname";
+	commands.cmd[1] = "change password";
+	commands.cmd[2] = "root";
+	commands.cmd[3] = "join channel";
+	commands.cmd[4] = "leave server";
 	commands.cmd[5] = "susurro";
-	commands.cmd[6] = "leave_channel";
-	commands.cmd[7] = "/0";
-	//commands.func[0] = &Server::nickname_edit;
-	//commands.func[1] = &Server::password_edit;
-	//commands.func[2] = &Server::role_edit;
-	//commands.func[3] = &Server::join_channel;
-	//commands.func[4] = &Server::leave_channel;
-	//commands.func[5] = &Server::leave_server;
-	//commands.func[6] = &Server::susurro;
-	//commands.func[7] = NULL;
+	commands.cmd[6] = "leave channel";
+	commands.cmd[7] = "my info";
+	commands.cmd[8] = "create channel";
+	commands.func[0] = &Server::nickname_edit_m;
+	commands.func[1] = &Server::password_edit_m;
+	commands.func[2] = &Server::role_edit_m;
+	commands.func[3] = &Server::join_channel_m;
+	commands.func[4] = &Server::leave_channel_m;
+	commands.func[5] = &Server::leave_server_m;
+	commands.func[6] = &Server::susurro_m;
+	commands.func[7] = &Server::myInfo_m;
+	commands.func[8] = &Server::createChannel_m;
 }
 
 /////////////////  PRINT INFO   /////////////////

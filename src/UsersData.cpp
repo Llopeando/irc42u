@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/28 16:36:33 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/28 20:36:12 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/05/05 19:59:20 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,8 @@ UsersData::UsersData()
 	// ...
 	registered.push_back((*this)[0]);
 	(*this)[0].setRole(CL_ROOT);
-	//password
+	(*this)[0].setPassword("root");
+
 }
 
 UsersData::~UsersData()

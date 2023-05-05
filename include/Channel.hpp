@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 16:47:46 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/03 17:43:01 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/05/05 19:16:47 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,11 +34,14 @@ class Channel
 	public:
 		Channel(std::string name, std::string username, UsersData *data);
 		~Channel();
-		std::string const 	getName()const;
+		
+		std::string			getName()const;
 		void 				addClient(uint32_t indexAct);
+		void				removeClient(uint32_t indexAct);
 		void 				broadcast(uint32_t indexAct, std::string const &msg);
 		void				refresh(uint32_t indexAct);
 		void				flushLog(Client &user, uint32_t user_pos);
+		
 	private:
 		uint32_t numOfUsers;
 		UsersData *data;
@@ -51,7 +54,7 @@ class Channel
 		//Punteros a arrays de server	
 		uint32_t	findUser(uint32_t indexAct)const;
 		void		sendMsgUser(uint32_t user_pos, std::string const &str) const;
-		void		sendMsgChannel(uint32_t indexAct, std::string const &str);
+		void		sendMsgChannel(uint32_t user_pos, std::string const &str, bool val);
 		void		sendInfoChannel(uint32_t user_pos, std::string const &str);
 		
 };

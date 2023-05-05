@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/24 19:03:45 by ullorent          #+#    #+#             */
-/*   Updated: 2023/04/28 20:50:33 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/05/05 19:26:43 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ class Client
 		void		setUsername(std::string username);
 		std::string	getUsername()const;
 		void		setNickname(std::string nickname);
+		std::string	getNickname()const;
 		void		setPassword(std::string password);
 		bool		getNewClient() const;
 		void		setNewClient(bool check);

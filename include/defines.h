@@ -6,7 +6,7 @@
 /*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 17:54:32 by ecamara           #+#    #+#             */
-/*   Updated: 2023/04/28 19:36:58 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/05/05 16:43:45 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <iostream>
 
 #define SERVER_FAILURE -1
+
 #define CL_STATE_SERVER_PASSWORD 0
 #define CL_STATE_LOG_IN 1
 #define CL_STATE_SELECT_USERNAME 2
