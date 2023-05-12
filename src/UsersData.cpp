@@ -1,33 +1,21 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   UsersData.cpp                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/04/28 16:36:33 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/05 19:59:20 by ecamara          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "../include/UsersData.hpp"
 
 UsersData::UsersData()
 {
-	//reservar posicion 0 de todos los array como INTOCABLES: cliente SERVER a pollfds[0] ,  activeindex , tmp y a registered , 
-	int fd;
-	if ((fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SERVER_FAILURE)
-	{
-		perror("socket failed");
-		exit(EXIT_FAILURE);
-	}
-	newTempUser(fd);
-	tempClients[0].setUsername("ROOT");
-	// ...
-	registered.push_back((*this)[0]);
-	(*this)[0].setRole(CL_ROOT);
-	(*this)[0].setPassword("root");
 
+}
+
+UsersData::UsersData(t_serverInput serverInfo)
+{
+	// posicion 0 de todos los array como INTOCABLES: pollfds 0 SERVER y cliente 0 ROOT
+	pollfd server;
+	Client root;
+
+	setSocket(server, serverInfo);
+
+	server.events = POLLOUT | POLLIN;
+	pollfds.push_back(server);
+	clients.push_back(root);
 }
 
 UsersData::~UsersData()
@@ -35,6 +23,32 @@ UsersData::~UsersData()
 	
 }
 
+void	UsersData::addClient(pollfd userPollfd,Client newClient)
+{
+	
+	pollfds.push_back(userPollfd);
+	clients.push_back(newClient); //CLIENTE VACIO
+}
+
+void	UsersData::setSocket(pollfd &server, t_serverInput &serverInfo){
+
+	if ((server.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SERVER_FAILURE)
+	{
+		perror("socket failed");
+		exit(EXIT_FAILURE);
+	}
+	if (bind(server.fd, (const struct sockaddr*)&serverInfo.address, sizeof(serverInfo.address)) == SERVER_FAILURE)
+	{
+		perror("socket bind failed");
+		exit(EXIT_FAILURE);
+	}
+	
+	fcntl(server.fd, F_SETFL, O_NONBLOCK);
+
+}
+
+
+/*
 void UsersData::newRegisteredUser(uint32_t indexAct)
 {
 	uint32_t indexTemp = actives[indexAct].index;
@@ -100,13 +114,12 @@ void UsersData::newTempUser(int fd)
 	//añadir a temp
 	tempClients.push_back(Client());
 
-	std::cout << "----------ARRAY ha entrado con bool [" << (*this)[newClientIdxAct.index].getInputBlock()  << "]"<< std::endl;
 }
 
 int UsersData::getFd(uint32_t indexAct)const{
 	return pollfds[indexAct].fd;
 }
-
+*/
 /*struct pollfd UsersData::getPollfd(uint32_t indexAct)const
 {
 
@@ -118,7 +131,7 @@ struct pollfd *UsersData::getPollfdData()
 	return pollfds.data();
 }*/
 
-
+/*
 std::vector<struct pollfd>&	UsersData::Pollfd(){
 	return this->pollfds;
 }
@@ -161,4 +174,35 @@ uint32_t	UsersData::findUsername(const std::string &username) const
 		}
 	}
 	return (0);
+}
+*/
+pollfd *UsersData::getPollfdData()
+{
+	return pollfds.data();
+}
+
+uint32_t UsersData::size()const
+{
+	return clients.size();
+}
+
+
+Client &UsersData::operator[](clientIt idx)
+{
+	return clients[idx];
+}
+
+const Client &UsersData::operator[](clientIt idx) const
+{
+	return clients[idx];
+}
+
+pollfd &UsersData::operator[](pollfdIt idx)
+{
+	return pollfds[idx];
+}
+
+const pollfd &UsersData::operator[](pollfdIt idx) const
+{
+	return pollfds[idx];
 }

@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Channel.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/24 20:30:41 by ullorent          #+#    #+#             */
-/*   Updated: 2023/04/13 18:50:221 by ecamara          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "../include/Channel.hpp"
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
@@ -27,6 +15,7 @@ Channel::~Channel() {
 }
 
 /* --- GETTER --- */
+/*
 std::string Channel::getName() const{
 	return (name);
 }
@@ -62,12 +51,12 @@ void Channel::removeClient(uint32_t indexAct){
 	sendMsgChannel(user_pos, infoMsg, true);
 	(*data)[indexAct].setState(CL_STATE_LOBBY);
 }
-
+*/
 /* ------------------------------------------------------------ */
 /*					SEND MESSAGES IN CHANNEL					*/
 /* ------------------------------------------------------------ */
 //de momento va duplicado, uno en channel y otro en server 
-
+/*
 void	Channel::sendMsgUser(uint32_t user_pos, std::string const &str) const {
 	int buffer_size = 65536;      //en defines?
 	setsockopt(data->getFd(users[user_pos]), SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size));
@@ -82,7 +71,7 @@ void Channel::flushLog(Client &user, uint32_t user_pos){
 		sendMsgUser(user_pos, "\t\t\t" + msg_log[i]);
 	i -= user.getLastMsgIdx();
 	user.addLastMsgIdx(i);
-}
+}*/
 /*
 void	Channel::sendInfoChannel(uint32_t user_pos, std::string const &str)
 {
@@ -96,7 +85,7 @@ void	Channel::sendInfoChannel(uint32_t user_pos, std::string const &str)
 		}
 	}
 }*/
-
+/*
 void	Channel::sendMsgChannel(uint32_t user_pos, std::string const &str, bool val)
 {
 	std::string msg;
@@ -140,3 +129,4 @@ void Channel::refresh(uint32_t indexAct)
 	uint32_t user_pos = findUser(indexAct);
 	flushLog((*data)[indexAct], user_pos);
 }
+*/

@@ -1,19 +1,8 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/03 16:48:56 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/05 19:50:17 by ecamara          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <iostream>
 #include "include/defines.h"
 #include <vector>
 #include <string>
+
 
 uint32_t countWords(const char *str, char c)
 {
@@ -59,8 +48,11 @@ std::vector<std::string> split(const std::string &string, const char c)
 	return finalString;
 }
 
+
+
 int main()
 {
+	printIp();
 	std::string name = "my name is eneko";
 	std::vector<std::string> words = split(name, ' ');
 	for (auto word : words)

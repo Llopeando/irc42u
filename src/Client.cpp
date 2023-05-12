@@ -1,26 +1,9 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Client.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/24 20:26:04 by ullorent          #+#    #+#             */
-/*   Updated: 2023/05/05 19:57:36 by ecamara          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "../include/Client.hpp"
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
-Client::Client(){
-	state = CL_STATE_SERVER_PASSWORD;
-	active = CL_STATE_ACTIVE;
-	channel = 0;
-	inputBlock = true;
-	lastMsgIndex = 0;
-	newClient = true;
-	role = CL_USER;
+Client::Client():role(1){
+	
+
 }
 
 Client::Client(const Client &client)

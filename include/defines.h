@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   defines.h                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/04/13 17:54:32 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/05 16:43:45 by ecamara          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef DEFINES_H
 #define DEFINES_H
 
@@ -31,7 +19,7 @@
 #define CL_USER 0
 #define CL_ROOT 1
 
-#define RCVBUFSIZE 32
+#define RCVBUFSIZE 1024
 
 namespace color {
 	const std::string reset		= "\033[0m";
@@ -64,5 +52,47 @@ typedef struct activeIndex
 	bool		registered;
 	uint32_t	index;
 }t_activeIndex;
+
+struct clientIt{
+	uint32_t index;
+	clientIt(int value = 0):index(value){};
+	operator uint32_t() const {
+		return index;
+	}
+	clientIt& operator=(uint32_t value){
+		index = value;
+		return *this;
+	}
+	clientIt& operator++() {
+		++index;
+		return *this;
+	}
+	clientIt operator++(int) {
+		clientIt tmp(*this);
+		++index;
+		return tmp;
+	}
+};
+
+struct pollfdIt{
+	uint32_t index;
+	pollfdIt(int value = 0):index(value){};
+	operator uint32_t() const {
+		return index;
+	}
+	pollfdIt& operator=(uint32_t value){
+		index = value;
+		return *this;
+	}
+	pollfdIt& operator++() {
+		++index;
+		return *this;
+	}
+	pollfdIt operator++(int) {
+		pollfdIt tmp(*this);
+		++index;
+		return tmp;
+	}
+};
 
 #endif

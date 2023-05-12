@@ -1,30 +1,23 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/10 17:22:37 by ullorent          #+#    #+#             */
-/*   Updated: 2023/05/05 19:54:31 by ecamara          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "../include/Server.hpp"
+
+#include <ifaddrs.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <netdb.h>
 
 std::vector<std::string> split(const std::string &string, const char c)
 {
 	std::vector<std::string> finalString;
 	bool		lock = false;
 	uint32_t	index = 0;
-	uint32_t i;
+	uint32_t	i;
 	for (i = 0; i < string.size(); i++)
 	{
 		if (string[i] == c && lock == true && i != index)
 		{
-			std::cout << "["<< i << "][" << string.substr(index, i - index) << "]\n";
+			//std::cout << "[" << i << "][" << string.substr(index, i - index) << "]\n" << std::flush;
 			finalString.push_back(string.substr(index, i - index));
-			index = i+1;
+			index = i + 1;
 			lock = false;
 		}
 		if (string[i] != c)
@@ -32,12 +25,47 @@ std::vector<std::string> split(const std::string &string, const char c)
 	}
 	if (lock == true)
 	{
-		std::cout << "["<< i << "][" << string.substr(index, i - index) << "]\n";
+		//std::cout << "["<< i << "][" << string.substr(index, i - index) << "]\n";
 		finalString.push_back(string.substr(index, i - index));
 	}
-	std::cout << "split end size = " << finalString.size() << '\n';
+	//std::cout << "split end size = " << finalString.size() << '\n';
 	return finalString;
 }
+
+std::vector<std::string> splitIrcPrameters(const std::string &string, const char c)
+{
+	std::vector<std::string> finalString;
+	bool		lock = false;
+	uint32_t	index = 0;
+	uint32_t	i;
+	for (i = 0; i < string.size(); i++)
+	{
+		if (string[i] == ':')
+		{
+			lock = false;
+			finalString.push_back(string.substr(index, i - index));
+			finalString.push_back(string.substr(i + 1, string.size() - i));
+			return finalString;
+		}
+		if (string[i] == c && lock == true && i != index)
+		{
+			//std::cout << "[" << i << "][" << string.substr(index, i - index) << "]\n" << std::flush;
+			finalString.push_back(string.substr(index, i - index));
+			index = i + 1;
+			lock = false;
+		}
+		if (string[i] != c)
+			lock = true;
+	}
+	if (lock == true)
+	{
+		//std::cout << "["<< i << "][" << string.substr(index, i - index) << "]\n";
+		finalString.push_back(string.substr(index, i - index));
+	}
+	//std::cout << "split end size = " << finalString.size() << '\n';
+	return finalString;
+}
+
 
 void	serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
 {
@@ -51,12 +79,38 @@ void	serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
 	serverInfo->address.sin_family = AF_INET;
 	serverInfo->address.sin_addr.s_addr = INADDR_ANY;
 	serverInfo->address.sin_port = htons( port ); //mirar htons
+}
+
+void printIp()
+{
+	struct ifaddrs *ifaddr, *ifa;
+	if (getifaddrs(&ifaddr) == -1) {
+		std::cerr << "getifaddrs failed" << std::endl;
+		return ;
 	}
+	for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+		if (ifa->ifa_addr == nullptr) {
+			continue;
+		}
+		if (ifa->ifa_addr->sa_family == AF_INET && !(ifa->ifa_flags & IFF_LOOPBACK)) {
+			char host[NI_MAXHOST];
+			int res = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST);
+			if (res != 0) {
+				std::cerr << "getnameinfo failed: " << gai_strerror(res) << std::endl;
+			} else {
+				std::cout << "IP address: " << host << '\n';
+			}
+			break;
+		}
+	}
+	freeifaddrs(ifaddr);
+}
 
 int	main(int argc, char *argv[])
 {
 	t_serverInput serverInfo;
-	
+
+	printIp();	
 	try {
 		serverCreateInfo(argv + 1, argc, &serverInfo);
 	}
