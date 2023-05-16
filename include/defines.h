@@ -5,13 +5,10 @@
 
 #define SERVER_FAILURE -1
 
-#define CL_STATE_SERVER_PASSWORD 0
-#define CL_STATE_LOG_IN 1
-#define CL_STATE_SELECT_USERNAME 2
-#define CL_STATE_INTRODUCE_PERSONAL_PASSWORD 3
-#define CL_STATE_SELECT_NICKNAME 4
-#define CL_STATE_LOBBY 5
-#define CL_STATE_IN_CHANNEL 6
+#define CL_STATE_OK 0
+#define CL_STATE_INPUT 1
+#define CL_STATE_LS 2
+#define CL_STATE_REQ 3
 
 #define CL_STATE_ACTIVE 1
 #define CL_STATE_INACTIVE 0
@@ -20,6 +17,33 @@
 #define CL_ROOT 1
 
 #define RCVBUFSIZE 1024
+
+#define NICK "NICK"
+#define USER "USER"
+#define JOIN "JOIN"
+//#define PART "PART"
+#define PRIVMSG "PRIVMSG"
+//#define NOTICE "NOTICE"
+//#define QUIT "QUIT"
+//#define TOPIC "TOPIC"
+//#define MODE "MODE"
+//#define NAMES "NAMES"
+//#define WHOIS "WHOIS"
+//#define KICK "KICK"
+#define AWAY "AWAY"
+//#define INVITE "INVITE"
+#define PING "PING"
+//#define CAP "CAP"
+
+//#define CAP_REQ "REQ"
+//#define CAP_LS "LS"
+//#define CAP_END "END"
+//#define CAP_ACK "ACK"
+//#define CAP_NAK "NACK"
+
+//CREAR DEFINES DE NUMEROS: RPL_WELCOME = 001
+
+
 
 namespace color {
 	const std::string reset		= "\033[0m";

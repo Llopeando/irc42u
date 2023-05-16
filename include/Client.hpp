@@ -17,11 +17,12 @@ class Client
 		Client& operator=(const Client& client);
 
 		uint8_t getState()const;
-		void	setState(uint8_t state);
+		bool	getAwayStatus()const;
 
 		uint32_t	getRole()const;
 		void		setRole(uint8_t role);
-	
+
+		void		setAwayStatus(bool isAway);
 		void		setUsername(std::string username);
 		std::string	getUsername()const;
 		void		setNickname(std::string nickname);
@@ -47,10 +48,9 @@ class Client
 		uint8_t channel;
 		uint8_t role;
 		uint8_t state;
-		bool	active;
+		bool	isAway;
 		bool	inputBlock;
 		bool	newClient;
-		
 };
 
 #endif

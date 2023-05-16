@@ -106,6 +106,16 @@ void printIp()
 	freeifaddrs(ifaddr);
 }
 
+std::string joinStr(std::vector<std::string>& arguments, uint32_t index)
+{
+	std::string finalString = "";
+	for (uint32_t i = index; i < arguments.size(); i++)
+	{
+		finalString += arguments[i];
+	}
+	return finalString;
+}
+
 int	main(int argc, char *argv[])
 {
 	t_serverInput serverInfo;

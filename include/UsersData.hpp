@@ -25,6 +25,7 @@ class UsersData{
 		~UsersData();
 
 		pollfd *getPollfdData();
+		clientIt findUsername(std::string argument);
 
 		void	addClient(pollfd clientPollfd, Client newClient);
 

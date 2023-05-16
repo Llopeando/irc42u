@@ -24,9 +24,9 @@ class Channel
 		~Channel();
 		
 		std::string			getName()const;
-		void 				addClient(uint32_t indexAct);
+		void 				addClient(clientIt index);
 		void				removeClient(uint32_t indexAct);
-		void 				broadcast(uint32_t indexAct, std::string const &msg);
+		void 				broadcast(clientIt sender, std::string const &msg);
 		void				refresh(uint32_t indexAct);
 		void				flushLog(Client &user, uint32_t user_pos);
 		
@@ -41,9 +41,11 @@ class Channel
 		
 		//Punteros a arrays de server	
 		uint32_t	findUser(uint32_t indexAct)const;
-		void		sendMsgUser(uint32_t user_pos, std::string const &str) const;
-		void		sendMsgChannel(uint32_t user_pos, std::string const &str, bool val);
+		void		sendMsgUser(clientIt it, const std::string &str) const;
+		//void		sendMsgUser(uint32_t user_pos, std::string const &str) const;
+	//	void		sendMsgChannel(uint32_t user_pos, std::string const &str, bool val);
 		void		sendInfoChannel(uint32_t user_pos, std::string const &str);
+		
 		
 };
 

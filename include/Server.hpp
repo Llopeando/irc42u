@@ -15,24 +15,33 @@
 #include <fcntl.h>
 #include <vector>
 
+#include <cerrno>
+#include <system_error>
+
 #include "defines.h"
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "color.h"
 #include "UsersData.hpp"
 
+
+void printIp();
+std::string joinStr(std::vector<std::string>& arguments, uint32_t index);
 std::vector<std::string> split(const std::string &string, char c);
 std::vector<std::string> splitIrcPrameters(const std::string &string, const char c);
 
 class Server;
 
-#define COMMANDS 9
+#define COMMANDS 6
+#define CAP_COMMANDS 6
 
-typedef struct s_commands
-{
-	std::string	cmd[COMMANDS];
-	void (Server::*func[COMMANDS])(uint32_t index, std::string &argument);
-}t_commands;
+
+struct Commands{
+	std::string cmd[COMMANDS];
+	void (Server::*func[COMMANDS])(clientIt index, std::vector<std::string> &arguments);
+	std::string cap_cmd[CAP_COMMANDS];
+	void (Server::*cap_func[CAP_COMMANDS])(clientIt index, std::vector<std::string> &arguments);
+};
 
 
 
@@ -51,6 +60,9 @@ class Server
 		void	acceptConnection();
 		void	listenConnection();
 		void	handleNewUser(std::string &input, clientIt);
+		void	handleInput(clientIt index, std::string input);
+		void	sendCapabilities(pollfdIt index);
+		void	acknowledgeCapabilities(pollfdIt index, std::string input);
 
 		void	saveNick(std::vector<std::string> &arguments, Client &newUser);
 		void	saveUser(std::vector<std::string> &arguments, Client &newUser);
@@ -59,13 +71,42 @@ class Server
 		void	handleEvents(pollfdIt index);
 
 		std::string	readTCPInput(int client_fd);
-		void	sendMsgUser(int fd, const std::string &str) const;
+		//void	sendMsgUser(int fd, const std::string &str) const;
+		void	sendMsgUser(clientIt it, const std::string &str) const;
+		void	setCommands();
+
+
+		//COMMAND FUNCTIONS
+		void	nick(clientIt index, std::vector<std::string> &arguments);
+		void	user(clientIt index, std::vector<std::string> &arguments);
+		void	join(clientIt index, std::vector<std::string> &arguments);
+		void	part(clientIt index, std::vector<std::string> &arguments);
+		void	privmsg(clientIt index, std::vector<std::string> &arguments);
+		void	notice(clientIt index, std::vector<std::string> &arguments);
+		void	quit(clientIt index, std::vector<std::string> &arguments);
+		void	topic(clientIt index, std::vector<std::string> &arguments);
+		void	mode(clientIt index, std::vector<std::string> &arguments);
+		void	names(clientIt index, std::vector<std::string> &arguments);
+		void	whois(clientIt index, std::vector<std::string> &arguments);
+		void	kick(clientIt index, std::vector<std::string> &arguments);
+		void	away(clientIt index, std::vector<std::string> &arguments);
+		void	invite(clientIt index, std::vector<std::string> &arguments);
+		void	ping(clientIt index, std::vector<std::string> &arguments);
+		void	cap(clientIt index, std::vector<std::string> &arguments);
+		uint32_t	findChannel(const std::string &name) const;
+
+		//COMMAND CAP FUNCTIONS
+		void	cap_req(clientIt index, std::vector<std::string> &arguments);
+		void	cap_ls(clientIt index, std::vector<std::string> &arguments);
+		void	cap_end(clientIt index, std::vector<std::string> &arguments);
+		void	cap_ack(clientIt index, std::vector<std::string> &arguments);
+		void	cap_nak(clientIt index, std::vector<std::string> &arguments);
 
 		int	status;
 		t_serverInput serverInfo;
 		std::deque<Channel> channels;
 		UsersData data;
-		t_commands commands;
+		Commands commands;
 		
 		
 		
@@ -73,7 +114,6 @@ class Server
 
 
 		
-		//void	setCommands();
 		//
 		//bool	checkServerPassword(Client *newClient, uint32_t index, std::string &input);
 		//void	loginChoice(Client *newClient, uint32_t index, std::string &input);
@@ -95,7 +135,6 @@ class Server
 		//void	createChannel_m(uint32_t indexAct, std::string &argument);
 		//void	deleteChannel_m(uint32_t indexAct, std::string &argument);
 		//void	myInfo_m(uint32_t indexAct, std::string &argument);
-		//uint32_t	findChannel(const std::string &name) const;
 //
 		//uint32_t	findUsername(const std::string &username)const;
 //

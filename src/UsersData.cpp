@@ -25,7 +25,6 @@ UsersData::~UsersData()
 
 void	UsersData::addClient(pollfd userPollfd,Client newClient)
 {
-	
 	pollfds.push_back(userPollfd);
 	clients.push_back(newClient); //CLIENTE VACIO
 }
@@ -205,4 +204,12 @@ pollfd &UsersData::operator[](pollfdIt idx)
 const pollfd &UsersData::operator[](pollfdIt idx) const
 {
 	return pollfds[idx];
+}
+
+clientIt UsersData::findUsername(std::string argument)
+{
+	for(clientIt i = 0  ; i < this->size(); i++)
+		if (clients[i].getUsername() == argument )
+			return(i);
+	return (0);
 }

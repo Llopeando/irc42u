@@ -2,8 +2,7 @@
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
 Client::Client():role(1){
-	
-
+	state = CL_STATE_INPUT;
 }
 
 Client::Client(const Client &client)
@@ -24,7 +23,7 @@ Client& Client::operator=(const Client& client) {
 	this->channel = client.channel;
 	this->role = client.role;
 	this->state = client.state;
-	this->active = client.active;
+	this->isAway = client.isAway;
 	this->inputBlock = client.inputBlock;
     }
     return *this;
@@ -37,8 +36,12 @@ uint8_t	Client::getState() const {
 	return state;
 }
 
-void	Client::setState(uint8_t state) {
-	this->state = state;
+bool	Client::getAwayStatus() const {
+	return isAway;
+}
+
+void	Client::setAwayStatus(bool isAway) {
+	this->isAway = isAway;
 }
 
 void Client::setUsername(std::string username) {
