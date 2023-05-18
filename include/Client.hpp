@@ -16,27 +16,27 @@ class Client
 		
 		Client& operator=(const Client& client);
 
-		uint8_t getState()const;
-		bool	getAwayStatus()const;
-
-		uint32_t	getRole()const;
-		void		setRole(uint8_t role);
-
-		void		setAwayStatus(bool isAway);
-		void		setUsername(std::string username);
 		std::string	getUsername()const;
-		void		setNickname(std::string nickname);
+		std::string	getAwayMsg()const;
 		std::string	getNickname()const;
-		void		setPassword(std::string password);
 		bool		getNewClient() const;
-		void		setNewClient(bool check);
+		bool		getInputBlock()const;
+		bool		getAwayStatus() const;
+		uint8_t		getState() const;
 		uint32_t	getChannel()const;
 		uint32_t	getLastMsgIdx()const;
-		bool		getInputBlock()const;
+		uint32_t	getRole()const;
 
-		
-		void		addLastMsgIdx(uint32_t num);
+		void		setRole(uint8_t role);
+		void		setAwayStatus(bool isAway);
+		void		setAwayMsg(std::string away_msg);
+		void		setUsername(std::string username);
+		void		setNickname(std::string nickname);
+		void		setPassword(std::string password);
+		void		setNewClient(bool check);
 		void		setLastMsgIdx(uint32_t msgIdx);
+
+		void		addLastMsgIdx(uint32_t num);
 		void		resetLastMsgIdx();
 		bool		checkPassword(std::string pass) const;
 		
@@ -44,6 +44,7 @@ class Client
 		std::string nickname;
 		std::string username;
 		std::string password;
+		std::string away_msg;
 		uint32_t lastMsgIndex; //ultimo mensaje leido
 		uint8_t channel;
 		uint8_t role;

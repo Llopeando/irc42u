@@ -9,8 +9,6 @@ Server::Server(t_serverInput *serverInput):serverInfo(*serverInput)
 	data =  UsersData(serverInfo);
 	setCommands();
 	channels.push_back(Channel("Lobby", data[(clientIt)0].getUsername() , &data));
-	channels.push_back(Channel("Sala", data[(clientIt)0].getUsername() , &data));//temporal
-	
 
 }
 
@@ -86,6 +84,7 @@ void	Server::acceptConnection() {
 	struct pollfd new_client;
 
 	std::cout << "The connection has been accepted, continuing" << std::endl;
+	//////PINGGGGGGGGGGGGGGGGGG//////
 	if ((new_client.fd = accept(data[(pollfdIt)0].fd, (struct sockaddr *)&serverInfo.address, &size)) == SERVER_FAILURE)
 	{
 		perror("connection refused");
@@ -96,44 +95,6 @@ void	Server::acceptConnection() {
 	//sendMsgUser(data.size() - 1, "Welcome to - A O I R C - \n");
 }
 
-/* ------------------------------------------------------------ */
-/*					    	NEW USER 							*/
-/* ------------------------------------------------------------ */
-
-void Server::handleNewUser(std::string &input, clientIt idx)
-{
-	//std::cout << "NEW USER\n";
-	std::vector<std::string> lines = split(input, '\n');
-
-	for (uint32_t i = 0; i < lines.size();i++)
-	{
-		std::vector<std::string> arguments = splitIrcPrameters(lines[i], ' ');
-		if (i == 1) //NICK
-			saveNick(arguments, data[idx]);
-		else if (i == 2) //USER
-			saveUser(arguments, data[idx]);
-	}
-	//data[idx].setState(CL_STATE_LS);
-	//data.addClient(newUser);
-}
-
-void Server::saveNick(std::vector<std::string> &arguments, Client &client)
-{
-	client.setNickname(arguments[1]);
-}
-
-void Server::saveUser(std::vector<std::string> &arguments, Client &client)
-{
-	if (arguments.size() < 2)
-	{
-		std::cout << "failed to recieved input\n";
-	}
-	client.setUsername(arguments[1]);
-	client.setRole(atoi(arguments[2].c_str()));
-}
-
-
-
 /* ---------------------------------------------------------------------------------------- */
 /*						POLL() AND HANDLE EVENTS	 (incoming requests and inputs)	    //La nueva minishell		*/
 /* ---------------------------------------------------------------------------------------- */
@@ -141,14 +102,15 @@ void Server::saveUser(std::vector<std::string> &arguments, Client &client)
 
 void Server::handleInput(clientIt index, std::string input) 
 {
-	std::vector<std::string>arguments = split(input, ' ');
-	std::cout << "[" << arguments[0].c_str() << "]\n";
-	std::cout << "[" << arguments[1].c_str() << "]\n";
+	std::vector<std::string>arguments = splitIrcPrameters(input, ' ');
+	//std::cout << "[" << arguments[0].c_str() << "]\n";
+	//std::cout << "[" << arguments[1].c_str() << "]\n";
 	for (uint32_t i = 0; i < COMMANDS; i++)
 	{
 		if (commands.cmd[i] == arguments[0])
 		{
 			//std::cout << "command reached\n";
+			//////////////KAREN/////////////////////
 			(this->*(commands.func[i]))(index, arguments);
 			return ;
 		}
@@ -163,7 +125,8 @@ void Server::handleEvents(pollfdIt index)
 	if (data[index].revents & POLLIN)
 	{
 		std::string input = readTCPInput(data[index].fd);
-		std::cout << color::red << "\t\t[RECEIVED MESSAGE]\n\t\t" << color::boldwhite << input << color::reset;
+		//std::cout << color::red << "\t\t[RECEIVED MESSAGE]\n\t\t" << color::boldwhite; //<< input << color::reset;
+		std::cout <<"\n" << color::reset;
 		std::vector<std::string> lines = split(input, '\n');
 		for (uint32_t i = 0; i < lines.size();i++)
 		{
@@ -178,7 +141,6 @@ void Server::handleEvents(pollfdIt index)
 /* ---------------------------------------------------------------------------------------- */
 
 
-	//COMMAND FUNCTIONS
 	
 void	Server::nick(clientIt index, std::vector<std::string> &arguments)
 {
@@ -194,19 +156,16 @@ void	Server::user(clientIt index, std::vector<std::string> &arguments)
 	//sendMsgUser(data[(pollfdIt)index].fd, message);
 	std::string message = "001 " + data[index].getNickname() + " :Welcome to A O I R C\n" ;
 	sendMsgUser(index, message);
-	//std::string welcome = "001 " + data[index].getNickname() + " :Welcome to A O I R C server\n";
-	//sendMsgUser(data[(pollfdIt)index].fd, message);
-	std::cout << "----------New user changed: " << data[index].getUsername() << "]\n";
+	channels[0].addClient(index); //join to lobby
+	//std::cout << "----------New user changed: " << data[index].getUsername() << "]\n";
 
 }
 
 
 void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 {
-	(void)index;
-	//aqui tiene que mirar argument[1] : #channel o username 
 
-	std::string message = ":" + data[index].getNickname() +  " " +  arguments[0] + " " + data[index].getNickname() + " :" + joinStr(arguments, 2) + "\r\n";
+	std::string message = ":" + data[index].getNickname() +  " " +  arguments[0] + " " + arguments[1] + " :" + joinStr(arguments, 2) + "\r\n";
  
 	if (arguments[1][0] == '#') 	//to a CHANNEL 
 	{
@@ -220,30 +179,32 @@ void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 		clientIt user = data.findUsername(arguments[1]);
 		if (!user)
 			return;
-	//	std::cout << "----------Mesage to : " << data[user].getNickname() << ": "<< message <<"]\n";
+		//write(0, message.c_str(), message.size());
 		sendMsgUser(user, message);
 	}
 }
 
-
-
-
-
-///////////////////////////PROXIMAMENTE
-
 void	Server::join(clientIt index, std::vector<std::string> &arguments)
 {
 
-	uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 2));
-	if(!channel)
-			return;
+	uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 1));
+	if(!channel)//si no existe se crea 
+	{
+		channels.push_back(Channel(arguments[1].substr(1, arguments[1].size() - 1), data[index].getUsername(), &data));
+		channel = channels.size() - 1;
+		std::string info =  channels[channel].getName() + " channel created\r\n";
+		channels[0].broadcast(0, info);
+	}
 	channels[channel].addClient(index);
-	//////////ARREGLAR AQUIIIIIIII////////// TODO TIENE SALTO DE LINEA 
-	std::string message =  data[index].getNickname() +  "has joined the channel\r\n";
-	
-	channels[channel].broadcast(0, message);
+	std::string message =  data[index].getNickname() +  " has joined the channel\r\n";
+	std::string messageToUser = ":" + std::string(SERVER_NAME) + " You have joined " + channels[channel].getName() + " channel\r\n";
+	channels[channel].broadcast(index, message);
+	sendMsgUser(index, messageToUser);
 }
 
+///////////////////////////PROXIMAMENTE
+
+/*
 
 void	Server::part(clientIt index, std::vector<std::string> &arguments)
 {
@@ -297,28 +258,32 @@ void	Server::kick(clientIt index, std::vector<std::string> &arguments)
 	(void)index;
 	(void)arguments;
 }
-
+*/
 void	Server::away(clientIt index, std::vector<std::string> &arguments)
 {
+	// if (arguments[1])
+	// 	data[index].setAwayMsg(arguments[0]);
+	// else
 	(void)arguments;
-	std::cout << "DENTRO DE AWAY" << std::endl;
+	data[index].setAwayMsg("Im Away From the Keyboard... I'll be right back!");
 	if (data[index].getAwayStatus() == true) {
 		data[index].setAwayStatus(false);
 		std::string message = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :You are no longer away.\r\n";
 		sendMsgUser(index, message);
+		return ;
 	}
 	data[index].setAwayStatus(true);
 	std::string message = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :You are now away.\r\n";
 	sendMsgUser(index, message);
 }
-	
+/*	
 void	Server::invite(clientIt index, std::vector<std::string> &arguments)
 {
 	(void)index;
 	(void)arguments;
 }
 
-
+*/
 void	Server::ping(clientIt index, std::vector<std::string> &arguments)
 {
 //	(void)index;
@@ -328,10 +293,16 @@ void	Server::ping(clientIt index, std::vector<std::string> &arguments)
 	sendMsgUser(index, message);
 }
 
+//////////////////////////////////PROXIMAMENTE///////////////////////////////////////////
 
-void	Server::cap(clientIt index, std::vector<std::string> &arguments)
+/*--------------CAPABILITIES NEGOTIATION -------------*/
+
+
+void	Server::cap(clientIt index, std::vector<std::string> &arguments) 
 {
 	//std::cout << "CAP REACHED[" << arguments[1] << "]\n";
+	return;
+
 	for (uint32_t i = 0; i < CAP_COMMANDS;i++)
 	{
 		if (commands.cap_cmd[i] == arguments[1])
@@ -416,7 +387,7 @@ void	Server::cap_nak(clientIt index, std::vector<std::string> &arguments)
 }
 		
 
-/*--------------CAPABILITIES NEGOTIATION -------------*/
+
 
 /*void	Server::cap_available(std::vector<std::string> &arguments)
 {
@@ -450,13 +421,24 @@ std::string Server::readTCPInput(int client_fd) {
 	int	recvMsgSize;
 
 	memset(echoBuffer, 0, RCVBUFSIZE);
-	recvMsgSize = recv(client_fd, echoBuffer, sizeof(echoBuffer), 0);
+	recvMsgSize = recv(client_fd, echoBuffer, sizeof(echoBuffer) - 1, 0);
 	if (recvMsgSize == SERVER_FAILURE)
 	{
 		perror("recv failed, debug here");
 		//exit (EXIT_FAILURE);
 		return (std::string(nullptr));
 	}
+	///////////////LIMPIACARRO///////////
+	ssize_t index = 0;
+	for(ssize_t i = 0; i < recvMsgSize; i++)
+	{
+		if (echoBuffer[i] != '\r')
+		{
+			echoBuffer[index] = echoBuffer[i];
+			index++;
+		}
+	}
+	write(0, echoBuffer, index);
 	return std::string(echoBuffer, recvMsgSize);
 }
 /*
@@ -500,23 +482,22 @@ bool	Server::assertClientPassword(uint32_t indexAct, const std::string &password
 #include <locale>
 #include <codecvt>
 
-
 void Server::sendMsgUser(clientIt it, const std::string &str) const
 {
 	int buffer_size = 65536;
-	std::locale::global(std::locale("en_US.UTF-8"));
+	//std::locale::global(std::locale("en_US.UTF-8"));
 	setsockopt(data[(pollfdIt)it].fd, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size));
 	//std::string message = "PRIVMSG " + data[it].getUsername() + " : " + str;
 	int code;
-	std::wstring_convert<std::codecvt_utf8<wchar_t> > converter;
-	std::wstring wideStr = converter.from_bytes(str);
-	std::string utf8Str = converter.to_bytes(wideStr);
-	if ((code = send(data[(pollfdIt)it].fd, utf8Str.c_str(), utf8Str.size(), 0)) <= 0)
+	//std::wstring_convert<std::codecvt_utf8<wchar_t> > converter;
+	//std::wstring wideStr = converter.from_bytes(str);
+	//std::string utf8Str = converter.to_bytes(wideStr);
+	if ((code = send(data[(pollfdIt)it].fd, str.c_str(), str.size(), 0)) <= 0)
 	{
 		std::error_code ec(errno, std::system_category());
-		std::cerr << "[fd: " << data[(pollfdIt)it].fd << "] An error ocurred sending the message: " << color::boldwhite << ec.message() << color::reset << "it = " << it << std::endl;
+		std::cerr << "[fd: " << data[(pollfdIt)it].fd << "| it: " << it << "]\n" << "An error ocurred sending the message: " << color::boldwhite << ec.message() << color::reset << std::endl;
 	}
-	std::cout << "bytes sent " << code << '\n';
+	//std::cout << "bytes sent " << code << '\n';
 }
 /*
 bool checkAdmin(Client *client) {
@@ -551,7 +532,7 @@ void Server::setCommands()
 	commands.cmd[4] = AWAY;
 	//commands.cmd[13] = INVITE;
 	commands.cmd[5] = PING;
-	//commands.cmd[15] = CAP;
+	commands.cmd[6] = CAP;
 
 	commands.func[0]  = &Server::nick;
 	commands.func[1]  = &Server::user;
@@ -568,19 +549,19 @@ void Server::setCommands()
 	commands.func[4] = &Server::away;
 	//commands.func[13] = &Server::invite;
 	commands.func[5] = &Server::ping;
-	//commands.func[15] = &Server::cap;
+	commands.func[6] = &Server::cap;
 
-	//commands.cap_cmd[0]  = CAP_REQ;
-	//commands.cap_cmd[1]  = CAP_LS;
-	//commands.cap_cmd[2]  = CAP_END;
-	//commands.cap_cmd[3]  = CAP_ACK;
-	//commands.cap_cmd[4]  = CAP_NAK;
-//
-	//commands.cap_func[0] = &Server::cap_req;
-	//commands.cap_func[1] = &Server::cap_ls;
-	//commands.cap_func[2] = &Server::cap_end;
-	//commands.cap_func[3] = &Server::cap_ack;
-	//commands.cap_func[4] = &Server::cap_nak;
+	commands.cap_cmd[0]  = CAP_REQ;
+	commands.cap_cmd[1]  = CAP_LS;
+	commands.cap_cmd[2]  = CAP_END;
+	commands.cap_cmd[3]  = CAP_ACK;
+	commands.cap_cmd[4]  = CAP_NAK;
+
+	commands.cap_func[0] = &Server::cap_req;
+	commands.cap_func[1] = &Server::cap_ls;
+	commands.cap_func[2] = &Server::cap_end;
+	commands.cap_func[3] = &Server::cap_ack;
+	commands.cap_func[4] = &Server::cap_nak;
 }
 
 

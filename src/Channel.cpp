@@ -6,7 +6,7 @@ Channel::Channel(std::string name, std::string username, UsersData *data)
 	this->name = name;
 	creator = username;
 	this->data = data;
-	users.resize(0);
+	users.resize(1);
 	numOfUsers = 0;
 }
 
@@ -22,13 +22,9 @@ std::string Channel::getName() const{
 
 void Channel::addClient(clientIt index){
 	users.push_back(index);
-	uint32_t user_pos = numOfUsers;
+	//uint32_t user_pos = numOfUsers;
 	numOfUsers++;
-	std::string infoUser = color::boldyellow + "ℹ️  You are in the " + color::boldgreen + this->name + color::boldyellow + " channel\n\n" + color::reset;
-	std::string infoMsg = color::boldgreen +  " joined your channel 👋\n" + color::reset;
-	(*data)[index].resetLastMsgIdx(); //resetea el index de log 
-	sendMsgUser(user_pos, infoUser);
-	broadcast(user_pos, infoMsg);
+	(*data)[index].resetLastMsgIdx(); //resetea el index de log
 }
 
 #include <locale>
@@ -36,20 +32,20 @@ void Channel::addClient(clientIt index){
 
 void Channel::sendMsgUser(clientIt it, const std::string &str) const
 {
-	int buffer_size = 65536;
-	std::locale::global(std::locale("en_US.UTF-8"));
-	setsockopt((*data)[(pollfdIt)it].fd, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size));
+	//int buffer_size = 65536;
+	//std::locale::global(std::locale("en_US.UTF-8"));
+	//setsockopt((*data)[(pollfdIt)it].fd, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size));
 	//std::string message = "PRIVMSG " + data[it].getUsername() + " : " + str;
 	int code;
-	std::wstring_convert<std::codecvt_utf8<wchar_t> > converter;
-	std::wstring wideStr = converter.from_bytes(str);
-	std::string utf8Str = converter.to_bytes(wideStr);
-	if ((code = send((*data)[(pollfdIt)it].fd, utf8Str.c_str(), utf8Str.size(), 0)) <= 0)
+	//std::wstring_convert<std::codecvt_utf8<wchar_t> > converter;
+	//std::wstring wideStr = converter.from_bytes(str);
+	//std::string utf8Str = converter.to_bytes(wideStr);
+	if ((code = send((*data)[(pollfdIt)it].fd, str.c_str(), str.size(), 0)) <= 0)
 	{
 		std::error_code ec(errno, std::system_category());
 		std::cerr << "[fd: " << (*data)[(pollfdIt)it].fd << "] An error ocurred sending the message: " << color::boldwhite << ec.message() << color::reset << "it = " << it << std::endl;
 	}
-	std::cout << "bytes sent " << code << '\n';
+//	std::cout << "bytes sent " << code << '\n';
 }
 
 /*
@@ -118,12 +114,11 @@ uint32_t	Channel::findUser(uint32_t indexAct)const {
 }
 */
 void	Channel::broadcast(clientIt sender, std::string const &msg) {
-	for(clientIt i = 0; i < users.size();i++)
+	for(clientIt i = 1; i < users.size();i++)
 	{
-		if (i != sender)
-		{
-			sendMsgUser(i, msg);
-		}
+		if (users[i] != sender)
+			sendMsgUser(users[i], msg);
+
 	}
 }
 /*

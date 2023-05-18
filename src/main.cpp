@@ -40,10 +40,11 @@ std::vector<std::string> splitIrcPrameters(const std::string &string, const char
 	uint32_t	i;
 	for (i = 0; i < string.size(); i++)
 	{
-		if (string[i] == ':')
+		if (string[i] == ':') //Quitar :
 		{
 			lock = false;
-			finalString.push_back(string.substr(index, i - index));
+			if (i - index > 0)
+				finalString.push_back(string.substr(index, i - index));
 			finalString.push_back(string.substr(i + 1, string.size() - i));
 			return finalString;
 		}
@@ -65,7 +66,6 @@ std::vector<std::string> splitIrcPrameters(const std::string &string, const char
 	//std::cout << "split end size = " << finalString.size() << '\n';
 	return finalString;
 }
-
 
 void	serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
 {

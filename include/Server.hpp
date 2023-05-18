@@ -31,8 +31,8 @@ std::vector<std::string> split(const std::string &string, char c);
 std::vector<std::string> splitIrcPrameters(const std::string &string, const char c);
 
 class Server;
-
-#define COMMANDS 6
+#define SERVER_NAME "10.13.8.1"
+#define COMMANDS 7
 #define CAP_COMMANDS 6
 
 

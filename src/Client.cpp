@@ -32,16 +32,16 @@ Client& Client::operator=(const Client& client) {
 
 
 /* --- DATA SETTERS --- */
-uint8_t	Client::getState() const {
-	return state;
-}
-
-bool	Client::getAwayStatus() const {
-	return isAway;
+void Client::setRole(uint8_t role) {
+	this->role = role;
 }
 
 void	Client::setAwayStatus(bool isAway) {
 	this->isAway = isAway;
+}
+
+void	Client::setAwayMsg(std::string away_msg) {
+	this->away_msg = away_msg;
 }
 
 void Client::setUsername(std::string username) {
@@ -56,9 +56,33 @@ void Client::setPassword(std::string password) { //ya veremos, esto no es muy se
 	this->password = password;
 }
 
+void Client::setNewClient(bool check) {
+	newClient = check;
+}
+
 /* --- DATA GETTERS --- */
 std::string	Client::getUsername() const {
 	return (username);
+}
+
+std::string	Client::getAwayMsg() const {
+	return (away_msg);
+}
+
+std::string	Client::getNickname()const{
+	return (this->nickname);
+}
+
+bool Client::getNewClient() const{
+	return (newClient);
+}
+
+bool	Client::getAwayStatus() const {
+	return (isAway);
+}
+
+uint8_t	Client::getState() const {
+	return (state);
 }
 
 uint32_t	Client::getChannel() const {
@@ -68,23 +92,6 @@ uint32_t	Client::getChannel() const {
 uint32_t	Client::getRole()const {
 	return (role);
 }
-
-void Client::setRole(uint8_t role) {
-	this->role = role;
-}
-
-bool Client::getNewClient() const{
-	return(newClient);
-}
-
-void Client::setNewClient(bool check) {
-	newClient = check;
-}
-std::string	Client::getNickname()const{
-	return(this->nickname);
-}
-
-
 
 /* --- CHECKER FUNCTIONS --- */
 bool Client::checkPassword(std::string pass)const {
