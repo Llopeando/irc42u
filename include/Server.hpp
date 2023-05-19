@@ -31,8 +31,8 @@ std::vector<std::string> split(const std::string &string, char c);
 std::vector<std::string> splitIrcPrameters(const std::string &string, const char c);
 
 class Server;
-#define SERVER_NAME "10.13.8.1"
-#define COMMANDS 7
+#define SERVER_NAME "10.13.8.1" ///cambiar??
+#define COMMANDS 10
 #define CAP_COMMANDS 6
 
 
@@ -80,11 +80,15 @@ class Server
 		void	nick(clientIt index, std::vector<std::string> &arguments);
 		void	user(clientIt index, std::vector<std::string> &arguments);
 		void	join(clientIt index, std::vector<std::string> &arguments);
-		void	part(clientIt index, std::vector<std::string> &arguments);
 		void	privmsg(clientIt index, std::vector<std::string> &arguments);
+		
+		void	part(clientIt index, std::vector<std::string> &arguments);
+		void	topic(clientIt index, std::vector<std::string> &arguments);
+		void	list(clientIt index, std::vector<std::string> &arguments);
+
+		
 		void	notice(clientIt index, std::vector<std::string> &arguments);
 		void	quit(clientIt index, std::vector<std::string> &arguments);
-		void	topic(clientIt index, std::vector<std::string> &arguments);
 		void	mode(clientIt index, std::vector<std::string> &arguments);
 		void	names(clientIt index, std::vector<std::string> &arguments);
 		void	whois(clientIt index, std::vector<std::string> &arguments);
@@ -93,6 +97,7 @@ class Server
 		void	invite(clientIt index, std::vector<std::string> &arguments);
 		void	ping(clientIt index, std::vector<std::string> &arguments);
 		void	cap(clientIt index, std::vector<std::string> &arguments);
+	
 		uint32_t	findChannel(const std::string &name) const;
 
 		//COMMAND CAP FUNCTIONS

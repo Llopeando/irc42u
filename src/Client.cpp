@@ -3,6 +3,8 @@
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
 Client::Client():role(1){
 	state = CL_STATE_INPUT;
+	this->isAway = 0;
+	this->away_msg = "Im Away From the Keyboard... I'll be right back!";
 }
 
 Client::Client(const Client &client)
@@ -19,12 +21,9 @@ Client& Client::operator=(const Client& client) {
 	this->nickname = client.nickname;
 	this->username = client.username;
 	this->password = client.password;
-	this->lastMsgIndex = client.lastMsgIndex;
-	this->channel = client.channel;
 	this->role = client.role;
 	this->state = client.state;
 	this->isAway = client.isAway;
-	this->inputBlock = client.inputBlock;
     }
     return *this;
 }
@@ -56,10 +55,6 @@ void Client::setPassword(std::string password) { //ya veremos, esto no es muy se
 	this->password = password;
 }
 
-void Client::setNewClient(bool check) {
-	newClient = check;
-}
-
 /* --- DATA GETTERS --- */
 std::string	Client::getUsername() const {
 	return (username);
@@ -73,10 +68,6 @@ std::string	Client::getNickname()const{
 	return (this->nickname);
 }
 
-bool Client::getNewClient() const{
-	return (newClient);
-}
-
 bool	Client::getAwayStatus() const {
 	return (isAway);
 }
@@ -85,13 +76,14 @@ uint8_t	Client::getState() const {
 	return (state);
 }
 
-uint32_t	Client::getChannel() const {
-	return (channel);
-}
-
 uint32_t	Client::getRole()const {
 	return (role);
 }
+
+uint32_t	Client::getChannel()const {
+	return (channel);
+}
+
 
 /* --- CHECKER FUNCTIONS --- */
 bool Client::checkPassword(std::string pass)const {
@@ -100,24 +92,4 @@ bool Client::checkPassword(std::string pass)const {
 		return (true);
 	else
 		return (false);
-}
-
-uint32_t Client::getLastMsgIdx()const{
-	return(lastMsgIndex);
-}
-
-bool Client::getInputBlock()const {
-	return inputBlock;
-}
-
-void Client::addLastMsgIdx(uint32_t num) {
-	lastMsgIndex += num;
-}
-
-void Client::resetLastMsgIdx(){
-	lastMsgIndex = 0;
-}
-
-void Client::setLastMsgIdx(uint32_t msgIdx) {
-	lastMsgIndex = msgIdx;
 }

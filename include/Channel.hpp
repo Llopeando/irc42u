@@ -25,26 +25,29 @@ class Channel
 		
 		std::string			getName()const;
 		void 				addClient(clientIt index);
-		void				removeClient(uint32_t indexAct);
+		void				removeClient(clientIt indexAct);
 		void 				broadcast(clientIt sender, std::string const &msg);
-		void				refresh(uint32_t indexAct);
-		void				flushLog(Client &user, uint32_t user_pos);
+		//void				refresh(uint32_t indexAct);
+		//void				flushLog(Client &user, uint32_t user_pos);
+		void				setTopic(std::string &topic);
+		std::string			getTopic( void)const;
+		uint32_t			getNumUser( void)const;
 		
 	private:
+		uint32_t	findUser(clientIt indexAct)const;
+		void		sendMsgUser(clientIt it, const std::string &str) const;
+		void		sendInfoChannel(uint32_t user_pos, std::string const &str);
+
+
 		uint32_t numOfUsers;
 		UsersData *data;
 		std::string name;
+		std::string topic;
 		std::deque<uint32_t> users;
 		//std::deque<uint32_t>msgIndexUsr; //ultimo mensaje leido
 		std::string creator;
 		std::deque<std::string> msg_log;
 		
-		//Punteros a arrays de server	
-		uint32_t	findUser(uint32_t indexAct)const;
-		void		sendMsgUser(clientIt it, const std::string &str) const;
-		//void		sendMsgUser(uint32_t user_pos, std::string const &str) const;
-	//	void		sendMsgChannel(uint32_t user_pos, std::string const &str, bool val);
-		void		sendInfoChannel(uint32_t user_pos, std::string const &str);
 		
 		
 };

@@ -52,7 +52,7 @@ void	Server::checkFds(int events)
 	pollfdIt i = 0;
 	if (data[i].revents & POLLIN) //CONEXION REQUEST
 	{
-		printf("-------- INCOMING REQUEST RECEIVED --------\n");
+		//printf("-------- INCOMING REQUEST RECEIVED --------\n");
 		acceptConnection();
 		events--;
 	}
@@ -145,7 +145,7 @@ void Server::handleEvents(pollfdIt index)
 void	Server::nick(clientIt index, std::vector<std::string> &arguments)
 {
 	data[index].setNickname(arguments[1]);
-	std::cout << "----------New nick changed: " << data[index].getNickname() << "]\n";
+	//std::cout << "----------New nick: " << data[index].getNickname() << "]\n";
 
 }
 
@@ -160,7 +160,6 @@ void	Server::user(clientIt index, std::vector<std::string> &arguments)
 	//std::cout << "----------New user changed: " << data[index].getUsername() << "]\n";
 
 }
-
 
 void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 {
@@ -178,40 +177,91 @@ void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 	{
 		clientIt user = data.findUsername(arguments[1]);
 		if (!user)
+		{
+			std::string dont_exist = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :[!] The user you are trying to contact to, does not exist.\r\n";
+			sendMsgUser(index, dont_exist);
 			return;
-		//write(0, message.c_str(), message.size());
-		sendMsgUser(user, message);
+		}
+		if (data[user].getAwayStatus() == true)
+		{
+			sendMsgUser(user, message);
+			std::string away_msg = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :[!] This user is Away From the Keyboard! He will probably answer you when he/she comes back. (User reason: " + data[user].getAwayMsg() + ")\r\n";
+			sendMsgUser(index, away_msg);
+		}
+		else
+			sendMsgUser(user, message);
 	}
 }
 
 void	Server::join(clientIt index, std::vector<std::string> &arguments)
 {
-
-	uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 1));
-	if(!channel)//si no existe se crea 
+	std::vector<std::string>channelNames = split(arguments[1], ',');
+	for (uint32_t i = 0;i < channelNames.size();i++)
 	{
-		channels.push_back(Channel(arguments[1].substr(1, arguments[1].size() - 1), data[index].getUsername(), &data));
-		channel = channels.size() - 1;
-		std::string info =  channels[channel].getName() + " channel created\r\n";
-		channels[0].broadcast(0, info);
+		std::cout << color::boldgreen << "CHANNEL NAME[" << channelNames[i] << "]" << color::reset << "\n";
+		uint32_t channel = findChannel(channelNames[i].substr(1, channelNames[i].size() - 1));
+		if(!channel)//si no existe se crea 
+		{
+			channels.push_back(Channel(channelNames[i].substr(1, channelNames[i].size() - 1), data[index].getUsername(), &data));
+			channel = channels.size() - 1;
+			std::string info =  channels[channel].getName() + " channel created\r\n";
+			channels[0].broadcast(0, info);
+		}
+		channels[channel].addClient(index);
+		std::string message =  data[index].getNickname() +  " has joined the channel\r\n";
+		//std::string messageToUser = ":" + std::string(SERVER_NAME) + " You have joined " + channels[channel].getName() + " channel\r\n";
+		std::string back = ':' + std::string(SERVER_NAME) + " JOIN " + channelNames[i] + "\r\n";
+		//:<server> <code> <user> <channel> :<topic>
+		//:<server> <code> <user> = <channel> :<user1> <user2> <user3> ...
+		sendMsgUser(index, back);
+		channels[channel].broadcast(index, message);
+		//sendMsgUser(index, messageToUser);
 	}
-	channels[channel].addClient(index);
-	std::string message =  data[index].getNickname() +  " has joined the channel\r\n";
-	std::string messageToUser = ":" + std::string(SERVER_NAME) + " You have joined " + channels[channel].getName() + " channel\r\n";
-	channels[channel].broadcast(index, message);
-	sendMsgUser(index, messageToUser);
+	
 }
 
 ///////////////////////////PROXIMAMENTE
 
-/*
+
 
 void	Server::part(clientIt index, std::vector<std::string> &arguments)
 {
 	(void)index;
 	(void)arguments;
+	for (uint32_t i = 1;i < arguments.size(); i++)
+	{
+		uint32_t channel = findChannel(arguments[i].substr(1, arguments[1].size() - 1));
+		if (channel != 0)
+		{
+			channels[channel].removeClient(index);
+		}
+	}
 }
 
+void	Server::topic(clientIt index, std::vector<std::string> &arguments){
+
+	//esto sirve tanto para info como para setear, hay que hcer 2 formas 
+	channels[data[index].getChannel()].setTopic(arguments[2]);
+
+}
+
+void	Server::list(clientIt index, std::vector<std::string> &arguments){
+
+////hay que devolver un coddigo con la lista de canales 
+
+	(void)arguments;
+	std::string message = ":" + std::string(SERVER_NAME) + " 321: Channel Users Name\r\n";
+	sendMsgUser(index, message);
+	for (uint32_t i = 1;i < channels.size() ; i++)
+	{
+		std::string back = ":" + std::string(SERVER_NAME) + " 322 " + data[index].getNickname() + " #" + channels[i].getName() + " " +  std::to_string(channels[i].getNumUser()) + " :" + channels[i].getTopic() + "\r\n";
+		sendMsgUser(index, back);
+	}
+}
+
+
+
+/*
 void	Server::notice(clientIt index, std::vector<std::string> &arguments)
 {
 	(void)index;
@@ -224,14 +274,6 @@ void	Server::quit(clientIt index, std::vector<std::string> &arguments)
 	(void)index;
 	(void)arguments;
 }
-
-
-void	Server::topic(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)index;
-	(void)arguments;
-}
-
 
 void	Server::mode(clientIt index, std::vector<std::string> &arguments)
 {
@@ -265,7 +307,6 @@ void	Server::away(clientIt index, std::vector<std::string> &arguments)
 	// 	data[index].setAwayMsg(arguments[0]);
 	// else
 	(void)arguments;
-	data[index].setAwayMsg("Im Away From the Keyboard... I'll be right back!");
 	if (data[index].getAwayStatus() == true) {
 		data[index].setAwayStatus(false);
 		std::string message = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :You are no longer away.\r\n";
@@ -520,36 +561,42 @@ void Server::setCommands()
 	commands.cmd[0]  = NICK;
 	commands.cmd[1]  = USER;
 	commands.cmd[2]  = JOIN;
-	//commands.cmd[3]  = PART;
-	commands.cmd[3]  = PRIVMSG;
+	commands.cmd[3]  = PART;
+	commands.cmd[4]  = PRIVMSG;
 	//commands.cmd[5]  = NOTICE;
 	//commands.cmd[6]  = QUIT;
-	//commands.cmd[7]  = TOPIC;
 	//commands.cmd[8]  = MODE;
 	//commands.cmd[9]  = NAMES;
 	//commands.cmd[10] = WHOIS;
 	//commands.cmd[11] = KICK;
-	commands.cmd[4] = AWAY;
+	commands.cmd[5] = AWAY;
 	//commands.cmd[13] = INVITE;
-	commands.cmd[5] = PING;
-	commands.cmd[6] = CAP;
+	commands.cmd[6] = PING;
+	commands.cmd[7] = CAP;
+	commands.cmd[8] = TOPIC;
+	commands.cmd[9] = LIST;
 
 	commands.func[0]  = &Server::nick;
 	commands.func[1]  = &Server::user;
 	commands.func[2]  = &Server::join;
-	//commands.func[3]  = &Server::part;
-	commands.func[3]  = &Server::privmsg;
+	commands.func[3]  = &Server::part;
+	commands.func[4]  = &Server::privmsg;
+
+	commands.func[5] = &Server::away;
+	commands.func[6] = &Server::ping;
+	commands.func[7] = &Server::cap;
+	commands.func[8]  = &Server::topic;
+	commands.func[9]  = &Server::list;
+	
+
 	//commands.func[5]  = &Server::notice;
 	//commands.func[6]  = &Server::quit;
-	//commands.func[7]  = &Server::topic;
 	//commands.func[8]  = &Server::mode;
 	//commands.func[9]  = &Server::names;
 	//commands.func[10] = &Server::whois;
 	//commands.func[11] = &Server::kick;
-	commands.func[4] = &Server::away;
 	//commands.func[13] = &Server::invite;
-	commands.func[5] = &Server::ping;
-	commands.func[6] = &Server::cap;
+
 
 	commands.cap_cmd[0]  = CAP_REQ;
 	commands.cap_cmd[1]  = CAP_LS;
