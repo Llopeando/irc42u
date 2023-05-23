@@ -81,19 +81,20 @@ void	serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
 	serverInfo->address.sin_port = htons( port ); //mirar htons
 }
 
-void printIp()
+std::string printIp()
 {
 	struct ifaddrs *ifaddr, *ifa;
+	char host[NI_MAXHOST];
 	if (getifaddrs(&ifaddr) == -1) {
 		std::cerr << "getifaddrs failed" << std::endl;
-		return ;
+		exit (1);
 	}
 	for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
 		if (ifa->ifa_addr == nullptr) {
 			continue;
 		}
 		if (ifa->ifa_addr->sa_family == AF_INET && !(ifa->ifa_flags & IFF_LOOPBACK)) {
-			char host[NI_MAXHOST];
+			
 			int res = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST);
 			if (res != 0) {
 				std::cerr << "getnameinfo failed: " << gai_strerror(res) << std::endl;
@@ -104,6 +105,7 @@ void printIp()
 		}
 	}
 	freeifaddrs(ifaddr);
+	return std::string((char *)host);
 }
 
 std::string joinStr(std::vector<std::string>& arguments, uint32_t index)
@@ -120,7 +122,7 @@ int	main(int argc, char *argv[])
 {
 	t_serverInput serverInfo;
 
-	printIp();	
+	serverInfo.IP = printIp();	
 	try {
 		serverCreateInfo(argv + 1, argc, &serverInfo);
 	}

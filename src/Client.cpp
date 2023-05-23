@@ -1,10 +1,12 @@
 #include "../include/Client.hpp"
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
-Client::Client():role(1){
+Client::Client(std::string hostName):hostname(hostName), role(1){
 	state = CL_STATE_INPUT;
 	this->isAway = 0;
 	this->away_msg = "Im Away From the Keyboard... I'll be right back!";
+	//this->hostname();
+	
 }
 
 Client::Client(const Client &client)
@@ -24,6 +26,7 @@ Client& Client::operator=(const Client& client) {
 	this->role = client.role;
 	this->state = client.state;
 	this->isAway = client.isAway;
+	this->hostname = client.getHostname();
     }
     return *this;
 }
@@ -84,6 +87,13 @@ uint32_t	Client::getChannel()const {
 	return (channel);
 }
 
+std::string Client::getHostname()const{
+	return hostname;
+}
+
+std::string Client::getUserMask()const{
+	return nickname + "!" + username + "@" + hostname;
+}
 
 /* --- CHECKER FUNCTIONS --- */
 bool Client::checkPassword(std::string pass)const {

@@ -25,7 +25,7 @@
 #include "UsersData.hpp"
 
 
-void printIp();
+std::string printIp();
 std::string joinStr(std::vector<std::string>& arguments, uint32_t index);
 std::vector<std::string> split(const std::string &string, char c);
 std::vector<std::string> splitIrcPrameters(const std::string &string, const char c);
@@ -54,7 +54,7 @@ class Server
 		void	run();
 		//void	setSocket(t_serverInput *serverCreateInfo);
 		void	printServerStatus() const;
-	
+		std::string	getName()const;
 	private:
 
 		void	acceptConnection();
@@ -109,6 +109,7 @@ class Server
 
 		int	status;
 		t_serverInput serverInfo;
+		std::string serverName;
 		std::deque<Channel> channels;
 		UsersData data;
 		Commands commands;

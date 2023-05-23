@@ -24,12 +24,13 @@ class Channel
 		~Channel();
 		
 		std::string			getName()const;
+		std::string			getUserList()const;
 		void 				addClient(clientIt index);
 		void				removeClient(clientIt indexAct);
 		void 				broadcast(clientIt sender, std::string const &msg);
 		//void				refresh(uint32_t indexAct);
 		//void				flushLog(Client &user, uint32_t user_pos);
-		void				setTopic(std::string &topic);
+		void				setTopic(std::string topic);
 		std::string			getTopic( void)const;
 		uint32_t			getNumUser( void)const;
 		

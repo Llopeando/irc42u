@@ -4,12 +4,11 @@
 /* 			CONSTRUCTOR DESTRUCTOR INITIALIZATION 				*/
 /* ------------------------------------------------------------ */
 
-Server::Server(t_serverInput *serverInput):serverInfo(*serverInput)
+Server::Server(t_serverInput *serverInput):serverInfo(*serverInput),serverName(serverInput->IP)
 {
 	data =  UsersData(serverInfo);
 	setCommands();
 	channels.push_back(Channel("Lobby", data[(clientIt)0].getUsername() , &data));
-
 }
 
 Server::~Server()
@@ -78,6 +77,52 @@ void	Server::listenConnection() {
 	}
 }
 
+#include <arpa/inet.h>
+
+std::string getHostName(int fd)
+{
+	struct sockaddr_in clientAddr;
+	socklen_t clientAddrLen = sizeof(clientAddr);
+	if (getpeername(fd, (struct sockaddr *)&clientAddr, &clientAddrLen) == -1) {
+		perror("getpeername error");
+		exit(1);
+	}
+
+	// Convert the IP address from binary to string representation
+	char ipStr[INET_ADDRSTRLEN];
+	if (inet_ntop(AF_INET, &(clientAddr.sin_addr), ipStr, INET_ADDRSTRLEN) == nullptr) {
+		perror("inet_ntop error");
+		exit(1);
+	}
+	return std::string(ipStr);
+
+/*
+struct addrinfo {
+               int              ai_flags;
+               int              ai_family;
+               int              ai_socktype;
+               int              ai_protocol;
+               socklen_t        ai_addrlen;
+               struct sockaddr *ai_addr;
+               char            *ai_canonname;
+               struct addrinfo *ai_next;
+           };
+
+struct sockaddr {
+        ushort  sa_family;
+        char    sa_data[14];
+};
+
+
+
+
+*/
+
+
+
+
+}
+
 void	Server::acceptConnection() {
 	
 	unsigned int size = static_cast<unsigned int>(sizeof(serverInfo.address));
@@ -91,7 +136,9 @@ void	Server::acceptConnection() {
 		return;
 	}
 	new_client.events = POLLOUT | POLLIN;
-	data.addClient(new_client, Client());
+	std::string hostName = getHostName(new_client.fd);
+	
+	data.addClient(new_client, Client(hostName));
 	//sendMsgUser(data.size() - 1, "Welcome to - A O I R C - \n");
 }
 
@@ -130,6 +177,7 @@ void Server::handleEvents(pollfdIt index)
 		std::vector<std::string> lines = split(input, '\n');
 		for (uint32_t i = 0; i < lines.size();i++)
 		{
+			std::cout << color::boldgreen << "[" << lines[i] << "]\n" << color::reset;
 			handleInput((clientIt)index, lines[i]);
 		}
 	}
@@ -141,17 +189,18 @@ void Server::handleEvents(pollfdIt index)
 /* ---------------------------------------------------------------------------------------- */
 
 
-	
 void	Server::nick(clientIt index, std::vector<std::string> &arguments)
 {
+	std::string mask = data[index].getUserMask();
 	data[index].setNickname(arguments[1]);
-	//std::cout << "----------New nick: " << data[index].getNickname() << "]\n";
 
+	std::string message =  ":" + mask + " NICK :" + data[index].getNickname() + "\r\n";
+	channels[0].broadcast(0, message);
 }
 
 void	Server::user(clientIt index, std::vector<std::string> &arguments)
 {
-	//std::cout << "USER REACHED[" << arguments[1] << "]\n";
+	
 	data[index].setUsername(arguments[1]);
 	//sendMsgUser(data[(pollfdIt)index].fd, message);
 	std::string message = "001 " + data[index].getNickname() + " :Welcome to A O I R C\n" ;
@@ -163,19 +212,23 @@ void	Server::user(clientIt index, std::vector<std::string> &arguments)
 
 void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 {
+	//revisar opciones de MSG , gestion de error de USER no existente etc 
 
 	std::string message = ":" + data[index].getNickname() +  " " +  arguments[0] + " " + arguments[1] + " :" + joinStr(arguments, 2) + "\r\n";
  
 	if (arguments[1][0] == '#') 	//to a CHANNEL 
 	{
-		uint32_t channel = findChannel(arguments[1].substr(1, arguments.size() - 1));
+		uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 1));
 		if(!channel)
+		{
+			std::cout << color::red << "ERROR, privmsg, cant find channel: [" << arguments[1].substr(1, arguments[1].size() - 1) << "]\n" << color::reset;
 			return;
+		}
 		channels[channel].broadcast(index, message);
 	}
 	else 	//to an USER 
 	{
-		clientIt user = data.findUsername(arguments[1]);
+		clientIt user = data.findNickname(arguments[1]);
 		if (!user)
 		{
 			std::string dont_exist = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :[!] The user you are trying to contact to, does not exist.\r\n";
@@ -189,67 +242,68 @@ void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 			sendMsgUser(index, away_msg);
 		}
 		else
+		{
 			sendMsgUser(user, message);
+		
+		}
 	}
 }
 
 void	Server::join(clientIt index, std::vector<std::string> &arguments)
 {
+
+	//revisar opciones de join , gestion de error de channel no existente etc 
+
 	std::vector<std::string>channelNames = split(arguments[1], ',');
 	for (uint32_t i = 0;i < channelNames.size();i++)
 	{
-		std::cout << color::boldgreen << "CHANNEL NAME[" << channelNames[i] << "]" << color::reset << "\n";
 		uint32_t channel = findChannel(channelNames[i].substr(1, channelNames[i].size() - 1));
-		if(!channel)//si no existe se crea 
+
+
+		if(!channel) //NO EXISTE CHANNEL ->se crea y se une 
 		{
 			channels.push_back(Channel(channelNames[i].substr(1, channelNames[i].size() - 1), data[index].getUsername(), &data));
 			channel = channels.size() - 1;
-			std::string info =  channels[channel].getName() + " channel created\r\n";
-			channels[0].broadcast(0, info);
+			channels[channel].addClient(index);
+
+			std::string back = ':' + data[index].getUserMask() + " JOIN " + "#" + channels[channel].getName() + "\r\n";//bien
+			std::string back_mode = ':' + std::string(SERVER_NAME) + " MODE #" + channels[channel].getName() + " " + " +nt\r\n";
+			std::string back_list = ':' + std::string(SERVER_NAME) + " 353 " + data[index].getNickname() + " = #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";//@for the operator
+			std::string back_list_end = ':' + std::string(SERVER_NAME) + " 366 " + data[index].getNickname() + " #" + channels[channel].getName() + " :End of /NAMES list.\r\n";
+
+			sendMsgUser(index, back);
+			sendMsgUser(index, back_mode);
+			sendMsgUser(index, back_list);
+			sendMsgUser(index, back_list_end);
 		}
-		channels[channel].addClient(index);
-		std::string message =  data[index].getNickname() +  " has joined the channel\r\n";
-		//std::string messageToUser = ":" + std::string(SERVER_NAME) + " You have joined " + channels[channel].getName() + " channel\r\n";
-		std::string back = ':' + std::string(SERVER_NAME) + " JOIN " + channelNames[i] + "\r\n";
-		//:<server> <code> <user> <channel> :<topic>
-		//:<server> <code> <user> = <channel> :<user1> <user2> <user3> ...
-		sendMsgUser(index, back);
-		channels[channel].broadcast(index, message);
-		//sendMsgUser(index, messageToUser);
-	}
-	
-}
-
-///////////////////////////PROXIMAMENTE
-
-
-
-void	Server::part(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)index;
-	(void)arguments;
-	for (uint32_t i = 1;i < arguments.size(); i++)
-	{
-		uint32_t channel = findChannel(arguments[i].substr(1, arguments[1].size() - 1));
-		if (channel != 0)
+		else // EXISTE CHANNEL ->se une
 		{
-			channels[channel].removeClient(index);
+			channels[channel].addClient(index);
+
+			std::string back = ':' + data[index].getUserMask() + " JOIN #" + channels[channel].getName() + "\r\n";
+			std::string back_topic = ':' + std::string(SERVER_NAME) + " 332 " + data[index].getNickname() + " #" + channels[channel].getName() + " :" + channels[channel].getTopic() + "\r\n";
+			//std::string back_channel  = ':' + std::string(SERVER_NAME) + " 333 " + data[index].getNickname() + " #" + channelNames[i] + "quien lo ha creado (mask) y cuando"  + "\r\n";
+			std::string back_list  = ':' + std::string(SERVER_NAME) + " 353 " + data[index].getNickname() + " @ #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";
+			std::string back_list_end = ':' + std::string(SERVER_NAME) + " 366 " + data[index].getNickname()  + " #"+ channels[channel].getName() + " :End of /NAMES list." + "\r\n";
+
+			sendMsgUser(index, back);
+			sendMsgUser(index, back_topic);
+			sendMsgUser(index, back_list);
+			sendMsgUser(index, back_list_end);
+		
 		}
+		
+		std::string message =  ":" +  data[index].getUserMask() +" JOIN :#" + channels[channel].getName() + "\r\n";
+		channels[channel].broadcast(index, message);
+
 	}
-}
 
-void	Server::topic(clientIt index, std::vector<std::string> &arguments){
-
-	//esto sirve tanto para info como para setear, hay que hcer 2 formas 
-	channels[data[index].getChannel()].setTopic(arguments[2]);
 
 }
 
 void	Server::list(clientIt index, std::vector<std::string> &arguments){
 
-////hay que devolver un coddigo con la lista de canales 
-
-	(void)arguments;
+	(void)arguments; 
 	std::string message = ":" + std::string(SERVER_NAME) + " 321: Channel Users Name\r\n";
 	sendMsgUser(index, message);
 	for (uint32_t i = 1;i < channels.size() ; i++)
@@ -258,6 +312,59 @@ void	Server::list(clientIt index, std::vector<std::string> &arguments){
 		sendMsgUser(index, back);
 	}
 }
+
+
+
+void	Server::part(clientIt index, std::vector<std::string> &arguments)
+{
+
+	//revisar opciones de part , gestion de error de channel no existente etc 
+			// you are not in channel ERR_NOTONCHANNEL (442)// channel does not exist,  ERR_NOSUCHCHANNEL (403) reply and that channel will be ignored.
+	//añadir reason
+	//part de varios canales ?? revisar 
+
+	// when all users leave a group channel, the channel is deleted
+
+	for (uint32_t i = 1;i < arguments.size(); i++)
+	{
+		uint32_t channel = findChannel(arguments[i].substr(1, arguments[1].size() - 1));
+		if (channel != 0)
+		{
+			std::string message = ":" + data[index].getUserMask() + " PART #" + channels[channel].getName() + "\r\n";
+			channels[channel].broadcast(0, message);
+			channels[channel].removeClient(index);
+			//MANDA DOS VECES????
+		}
+		
+	}
+
+}
+
+////////////////////////////////////////////
+
+void	Server::topic(clientIt index, std::vector<std::string> &arguments){
+
+	//variable que guarda quien ha cambiado el topic, cuando etc....
+
+	if( arguments.size() == 3) //SETTING topic
+	{
+		channels[data[index].getChannel()].setTopic(joinStr(arguments, 2)); //algo falla que no lo guarda en LIST
+		std::string message = ":" + data[index].getUserMask() + " TOPIC #" + arguments[1].substr(1, arguments[1].size() - 1) + " :" + channels[data[index].getChannel()].getTopic() + "\r\n";
+		channels[data[index].getChannel()].broadcast(0, message);
+	}
+	else	//VIEWING topic
+	{
+		std::string message  = ":" + serverName + " 332 dan #" + channels[data[index].getChannel()].getName() + " :" + channels[data[index].getChannel()].getTopic() + "\r\n";
+		std::string message2 = ":" + serverName + " 333 dan #" + channels[data[index].getChannel()].getName() + " dan 1547858123\r\n";
+		channels[data[index].getChannel()].broadcast(0, message);
+
+	}
+	//S <-   :irc.example.com 332 dan #v4 :Coolest topic
+	//S <-   :irc.example.com 333 dan #v4 dan 1547858123
+
+
+}
+
 
 
 
@@ -427,8 +534,10 @@ void	Server::cap_nak(clientIt index, std::vector<std::string> &arguments)
 	(void)arguments;
 }
 		
-
-
+std::string Server::getName()const
+{
+	return serverName;
+}
 
 /*void	Server::cap_available(std::vector<std::string> &arguments)
 {

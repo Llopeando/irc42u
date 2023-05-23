@@ -27,7 +27,7 @@ void Channel::addClient(clientIt index){
 	numOfUsers++;
 }
 
-void Channel::setTopic(std::string &topic){
+void Channel::setTopic(std::string topic){
 	this->topic = topic;
 }
 
@@ -76,9 +76,9 @@ void Channel::removeClient(clientIt indexAct){
 	numOfUsers--;
 	users[user_pos] = users[numOfUsers];
 	users.pop_back();
-	std::string infoUser = color::boldyellow + "ℹ️  You are back to the " + color::boldgreen + "Lobby" + color::boldyellow + " channel\n\n" + color::reset;
-	std::string infoMsg = color::boldgreen +  " left your channel 😢\n" + color::reset;
-	sendMsgUser(user_pos, infoUser);
+	//std::string infoUser = color::boldyellow + "ℹ️  You are back to the " + color::boldgreen + "Lobby" + color::boldyellow + " channel\n\n" + color::reset;
+	//std::string infoMsg = color::boldgreen +  " left your channel 😢\n" + color::reset;
+	//sendMsgUser(user_pos, infoUser);
 	//sendMsgChannel(user_pos, infoMsg, true);
 	//(*data)[indexAct].setState(CL_STATE_LOBBY);
 }
@@ -96,8 +96,22 @@ uint32_t	Channel::findUser(clientIt indexAct)const {
 void	Channel::broadcast(clientIt sender, std::string const &msg) {
 	for(clientIt i = 1; i < users.size();i++)
 	{
+		
 		if (users[i] != sender)
+		{
+			//std::cout << color::green << "SENDED TO: [" << i << "]" << (*data)[(clientIt)users[i]].getUsername() << "\n" << color::reset;
 			sendMsgUser(users[i], msg);
+		}
 
 	}
+}
+
+std::string Channel::getUserList()const
+{
+	std::string result;
+	for (std::deque<uint32_t>::const_iterator it = users.begin() + 1; it != users.end(); it++)
+	{
+		result += (*data)[(clientIt)(*it)].getNickname() + " ";
+	}
+	return result;
 }

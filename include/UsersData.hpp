@@ -15,6 +15,7 @@
 typedef struct s_serverInput{
 	struct sockaddr_in address;
 	std::string password;
+	std::string IP;
 }t_serverInput;
 
 
@@ -26,7 +27,7 @@ class UsersData{
 
 		pollfd *getPollfdData();
 		clientIt findUsername(std::string argument);
-
+		clientIt findNickname(std::string argument);
 		void	addClient(pollfd clientPollfd, Client newClient);
 
 		//override de operadores [] para acceder a polfds y a array de clients

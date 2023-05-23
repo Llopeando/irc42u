@@ -9,7 +9,7 @@ UsersData::UsersData(t_serverInput serverInfo)
 {
 	// posicion 0 de todos los array como INTOCABLES: pollfds 0 SERVER y cliente 0 ROOT
 	pollfd server;
-	Client root;
+	Client root(serverInfo.IP);
 
 	setSocket(server, serverInfo);
 
@@ -210,6 +210,14 @@ clientIt UsersData::findUsername(std::string argument)
 {
 	for(clientIt i = 0  ; i < this->size(); i++)
 		if (clients[i].getUsername() == argument )
+			return(i);
+	return (0);
+}
+
+clientIt UsersData::findNickname(std::string argument)
+{
+	for(clientIt i = 0  ; i < this->size(); i++)
+		if (clients[i].getNickname() == argument )
 			return(i);
 	return (0);
 }

@@ -8,20 +8,22 @@
 class Client
 {
 	public:
-		Client();
+		Client(std::string hostname);
 		Client(const Client &client);
 		~Client();
 		
 		//void operator=(const Client &client);
 		
 		Client& operator=(const Client& client);
-
+		std::string	getUserMask()const;
 		std::string	getUsername()const;
+		std::string getHostname()const;
 		std::string	getAwayMsg()const;
 		std::string	getNickname()const;
 		//bool		getNewClient() const;
 		//bool		getInputBlock()const;
 		bool		getAwayStatus() const;
+
 		uint8_t		getState() const;
 		uint32_t	getChannel()const;
 		//uint32_t	getLastMsgIdx()const;
@@ -45,6 +47,7 @@ class Client
 		std::string username;
 		std::string password;
 		std::string away_msg;
+		std::string hostname;
 	//	uint32_t lastMsgIndex; //ultimo mensaje leido
 		uint8_t channel; // en todo caso seria un vector porue puede estar en varios
 		uint8_t role;
