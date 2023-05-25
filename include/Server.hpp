@@ -18,12 +18,13 @@
 #include <cerrno>
 #include <system_error>
 
-#include "defines.h"
+#include "Utils.hpp"
+#include "defines.hpp"
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "color.h"
 #include "UsersData.hpp"
-
+#include "ErrorHandler.hpp"
 
 std::string printIp();
 std::string joinStr(std::vector<std::string>& arguments, uint32_t index);
@@ -48,6 +49,8 @@ struct Commands{
 class Server
 {
 	public:
+		typedef std::chrono::system_clock t_chrono;
+
 		Server(t_serverInput *serverInput);
 		~Server();
 
@@ -72,7 +75,7 @@ class Server
 
 		std::string	readTCPInput(int client_fd);
 		//void	sendMsgUser(int fd, const std::string &str) const;
-		void	sendMsgUser(clientIt it, const std::string &str) const;
+		//void	sendMsgUser(clientIt it, const std::string &str) const;
 		void	setCommands();
 
 
@@ -113,6 +116,7 @@ class Server
 		std::deque<Channel> channels;
 		UsersData data;
 		Commands commands;
+		ErrorHandler errorHandler;
 		
 		
 		

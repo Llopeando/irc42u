@@ -10,7 +10,7 @@
 
 
 #include "Client.hpp"
-#include "defines.h"
+#include "defines.hpp"
 
 typedef struct s_serverInput{
 	struct sockaddr_in address;

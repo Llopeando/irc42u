@@ -1,8 +1,8 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include "defines.h"
-
+#include "defines.hpp"
+#include "Utils.hpp"
 
 #include <iostream>
 //#include <cstring>
@@ -20,9 +20,14 @@
 class Channel
 {
 	public:
+		typedef std::chrono::system_clock t_chrono;
+
 		Channel(std::string name, std::string username, UsersData *data);
 		~Channel();
 		
+		std::string			getCreator() const;
+		std::time_t			getCreationDate()const;
+		void				setCreationDate(std::time_t);
 		std::string			getName()const;
 		std::string			getUserList()const;
 		void 				addClient(clientIt index);
@@ -36,7 +41,6 @@ class Channel
 		
 	private:
 		uint32_t	findUser(clientIt indexAct)const;
-		void		sendMsgUser(clientIt it, const std::string &str) const;
 		void		sendInfoChannel(uint32_t user_pos, std::string const &str);
 
 
@@ -48,9 +52,7 @@ class Channel
 		//std::deque<uint32_t>msgIndexUsr; //ultimo mensaje leido
 		std::string creator;
 		std::deque<std::string> msg_log;
-		
-		
-		
+		std::time_t creationDate;
 };
 
 #endif

@@ -6,7 +6,7 @@
 #    By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/05/18 17:38:08 by ecamara          ###   ########.fr        #
+#    Updated: 2023/05/25 19:14:42 by ecamara          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,24 +17,28 @@ src/Client.cpp \
 src/Channel.cpp \
 src/UsersData.cpp \
 src/main.cpp \
+src/ErrorHandler.cpp\
+src/Utils.cpp
 
 CPPINCLUDE = include/Server.hpp \
 include/Channel.hpp \
 include/Client.hpp \
 include/UsersData.hpp \
+include/defines.hpp	\
+include/Utils.hpp
 
-CPPOSRC = $(CPPSRC:.cpp=.o)
+CPPOBJ = $(CPPSRC:.cpp=.o)
 
 CPPFLAGS = -Wall -Werror -Wextra -O2 -std=c++98 #-g3 -fsanitize=address
-CLANGCMD = c++
+CC = clang++
 
 all: $(NAME)
 
-%.o: %.cpp
-	@$(CLANGCMD) $(CPPFLAGS) -c $^ -o $@
+%.o: %.cpp $(CPPINCLUDE)
+	@$(CC) $(CPPFLAGS) -c $< -o $@
 
-$(NAME): $(CPPOSRC) $(CPPINCLUDE)
-	@$(CLANGCMD) $(CPPFLAGS) $(CPPOSRC) -I. -o $(NAME)
+$(NAME): $(CPPOBJ) $(CPPINCLUDE)
+	@$(CC) $(CPPFLAGS) $(CPPOBJ) -I. -o $(NAME)
 	@echo "\033[92mircserv has been successfully compiled!\033[0m"
 
 clean:

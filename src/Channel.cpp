@@ -9,6 +9,7 @@ Channel::Channel(std::string name, std::string username, UsersData *data)
 	this->data = data;
 	users.resize(1);
 	numOfUsers = 0;
+	creationDate = t_chrono::to_time_t(t_chrono::now());
 }
 
 Channel::~Channel() {
@@ -16,6 +17,16 @@ Channel::~Channel() {
 }
 
 /* --- GETTER AND SETTERS --- */
+
+std::string Channel::getCreator()const
+{
+	return creator;
+}
+
+std::time_t Channel::getCreationDate()const
+{
+	return creationDate;
+}
 
 std::string Channel::getName() const{
 	return (name);
@@ -40,27 +51,10 @@ uint32_t	Channel::getNumUser( void)const{
 
 }
 
-
-#include <locale>
-#include <codecvt>
-
-void Channel::sendMsgUser(clientIt it, const std::string &str) const
-{
-	//int buffer_size = 65536;
-	//std::locale::global(std::locale("en_US.UTF-8"));
-	//setsockopt((*data)[(pollfdIt)it].fd, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size));
-	//std::string message = "PRIVMSG " + data[it].getUsername() + " : " + str;
-	int code;
-	//std::wstring_convert<std::codecvt_utf8<wchar_t> > converter;
-	//std::wstring wideStr = converter.from_bytes(str);
-	//std::string utf8Str = converter.to_bytes(wideStr);
-	if ((code = send((*data)[(pollfdIt)it].fd, str.c_str(), str.size(), 0)) <= 0)
-	{
-		std::error_code ec(errno, std::system_category());
-		std::cerr << "[fd: " << (*data)[(pollfdIt)it].fd << "] An error ocurred sending the message: " << color::boldwhite << ec.message() << color::reset << "it = " << it << std::endl;
-	}
-//	std::cout << "bytes sent " << code << '\n';
+void	Channel::setCreationDate(std::time_t now){
+	creationDate = now;
 }
+
 
 
 void Channel::removeClient(clientIt indexAct){
@@ -71,17 +65,10 @@ void Channel::removeClient(clientIt indexAct){
 	{
 		return;
 	}
-
-	//reubicar el array ??
 	numOfUsers--;
 	users[user_pos] = users[numOfUsers];
 	users.pop_back();
-	//std::string infoUser = color::boldyellow + "ℹ️  You are back to the " + color::boldgreen + "Lobby" + color::boldyellow + " channel\n\n" + color::reset;
-	//std::string infoMsg = color::boldgreen +  " left your channel 😢\n" + color::reset;
-	//sendMsgUser(user_pos, infoUser);
-	//sendMsgChannel(user_pos, infoMsg, true);
-	//(*data)[indexAct].setState(CL_STATE_LOBBY);
-}
+	}
 
 
 uint32_t	Channel::findUser(clientIt indexAct)const {
@@ -100,7 +87,7 @@ void	Channel::broadcast(clientIt sender, std::string const &msg) {
 		if (users[i] != sender)
 		{
 			//std::cout << color::green << "SENDED TO: [" << i << "]" << (*data)[(clientIt)users[i]].getUsername() << "\n" << color::reset;
-			sendMsgUser(users[i], msg);
+			sendMsgUser((*data)[(pollfdIt)users[i]].fd, msg);
 		}
 
 	}

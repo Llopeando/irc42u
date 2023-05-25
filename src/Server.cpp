@@ -7,6 +7,7 @@
 Server::Server(t_serverInput *serverInput):serverInfo(*serverInput),serverName(serverInput->IP)
 {
 	data =  UsersData(serverInfo);
+	errorHandler.setData(&data, serverName);
 	setCommands();
 	channels.push_back(Channel("Lobby", data[(clientIt)0].getUsername() , &data));
 }
@@ -172,7 +173,7 @@ void Server::handleEvents(pollfdIt index)
 	if (data[index].revents & POLLIN)
 	{
 		std::string input = readTCPInput(data[index].fd);
-		//std::cout << color::red << "\t\t[RECEIVED MESSAGE]\n\t\t" << color::boldwhite; //<< input << color::reset;
+		std::cout << color::green << "INPUT:[" << color::boldwhite << input << "]\n" << color::reset;
 		std::cout <<"\n" << color::reset;
 		std::vector<std::string> lines = split(input, '\n');
 		for (uint32_t i = 0; i < lines.size();i++)
@@ -191,8 +192,38 @@ void Server::handleEvents(pollfdIt index)
 
 void	Server::nick(clientIt index, std::vector<std::string> &arguments)
 {
-	std::string mask = data[index].getUserMask();
+	/////////////////////////////////ERRROR CHECKER ///////////// -----> En una funcion????
+	if (arguments.size() < 2)
+	{
+	//	ERR_NONICKNAMEGIVEN (431)
+		errorHandler.error(index, ERR_NONICKNAMEGIVEN);
+		//nueva string par que pueda meter uno nuevo 
+		return ;
+	}
+	if (arguments[1].size() == 0)
+	{
+		errorHandler.error(index, ERR_ERRONEUSNICKNAME);
+		//nueva string par que pueda meter uno nuevo 
+		return;
+	}
+	for (std::string::iterator c = arguments[1].begin(); c != arguments[1].end(); c++)
+	{
+		if (*c == '#' || !std::isprint(*c))
+		{
+			errorHandler.error(index, ERR_ERRONEUSNICKNAME, arguments[1]);
+			//nueva string par que pueda meter uno nuevo 
+			return;
+		}
+	}
+	if (data.findNickname(arguments[1]))
+	{
+		errorHandler.error(index, ERR_NICKNAMEINUSE);
+		//nueva string par que pueda meter uno nuevo 
+		return ;
+	}
+	//////////////////////////////////////////////////////////////////////////////////////////////////
 	data[index].setNickname(arguments[1]);
+	std::string mask = data[index].getUserMask();
 
 	std::string message =  ":" + mask + " NICK :" + data[index].getNickname() + "\r\n";
 	channels[0].broadcast(0, message);
@@ -204,7 +235,7 @@ void	Server::user(clientIt index, std::vector<std::string> &arguments)
 	data[index].setUsername(arguments[1]);
 	//sendMsgUser(data[(pollfdIt)index].fd, message);
 	std::string message = "001 " + data[index].getNickname() + " :Welcome to A O I R C\n" ;
-	sendMsgUser(index, message);
+	sendMsgUser(data[(pollfdIt)index].fd, message);
 	channels[0].addClient(index); //join to lobby
 	//std::cout << "----------New user changed: " << data[index].getUsername() << "]\n";
 
@@ -232,18 +263,18 @@ void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 		if (!user)
 		{
 			std::string dont_exist = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :[!] The user you are trying to contact to, does not exist.\r\n";
-			sendMsgUser(index, dont_exist);
+			sendMsgUser(data[(pollfdIt)index].fd, dont_exist);
 			return;
 		}
 		if (data[user].getAwayStatus() == true)
 		{
-			sendMsgUser(user, message);
+			sendMsgUser(data[(pollfdIt)index].fd, message);
 			std::string away_msg = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :[!] This user is Away From the Keyboard! He will probably answer you when he/she comes back. (User reason: " + data[user].getAwayMsg() + ")\r\n";
-			sendMsgUser(index, away_msg);
+			sendMsgUser(data[(pollfdIt)index].fd, away_msg);
 		}
 		else
 		{
-			sendMsgUser(user, message);
+			sendMsgUser(data[(pollfdIt)index].fd, message);
 		
 		}
 	}
@@ -251,16 +282,26 @@ void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 
 void	Server::join(clientIt index, std::vector<std::string> &arguments)
 {
-
-	//revisar opciones de join , gestion de error de channel no existente etc 
-
+	if (arguments.size() < 2)
+	{
+		errorHandler.error(index, ERR_NEEDMOREPARAMS, "JOIN");
+		return ;
+	}
 	std::vector<std::string>channelNames = split(arguments[1], ',');
+
+	//////JOIN 0 TE PIRAS SDE TODOS LOS CANALES 
+
 	for (uint32_t i = 0;i < channelNames.size();i++)
 	{
+		 //ARGUMENT ERROR 
+		if (arguments[1][0] != '#' || arguments[1].size() < 2 || !std::isprint(arguments[1][1]))
+		{
+			errorHandler.error(index, ERR_BADCHANMASK, arguments[1]);
+			continue ;
+		}
 		uint32_t channel = findChannel(channelNames[i].substr(1, channelNames[i].size() - 1));
-
-
-		if(!channel) //NO EXISTE CHANNEL ->se crea y se une 
+		//NO EXISTE CHANNEL ->se crea y se une 
+		if(!channel) 
 		{
 			channels.push_back(Channel(channelNames[i].substr(1, channelNames[i].size() - 1), data[index].getUsername(), &data));
 			channel = channels.size() - 1;
@@ -271,10 +312,10 @@ void	Server::join(clientIt index, std::vector<std::string> &arguments)
 			std::string back_list = ':' + std::string(SERVER_NAME) + " 353 " + data[index].getNickname() + " = #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";//@for the operator
 			std::string back_list_end = ':' + std::string(SERVER_NAME) + " 366 " + data[index].getNickname() + " #" + channels[channel].getName() + " :End of /NAMES list.\r\n";
 
-			sendMsgUser(index, back);
-			sendMsgUser(index, back_mode);
-			sendMsgUser(index, back_list);
-			sendMsgUser(index, back_list_end);
+			sendMsgUser(data[(pollfdIt)index].fd, back);
+			sendMsgUser(data[(pollfdIt)index].fd, back_mode);
+			sendMsgUser(data[(pollfdIt)index].fd, back_list);
+			sendMsgUser(data[(pollfdIt)index].fd, back_list_end);
 		}
 		else // EXISTE CHANNEL ->se une
 		{
@@ -286,10 +327,10 @@ void	Server::join(clientIt index, std::vector<std::string> &arguments)
 			std::string back_list  = ':' + std::string(SERVER_NAME) + " 353 " + data[index].getNickname() + " @ #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";
 			std::string back_list_end = ':' + std::string(SERVER_NAME) + " 366 " + data[index].getNickname()  + " #"+ channels[channel].getName() + " :End of /NAMES list." + "\r\n";
 
-			sendMsgUser(index, back);
-			sendMsgUser(index, back_topic);
-			sendMsgUser(index, back_list);
-			sendMsgUser(index, back_list_end);
+			sendMsgUser(data[(pollfdIt)index].fd, back);
+			sendMsgUser(data[(pollfdIt)index].fd, back_topic);
+			sendMsgUser(data[(pollfdIt)index].fd, back_list);
+			sendMsgUser(data[(pollfdIt)index].fd, back_list_end);
 		
 		}
 		
@@ -303,13 +344,16 @@ void	Server::join(clientIt index, std::vector<std::string> &arguments)
 
 void	Server::list(clientIt index, std::vector<std::string> &arguments){
 
+	////LISTA RESET EN LIME????
+	// los demas parametros obviamos???
 	(void)arguments; 
 	std::string message = ":" + std::string(SERVER_NAME) + " 321: Channel Users Name\r\n";
-	sendMsgUser(index, message);
+	sendMsgUser(data[(pollfdIt)index].fd, message);
 	for (uint32_t i = 1;i < channels.size() ; i++)
 	{
+		std::cout << color::cyan << "TOPIC: [" << channels[i].getTopic() + "]\n" << color::reset; 
 		std::string back = ":" + std::string(SERVER_NAME) + " 322 " + data[index].getNickname() + " #" + channels[i].getName() + " " +  std::to_string(channels[i].getNumUser()) + " :" + channels[i].getTopic() + "\r\n";
-		sendMsgUser(index, back);
+		sendMsgUser(data[(pollfdIt)index].fd, back);
 	}
 }
 
@@ -335,34 +379,38 @@ void	Server::part(clientIt index, std::vector<std::string> &arguments)
 			channels[channel].removeClient(index);
 			//MANDA DOS VECES????
 		}
-		
 	}
-
 }
 
 ////////////////////////////////////////////
 
 void	Server::topic(clientIt index, std::vector<std::string> &arguments){
 
-	//variable que guarda quien ha cambiado el topic, cuando etc....
 
-	if( arguments.size() == 3) //SETTING topic
+	uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 1));
+	if (channel == 0)
 	{
-		channels[data[index].getChannel()].setTopic(joinStr(arguments, 2)); //algo falla que no lo guarda en LIST
-		std::string message = ":" + data[index].getUserMask() + " TOPIC #" + arguments[1].substr(1, arguments[1].size() - 1) + " :" + channels[data[index].getChannel()].getTopic() + "\r\n";
-		channels[data[index].getChannel()].broadcast(0, message);
+		std::cout << color::red << "COULDN'T FIND CHANNEL [" << arguments[1].substr(1, arguments.size() - 1) << "]\n" << color::red;
+		return;
+	}
+	if( arguments.size() >= 3) //SETTING topic
+	{
+		channels[channel].setTopic(joinStr(arguments, 2));
+		//std::cout << color::cyan << "SETTING " << channels[channel].getName() << " TOPIC TO [" << joinStr(arguments, 2) << "]\n" << color::reset;
+		//std::cout << color::cyan << "NEW [" << channels[channel].getTopic() << "]\n" << color::reset;
+		std::string message = ":" + data[index].getUserMask() + " TOPIC #" + arguments[1].substr(1, arguments[1].size() - 1) + " :" + channels[channel].getTopic() + "\r\n";
+		channels[channel].broadcast(0, message);
+		channels[channel].setCreationDate(t_chrono::to_time_t(t_chrono::now()));
 	}
 	else	//VIEWING topic
 	{
-		std::string message  = ":" + serverName + " 332 dan #" + channels[data[index].getChannel()].getName() + " :" + channels[data[index].getChannel()].getTopic() + "\r\n";
-		std::string message2 = ":" + serverName + " 333 dan #" + channels[data[index].getChannel()].getName() + " dan 1547858123\r\n";
-		channels[data[index].getChannel()].broadcast(0, message);
+		std::string message  = ":" + serverName + " 332 dan #" + channels[channel].getName() + " :" + channels[channel].getTopic() + "\r\n";
+		std::string message2 = ":" + serverName + " 333 dan #" + channels[channel].getName() + " " + channels[channel].getCreator() + " " + std::to_string(channels[channel].getCreationDate()) + "\r\n";
+		channels[channel].broadcast(0, message);
 
 	}
 	//S <-   :irc.example.com 332 dan #v4 :Coolest topic
 	//S <-   :irc.example.com 333 dan #v4 dan 1547858123
-
-
 }
 
 
@@ -417,12 +465,12 @@ void	Server::away(clientIt index, std::vector<std::string> &arguments)
 	if (data[index].getAwayStatus() == true) {
 		data[index].setAwayStatus(false);
 		std::string message = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :You are no longer away.\r\n";
-		sendMsgUser(index, message);
+		sendMsgUser(data[(pollfdIt)index].fd, message);
 		return ;
 	}
 	data[index].setAwayStatus(true);
 	std::string message = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :You are now away.\r\n";
-	sendMsgUser(index, message);
+	sendMsgUser(data[(pollfdIt)index].fd, message);
 }
 /*	
 void	Server::invite(clientIt index, std::vector<std::string> &arguments)
@@ -434,14 +482,16 @@ void	Server::invite(clientIt index, std::vector<std::string> &arguments)
 */
 void	Server::ping(clientIt index, std::vector<std::string> &arguments)
 {
-//	(void)index;
-	(void)arguments;
-	std::cout << "PING RECEIVED\n";
-	std::string message = ":10.13.8.1 PRIVMSG " + data[index].getNickname() + " :PONG\r\n";
-	sendMsgUser(index, message);
+	if (arguments.size() < 2) //no token, error! ERR_NEEDMOREPARAMS (461) // ERR_NOORIGIN (409)
+	{
+		std::cout << color::red << "ARGUMENTS ERROR\n" << color::reset;
+		return ;
+	}
+	std::string message = ":" + serverName + " PONG " + joinStr(arguments, 2) + "\r\n";
+	sendMsgUser(data[(pollfdIt)index].fd, message);
 }
 
-//////////////////////////////////PROXIMAMENTE///////////////////////////////////////////
+
 
 /*--------------CAPABILITIES NEGOTIATION -------------*/
 
@@ -459,11 +509,8 @@ void	Server::cap(clientIt index, std::vector<std::string> &arguments)
 		}
 	}
 }
-	
+//COMMAND CAP FUNCTIONS
 
-	
-	//COMMAND CAP FUNCTIONS
-	
 void	Server::cap_req(clientIt index, std::vector<std::string> &arguments)
 {
 
@@ -492,10 +539,10 @@ void	Server::cap_req(clientIt index, std::vector<std::string> &arguments)
 		{
 		}*/
 	}
-	sendMsgUser(index, ack);
+	sendMsgUser(data[(pollfdIt)index].fd, ack);
 	std::cout << "SENDED CAP [" << ack << "]\n";
 	std::cout << "SENDED NACK [" << nack << "]\n";
-	sendMsgUser(index, nack);
+	sendMsgUser(data[(pollfdIt)index].fd, nack);
 	//sendMssgUser(data[(pollfdIt)index].fd, "CAP END")
 }
 
@@ -505,7 +552,7 @@ void	Server::cap_ls(clientIt index, std::vector<std::string> &arguments)
 	//std::cout << "CAP LS REACHED\n";
 	//mostrar las capabilities que ofrecemos, 	REPASARRRRRRRRRRRRRRRRRRRRRRRRRRRR
 	std::string message = "CAP * LS :multi-prefix sasl ";//sasl account-notify extended-join away-notify chghost userhost-in-names cap-notify server-time message-tags invite-notify batch echo-message account-tag";
-	sendMsgUser((clientIt)index, message);
+	sendMsgUser(data[(pollfdIt)index].fd, message);
 }
 
 void	Server::cap_end(clientIt index, std::vector<std::string> &arguments)
@@ -515,14 +562,14 @@ void	Server::cap_end(clientIt index, std::vector<std::string> &arguments)
 	
 	//mirar que es 001
 	std::string message = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n";
-	sendMsgUser(index, message);
+	sendMsgUser(data[(pollfdIt)index].fd, message);
 }
 
 void	Server::cap_ack(clientIt index, std::vector<std::string> &arguments)
 {
 	(void)arguments;
 	std::string message = "CAP * ACK : multi-prefix sasl account-notify extended-join away-notify chghost userhost-in-names cap-notify server-time message-tags invite-notify batch echo-message account-tag";
-	sendMsgUser(index, message);
+	sendMsgUser(data[(pollfdIt)index].fd, message);
 	//sendMsgUser(index, "CAP * END");
 }
 	
@@ -629,26 +676,6 @@ bool	Server::assertClientPassword(uint32_t indexAct, const std::string &password
 }
 */
 
-#include <locale>
-#include <codecvt>
-
-void Server::sendMsgUser(clientIt it, const std::string &str) const
-{
-	int buffer_size = 65536;
-	//std::locale::global(std::locale("en_US.UTF-8"));
-	setsockopt(data[(pollfdIt)it].fd, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size));
-	//std::string message = "PRIVMSG " + data[it].getUsername() + " : " + str;
-	int code;
-	//std::wstring_convert<std::codecvt_utf8<wchar_t> > converter;
-	//std::wstring wideStr = converter.from_bytes(str);
-	//std::string utf8Str = converter.to_bytes(wideStr);
-	if ((code = send(data[(pollfdIt)it].fd, str.c_str(), str.size(), 0)) <= 0)
-	{
-		std::error_code ec(errno, std::system_category());
-		std::cerr << "[fd: " << data[(pollfdIt)it].fd << "| it: " << it << "]\n" << "An error ocurred sending the message: " << color::boldwhite << ec.message() << color::reset << std::endl;
-	}
-	//std::cout << "bytes sent " << code << '\n';
-}
 /*
 bool checkAdmin(Client *client) {
 	if (client->getRole() == CL_ROOT)

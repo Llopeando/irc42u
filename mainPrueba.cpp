@@ -69,12 +69,7 @@ std::vector<std::string> splitIrcPrameters(const std::string &string, const char
 
 int main()
 {
-	//printIp();
-	std::string name = "PRIVMSG eperaita :1 2 3 4 5 6 7 8 9";
-	std::vector<std::string> words = splitIrcPrameters(name, ' ');
-	for (auto word : words)
-	{
-		std::cout << "[" << word << "]\n";
-	}
+	std::time_t date = 1225814334;
+	std::cout << "DATE = [" << std::ctime(&date) << "]\n";
 	return 0;
 }
