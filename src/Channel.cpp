@@ -4,7 +4,7 @@
 Channel::Channel(std::string name, std::string username, UsersData *data)
 {
 	this->name = name;
-	this->topic = "TEMP TOPIC";
+	this->topic = "";
 	creator = username;
 	this->data = data;
 	users.resize(1);
@@ -72,7 +72,7 @@ void Channel::removeClient(clientIt indexAct){
 
 
 uint32_t	Channel::findUser(clientIt indexAct)const {
-	for (uint32_t i = 0; i < users.size();i++)
+	for (uint32_t i = 1; i < users.size();i++)
 	{
 		if (users[i] == indexAct)
 			return i;
@@ -83,7 +83,6 @@ uint32_t	Channel::findUser(clientIt indexAct)const {
 void	Channel::broadcast(clientIt sender, std::string const &msg) {
 	for(clientIt i = 1; i < users.size();i++)
 	{
-		
 		if (users[i] != sender)
 		{
 			//std::cout << color::green << "SENDED TO: [" << i << "]" << (*data)[(clientIt)users[i]].getUsername() << "\n" << color::reset;

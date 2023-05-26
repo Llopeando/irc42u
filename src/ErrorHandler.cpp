@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ErrorHandler.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 18:17:21 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/25 20:17:34 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/05/26 20:38:19 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,24 +15,24 @@
 ErrorHandler::ErrorHandler()
 {
 	errCodes[ERR_UNKNOWNERROR]		= "";
-	errCodes[ERR_NOSUCHNICK]		= "";
-	errCodes[ERR_NOSUCHSERVER]		= "";
+	errCodes[ERR_NOSUCHNICK]		= "No such nick/channel";
+	errCodes[ERR_NOSUCHSERVER]		= "No such server";
 	errCodes[ERR_NOSUCHCHANNEL]		= "No such channel";
-	errCodes[ERR_CANNOTSENDTOCHAN]	= "";
+	errCodes[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";
 	errCodes[ERR_TOOMANYCHANNELS]	= "You have joined too many channels";
-	errCodes[ERR_WASNOSUCHNICK]		= "";
-	errCodes[ERR_NOORIGIN]			= "";
+	errCodes[ERR_WASNOSUCHNICK]		= "There was no such nickname";
+	errCodes[ERR_NOORIGIN]			= "No origin specified";
 	errCodes[ERR_NORECIPIENT]		= "";
-	errCodes[ERR_NOTEXTTOSEND]		= "";
-	errCodes[ERR_INPUTTOOLONG]		= "";
-	errCodes[ERR_UNKNOWNCOMMAND]	= "";
-	errCodes[ERR_NOMOTD]			= "";
+	errCodes[ERR_NOTEXTTOSEND]		= "No text to send";
+	errCodes[ERR_INPUTTOOLONG]		= "Input line was too long";
+	errCodes[ERR_UNKNOWNCOMMAND]	= "Unknown command";
+	errCodes[ERR_NOMOTD]			= "MOTD File is missing";
 	errCodes[ERR_NONICKNAMEGIVEN]	= "No nickname given";										//431
 	errCodes[ERR_ERRONEUSNICKNAME]	= "Erroneus nickname";										//432
 	errCodes[ERR_NICKNAMEINUSE]		= "Nickname is already in use"; 							//433
 	errCodes[ERR_NICKCOLLISION]		= "";
-	errCodes[ERR_USERNOTINCHANNEL]	= "";
-	errCodes[ERR_NOTONCHANNEL]		= "";
+	errCodes[ERR_USERNOTINCHANNEL]	= "They aren't on that channel";
+	errCodes[ERR_NOTONCHANNEL]		= "You're not on that channel"; //442
 	errCodes[ERR_USERONCHANNEL]		= "";
 	errCodes[ERR_NOTREGISTERED]		= "";
 	errCodes[ERR_NEEDMOREPARAMS]	= "Not enough parameters";                 //461 
@@ -69,6 +69,7 @@ ErrorHandler::ErrorHandler()
 	errCodes[ERR_SASLTOOLONG]		= "";
 	errCodes[ERR_SASLABORTED]		= "";
 	errCodes[ERR_SASLALREADY]		= "";
+	errCodes[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";					//404
 }
 
 void ErrorHandler::setData(UsersData *data, std::string serverName)

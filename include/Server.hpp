@@ -26,10 +26,6 @@
 #include "UsersData.hpp"
 #include "ErrorHandler.hpp"
 
-std::string printIp();
-std::string joinStr(std::vector<std::string>& arguments, uint32_t index);
-std::vector<std::string> split(const std::string &string, char c);
-std::vector<std::string> splitIrcPrameters(const std::string &string, const char c);
 
 class Server;
 #define SERVER_NAME "10.13.8.1" ///cambiar??
@@ -77,6 +73,9 @@ class Server
 		//void	sendMsgUser(int fd, const std::string &str) const;
 		//void	sendMsgUser(clientIt it, const std::string &str) const;
 		void	setCommands();
+
+		void	deleteChannel(uint32_t channel);
+
 
 
 		//COMMAND FUNCTIONS

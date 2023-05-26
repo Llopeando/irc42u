@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ErrorHandler.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 18:07:30 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/25 19:35:19 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/05/26 19:02:00 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,10 @@
 #define ERRORS_HPP
 
 #include <iostream>
-
 #include <unordered_map>
-
+#include "UsersData.hpp"
+#include "defines.hpp"
+#include "Utils.hpp"
 
 #define ERR_UNKNOWNERROR 400
 #define ERR_NOSUCHNICK 401
@@ -79,9 +80,9 @@
 #define RPL_NAMREPLY 353
 #define RPL_ENDOFNAMES 366
 
-#include "UsersData.hpp"
-#include "defines.hpp"
-#include "Utils.hpp"
+#define RPL_AWAY 301
+#define RPL_UNAWAY 305 //When the user is no longer away
+#define RPL_NOWAWAY 306 //When the user is away
 
 struct ErrorHandler{
 	ErrorHandler();
@@ -94,7 +95,5 @@ struct ErrorHandler{
 		UsersData *data;
 		std::string serverName;
 };
-
-
 
 #endif

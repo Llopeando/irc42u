@@ -1,14 +1,19 @@
 NAME = unitTester
 
-SRC = 	mainTester.cpp
+SRC = mainTester.cpp\
+../src/Server.cpp \
+../src/Client.cpp \
+../src/Channel.cpp \
+../src/UsersData.cpp \
+../src/ErrorHandler.cpp\
+../src/Utils.cpp
 		
 
 OBJ  = $(SRC:.cpp=.o)
 
 INCLUDES =	Checker.hpp
-			
 
-FLAGS = -Wall -Werror -Wextra -g3 -fsanitize=address
+FLAGS = -Wall -Werror -Wextra -std=c++17 -g3 -fsanitize=address
 
 CC = clang++
 

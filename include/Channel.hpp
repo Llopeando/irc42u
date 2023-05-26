@@ -24,7 +24,7 @@ class Channel
 
 		Channel(std::string name, std::string username, UsersData *data);
 		~Channel();
-		
+
 		std::string			getCreator() const;
 		std::time_t			getCreationDate()const;
 		void				setCreationDate(std::time_t);
@@ -38,9 +38,10 @@ class Channel
 		void				setTopic(std::string topic);
 		std::string			getTopic( void)const;
 		uint32_t			getNumUser( void)const;
-		
+		uint32_t			findUser(clientIt indexAct)const;
+
 	private:
-		uint32_t	findUser(clientIt indexAct)const;
+
 		void		sendInfoChannel(uint32_t user_pos, std::string const &str);
 
 
