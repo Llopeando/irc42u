@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 18:17:21 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/26 20:38:19 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/05/30 14:33:53 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,6 @@ void ErrorHandler::error(uint32_t index, uint32_t errorCode)
 	std::string err_msg = ":" + serverName + " " + std::to_string(errorCode) + " " + (*data)[(clientIt)index].getNickname() + " :" + errCodes[errorCode] + "\r\n";
 	sendMsgUser((*data)[(pollfdIt)index].fd, err_msg);
 	std::cout << color::red << "ERROR: [" << err_msg.substr(0, err_msg.size() - 2) << "]\n" << color::reset;
-	
 }
 
 //void ErrorHandler::error(uint32_t index, uint32_t errorCode, std::string command)

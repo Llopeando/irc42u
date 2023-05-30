@@ -29,7 +29,7 @@
 
 class Server;
 #define SERVER_NAME "10.13.8.1" ///cambiar??
-#define COMMANDS 10
+#define COMMANDS 11
 #define CAP_COMMANDS 6
 
 

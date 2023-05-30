@@ -23,7 +23,7 @@
 #define JOIN "JOIN"
 #define PART "PART"
 #define PRIVMSG "PRIVMSG"
-//#define NOTICE "NOTICE"
+#define NOTICE "NOTICE"
 //#define QUIT "QUIT"
 #define TOPIC "TOPIC"
 #define LIST "LIST"

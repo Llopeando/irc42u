@@ -284,7 +284,7 @@ void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 		{
 			sendMsgUser(data[(pollfdIt)index].fd, message);
 			std::string mask = data[index].getUserMask();
-			std::string away_msg  = ":" + mask + " 301 " + data[index].getNickname() + " : " + data[user].getAwayMsg() + "\r\n";
+			std::string away_msg = ":" + serverName + " 301 " + data[index].getNickname() + " " + data[index].getNickname() + " :" + data[index].getAwayMsg() + "\r\n";
 			sendMsgUser(data[(pollfdIt)index].fd, away_msg);
 		}
 		else
@@ -292,6 +292,7 @@ void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 			sendMsgUser(data[(pollfdIt)user].fd, message);
 		}
 	}
+}
 /*
 
 ERR_NOSUCHNICK (401)
@@ -305,9 +306,6 @@ ERR_WILDTOPLEVEL (414)
 RPL_AWAY (301)
 
 */
-
-
-}
 
 void	Server::join(clientIt index, std::vector<std::string> &arguments)
 {
@@ -360,15 +358,10 @@ void	Server::join(clientIt index, std::vector<std::string> &arguments)
 			sendMsgUser(data[(pollfdIt)index].fd, back_topic);
 			sendMsgUser(data[(pollfdIt)index].fd, back_list);
 			sendMsgUser(data[(pollfdIt)index].fd, back_list_end);
-		
 		}
-		
 		std::string message =  ":" +  data[index].getUserMask() +" JOIN :#" + channels[channel].getName() + "\r\n";
 		channels[channel].broadcast(index, message);
-
 	}
-
-
 }
 
 void	Server::list(clientIt index, std::vector<std::string> &arguments){
@@ -380,16 +373,13 @@ void	Server::list(clientIt index, std::vector<std::string> &arguments){
 	sendMsgUser(data[(pollfdIt)index].fd, message);
 	for (uint32_t i = 1;i < channels.size() ; i++)
 	{
-		
 		std::string back = ":" + std::string(SERVER_NAME) + " 322 " + data[index].getNickname() + " #" + channels[i].getName() + " " +  std::to_string(channels[i].getNumUser()) + " :" + channels[i].getTopic() + "\r\n";
 		sendMsgUser(data[(pollfdIt)index].fd, back);
 	}
 }
-/**/
+
 void	Server::part(clientIt index, std::vector<std::string> &arguments)
 {
-	
-
 	if (arguments.size() < 2)//ARGUMENT ERROR
 	{
 		errorHandler.error(index, ERR_NEEDMOREPARAMS , "PART");
@@ -423,22 +413,14 @@ void	Server::part(clientIt index, std::vector<std::string> &arguments)
 		}
 		std::string message;
 		if (!reason.empty())
-		{
-			 message = ":" + data[index].getUserMask() + " PART #" + channels[channel].getName() + " :" + reason + "\r\n";
-		}
+			message = ":" + data[index].getUserMask() + " PART #" + channels[channel].getName() + " :" + reason + "\r\n";
 		else
 			message = ":" + data[index].getUserMask() + " PART #" + channels[channel].getName() + "\r\n";
-
-
 		channels[channel].broadcast(0, message);
 		channels[channel].removeClient(index);
-
-		if (channels[channel].getNumUser() == 0 ) //when all users leave a group channel, the channel is deleted
+		if (channels[channel].getNumUser() == 0) //when all users leave a group channel, the channel is deleted
 			deleteChannel(channel);
 	}
-	
-	
-	
 }
 
 ////////////////////////////////////////////
@@ -489,54 +471,69 @@ void	Server::topic(clientIt index, std::vector<std::string> &arguments) {
 		std::string message2 = ":" + serverName + " 332 " + data[index].getNickname() + " #" + channels[channel].getName() + " " +  channels[channel].getCreator() + " " +  std::ctime(&date) + "\r\n"; //RPL_TOPICWHOTIME (333) //cambiar la fecha a legible?
 		channels[channel].broadcast(0, message);
 		channels[channel].broadcast(0, message2);
-
 	}
-
 }
 
 
-
-
-/*
 void	Server::notice(clientIt index, std::vector<std::string> &arguments)
 {
-	(void)index;
-	(void)arguments;
+	std::string message = ":" + serverName +  " NOTICE " +  arguments[0] + " :" + joinStr(arguments, 1) + "\r\n";
+	if (arguments[1][0] == '#' /*&& usuarioEsOperador()*/) //a un CHANNEL ---- OJO!!!!! El NOTICE para los CHANNELS solo lo pueden usar los OPERADORES
+	{
+		uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 1));
+		if(channel == 0)
+		{
+			errorHandler.error(index, ERR_CANNOTSENDTOCHAN);//NO CHANNEL 404
+			return;
+		}
+		channels[channel].broadcast(index, message);
+	}
+/*	if (MENSAJE AL SERVIDOR)
+	{
+		402 ERR_NOSUCHSERVER
+	}
+	*/
+	else	//to a USER
+	{
+		clientIt user = data.findNickname(arguments[1]);
+		if (user == 0) {
+			errorHandler.error(index, ERR_NOSUCHNICK);
+			return;
+		}
+		sendMsgUser(data[(pollfdIt)user].fd, message);
+	}
 }
 
+// void	Server::quit(clientIt index, std::vector<std::string> &arguments)
+// {
+// 	(void)index;
+// 	(void)arguments;
+// }
 
-void	Server::quit(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)index;
-	(void)arguments;
-}
+// void	Server::mode(clientIt index, std::vector<std::string> &arguments)
+// {
+// 	(void)index;
+// 	(void)arguments;
+// }
 
-void	Server::mode(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)index;
-	(void)arguments;
-}
+// void	Server::names(clientIt index, std::vector<std::string> &arguments)
+// {
+// 	(void)index;
+// 	(void)arguments;
+// }
 
+// void	Server::whois(clientIt index, std::vector<std::string> &arguments)
+// {
+// 	(void)index;
+// 	(void)arguments;
+// }
 
-void	Server::names(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)index;
-	(void)arguments;
-}
+// void	Server::kick(clientIt index, std::vector<std::string> &arguments)
+// {
+// 	(void)index;
+// 	(void)arguments;
+// }
 
-
-void	Server::whois(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)index;
-	(void)arguments;
-}
-
-void	Server::kick(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)index;
-	(void)arguments;
-}
-*/
 void	Server::away(clientIt index, std::vector<std::string> &arguments)
 {
 	std::string mask = data[index].getUserMask();
@@ -791,30 +788,30 @@ void Server::setCommands()
 	commands.cmd[2]  = JOIN;
 	commands.cmd[3]  = PART;
 	commands.cmd[4]  = PRIVMSG;
-	//commands.cmd[5]  = NOTICE;
+	commands.cmd[5]  = NOTICE;
 	//commands.cmd[6]  = QUIT;
 	//commands.cmd[8]  = MODE;
 	//commands.cmd[9]  = NAMES;
 	//commands.cmd[10] = WHOIS;
 	//commands.cmd[11] = KICK;
-	commands.cmd[5] = AWAY;
+	commands.cmd[6] = AWAY;
 	//commands.cmd[13] = INVITE;
-	commands.cmd[6] = PING;
-	commands.cmd[7] = CAP;
-	commands.cmd[8] = TOPIC;
-	commands.cmd[9] = LIST;
+	commands.cmd[7] = PING;
+	commands.cmd[8] = CAP;
+	commands.cmd[9] = TOPIC;
+	commands.cmd[10] = LIST;
 
-	commands.func[0]  = &Server::nick;
-	commands.func[1]  = &Server::user;
-	commands.func[2]  = &Server::join;
-	commands.func[3]  = &Server::part;
-	commands.func[4]  = &Server::privmsg;
-
-	commands.func[5] = &Server::away;
-	commands.func[6] = &Server::ping;
-	commands.func[7] = &Server::cap;
-	commands.func[8]  = &Server::topic;
-	commands.func[9]  = &Server::list;
+	commands.func[0] = &Server::nick;
+	commands.func[1] = &Server::user;
+	commands.func[2] = &Server::join;
+	commands.func[3] = &Server::part;
+	commands.func[4] = &Server::privmsg;
+	commands.func[5] = &Server::notice;
+	commands.func[6] = &Server::away;
+	commands.func[7] = &Server::ping;
+	commands.func[8] = &Server::cap;
+	commands.func[9]  = &Server::topic;
+	commands.func[10]  = &Server::list;
 	
 
 	//commands.func[5]  = &Server::notice;
