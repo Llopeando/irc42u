@@ -253,59 +253,68 @@ void	Server::user(clientIt index, std::vector<std::string> &arguments)
 
 // REPLY //sendMsgUser(fd, STRING);
 void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
-{
-	//revisar opciones de MSG , gestion de error de USER no existente etc
-	std::string message = ":" + data[index].getNickname() +  " " +  arguments[0] + " " + arguments[1] + " :" + joinStr(arguments, 2) + "\r\n";
- 
-	if (arguments[1][0] == '#') 	//to a CHANNEL 
+{	
+
+	if (arguments.size() < 2 || arguments[1].empty()) //NO ARGS
 	{
-		uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 1));
-		if(channel == 0)
-		{
-			errorHandler.error(index, ERR_CANNOTSENDTOCHAN);//NO CHANNEL 404
-			return;
-		}
-		channels[channel].broadcast(index, message);
+		errorHandler.error(index, ERR_NORECIPIENT); 
+		return ;
 	}
-/*	if (MENSAJE AL SERVIDOR)
+	else 
 	{
-		402 ERR_NOSUCHSERVER
-	}
-	*/
-	else 	//to an USER 
-	{
-		clientIt user = data.findNickname(arguments[1]);
-		if (user == 0)
+		std::string message = ":" + data[index].getNickname() +  " " +  arguments[0] + " " + arguments[1] + " :" + text + "\r\n";
+		for (std::vector<std::string>::iterator i = arguments.begin(); i != arguments.end(); i++)
 		{
-			errorHandler.error(index, ERR_NOSUCHNICK);
-			return;
+			//to a CHANNEL 
+			if (arguments[1][0] == '#') 	
+			{
+				uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 1));
+				if(channel == 0)
+				{
+					errorHandler.error(index, ERR_CANNOTSENDTOCHAN);//NO CHANNEL 404
+					continue;
+				}
+				////CHECK ERR_CANNOTSENDTOCHAN (404)  /CHANNEL MODES ETC
+				channels[channel].broadcast(index, message); //PRIVMSG TO CHANNEL SUCCESS 
+				
+			}
+			/* //to the SERVER
+			else if 
+				{
+					402 ERR_NOSUCHSERVER
+				}
+			*/
+			//to an USER 
+			else 
+			{
+				clientIt user = data.findNickname(*i);
+				if (user != 0) 
+				{
+				
+					if (data[user].getAwayStatus() == true) // RPL_AWAY (301)
+					{
+						//sendMsgUser(data[(pollfdIt)index].fd, message);
+						std::string mask = data[index].getUserMask();
+						std::string away_msg = ":" + serverName + " 301 " + data[index].getNickname() + " " + data[index].getNickname() + " :" + data[index].getAwayMsg() + "\r\n";
+						sendMsgUser(data[(pollfdIt)index].fd, away_msg);
+					}
+					else //PRIVMSG TO USER SUCCESS 
+					{	
+						std::string text = joinStr(arguments, 2);
+						if(text.empty()) //ERR_NOTEXTTOSEND (412) 
+							errorHandler.error(index, ERR_NOTEXTTOSEND); 
+						sendMsgUser(data[(pollfdIt)user].fd, message);
+					}
+				
+				}
+				else 
+					errorHandler.error(index, ERR_NOSUCHNICK);
+			}
 		}
-		if (data[user].getAwayStatus() == true)
-		{
-			sendMsgUser(data[(pollfdIt)index].fd, message);
-			std::string mask = data[index].getUserMask();
-			std::string away_msg = ":" + serverName + " 301 " + data[index].getNickname() + " " + data[index].getNickname() + " :" + data[index].getAwayMsg() + "\r\n";
-			sendMsgUser(data[(pollfdIt)index].fd, away_msg);
-		}
-		else
-		{
-			sendMsgUser(data[(pollfdIt)user].fd, message);
-		}
+	// ERR_TOOMANYTARGETS (407) // <target> :Duplicate recipients. No message delivered
+	// ERR_NOTOPLEVEL (413) and ERR_WILDTOPLEVEL (414) are errors that  are returned when an invalid use of "PRIVMSG $<server>" or "PRIVMSG #<host>" is attempted.
 	}
 }
-/*
-
-ERR_NOSUCHNICK (401)
-ERR_NOSUCHSERVER (402)
-ERR_CANNOTSENDTOCHAN (404)
-ERR_TOOMANYTARGETS (407)
-ERR_NORECIPIENT (411)
-ERR_NOTEXTTOSEND (412)
-ERR_NOTOPLEVEL (413)
-ERR_WILDTOPLEVEL (414)
-RPL_AWAY (301)
-
-*/
 
 void	Server::join(clientIt index, std::vector<std::string> &arguments)
 {

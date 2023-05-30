@@ -23,7 +23,7 @@ ErrorHandler::ErrorHandler()
 	errCodes[ERR_WASNOSUCHNICK]		= "There was no such nickname";
 	errCodes[ERR_NOORIGIN]			= "No origin specified";
 	errCodes[ERR_NORECIPIENT]		= "";
-	errCodes[ERR_NOTEXTTOSEND]		= "No text to send";
+	errCodes[ERR_NOTEXTTOSEND]		= "No text to send";										//412
 	errCodes[ERR_INPUTTOOLONG]		= "Input line was too long";
 	errCodes[ERR_UNKNOWNCOMMAND]	= "Unknown command";
 	errCodes[ERR_NOMOTD]			= "MOTD File is missing";
