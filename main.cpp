@@ -1,10 +1,16 @@
-#include "../include/Server.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/06/01 18:06:37 by ullorent          #+#    #+#             */
+/*   Updated: 2023/06/01 18:06:38 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include <ifaddrs.h>
-#include <netinet/in.h>
-#include <net/if.h>
-#include <netdb.h>
-
+#include "irc.hpp"
 
 void	serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
 {

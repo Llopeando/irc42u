@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 18:07:30 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/26 19:02:00 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/06/01 19:20:21 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,7 @@
 #define ERR_SASLTOOLONG 905
 #define ERR_SASLABORTED 906
 #define ERR_SASLALREADY 907
+#define ERR_TOOMANYTARGETS 407
 
 #define RPL_TOPIC 332
 #define RPL_TOPICWHOTIME 333
@@ -87,11 +88,11 @@
 struct ErrorHandler{
 	ErrorHandler();
 	void	setData(UsersData *data, std::string serverName);
-	std::unordered_map<uint32_t, std::string> errCodes;
 	void	error(uint32_t index, uint32_t errorCode);
 	//void	error(uint32_t index, uint32_t errorCode, std::string command);
 	void	error(uint32_t index, uint32_t errorCode, /*std::string command, */std::string param);
 	private:
+		std::unordered_map<uint32_t, std::string> errCodes;
 		UsersData *data;
 		std::string serverName;
 };

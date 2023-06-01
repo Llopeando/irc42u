@@ -2,6 +2,8 @@
 #define DEFINES_H
 
 #include <iostream>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 #define SERVER_FAILURE -1
 
@@ -18,34 +20,7 @@
 
 #define RCVBUFSIZE 1024
 
-#define NICK "NICK"
-#define USER "USER"
-#define JOIN "JOIN"
-#define PART "PART"
-#define PRIVMSG "PRIVMSG"
-#define NOTICE "NOTICE"
-//#define QUIT "QUIT"
-#define TOPIC "TOPIC"
-#define LIST "LIST"
-//#define MODE "MODE"
-//#define NAMES "NAMES"
-//#define WHOIS "WHOIS"
-//#define KICK "KICK"
-#define AWAY "AWAY"
-//#define INVITE "INVITE"
-#define PING "PING"
-#define CAP "CAP"
-
-#define CAP_REQ "REQ"
-#define CAP_LS "LS"
-#define CAP_END "END"
-#define CAP_ACK "ACK"
-#define CAP_NAK "NACK"
-
 //CREAR DEFINES DE NUMEROS: RPL_WELCOME = 001
-
-
-
 namespace color {
 	const std::string reset		= "\033[0m";
 	const std::string black		= "\033[30m";
@@ -68,9 +43,6 @@ namespace color {
 	
 	const std::string boldgreenback =  "\033[1m\033[42m";
 }
-
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 typedef struct activeIndex
 {

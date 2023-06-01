@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 19:12:28 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/26 18:09:00 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/06/01 18:12:40 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include "defines.hpp"
 #include <vector>
 #include <string>
-
+#include <sstream>
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <net/if.h>

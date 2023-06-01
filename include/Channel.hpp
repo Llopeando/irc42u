@@ -43,8 +43,6 @@ class Channel
 	private:
 
 		void		sendInfoChannel(uint32_t user_pos, std::string const &str);
-
-
 		uint32_t numOfUsers;
 		UsersData *data;
 		std::string name;

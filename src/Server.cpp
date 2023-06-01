@@ -162,19 +162,13 @@ void Server::handleInput(clientIt index, std::string input)
 	printVector(arguments);
 	//std::cout << "[" << arguments[0].c_str() << "]\n";
 	//std::cout << "[" << arguments[1].c_str() << "]\n";
-	for (uint32_t i = 0; i < COMMANDS; i++)
+	void (Server::*func)(clientIt index, std::vector<std::string>& arguments) = commands.funcmap[arguments[0]];
+	if (func == nullptr)
 	{
-		if (commands.cmd[i] == arguments[0])
-		{
-			//std::cout << "command reached\n";
-			//////////////KAREN/////////////////////
-			(this->*(commands.func[i]))(index, arguments);
-			return ;
-		}
-	}	
-	//std::cout << "[Received message : " << input << "]\n";
-	//AQUI TENEMOS QUE HACER BROADCAST
-	
+		std::cout << color::red << "[ERROR DE COMANDO \n" << color::reset ; ////////////ERROR DE COMANDO 
+		return;
+	}
+	(this->*func)(index, arguments);
 }
 
 void Server::handleEvents(pollfdIt index)
@@ -240,72 +234,89 @@ void	Server::nick(clientIt index, std::vector<std::string> &arguments)
 
 void	Server::user(clientIt index, std::vector<std::string> &arguments)
 {
-	
+	if (arguments.size() < 5 || arguments[1].empty()) //NO ARGS
+	{
+		errorHandler.error(index, ERR_NEEDMOREPARAMS); 
+		return ;
+	}
+	//The maximum length of <username> may be specified by the USERLEN RPL_ISUPPORT parameter.  MUST be silently truncated to the given length 
+	// The minimum length of <username> is 1, ie. it MUST NOT be empty. 
+	if (data.findUsername(arguments[1])) 
+	{
+		errorHandler.error(index, ERR_ALREADYREGISTERED); 
+		return ;
+	}
 	data[index].setUsername(arguments[1]);
 	//sendMsgUser(data[(pollfdIt)index].fd, message);
 	std::string message = "001 " + data[index].getNickname() + " :Welcome to A O I R C\n" ;
 	sendMsgUser(data[(pollfdIt)index].fd, message);
 	channels[0].addClient(index); //join to lobby
 	//std::cout << "----------New user changed: " << data[index].getUsername() << "]\n";
-
 }
 
-
-// REPLY //sendMsgUser(fd, STRING);
 void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 {
-	//revisar opciones de MSG , gestion de error de USER no existente etc
-	std::string message = ":" + data[index].getNickname() +  " " +  arguments[0] + " " + arguments[1] + " :" + joinStr(arguments, 2) + "\r\n";
- 
-	if (arguments[1][0] == '#') 	//to a CHANNEL 
+	if (arguments.size() < 2 || arguments[1].empty()) //NO ARGS
 	{
-		uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 1));
-		if(channel == 0)
-		{
-			errorHandler.error(index, ERR_CANNOTSENDTOCHAN);//NO CHANNEL 404
-			return;
-		}
-		channels[channel].broadcast(index, message);
+		//std::cout << color::red << "ERROR NORECIPIENT" << color::reset << std::endl;
+		errorHandler.error(index, ERR_NORECIPIENT); 
+		return ;
 	}
-/*	if (MENSAJE AL SERVIDOR)
+	std::vector<std::string> targets = split(arguments[1], ',');
+	std::set<std::string> uniqueNames;
+	for (std::vector<std::string>::iterator target = targets.begin(); target != targets.end(); target++)
 	{
-		402 ERR_NOSUCHSERVER
-	}
-	*/
-	else 	//to an USER 
-	{
-		clientIt user = data.findNickname(arguments[1]);
-		if (user == 0)
-		{
-			errorHandler.error(index, ERR_NOSUCHNICK);
-			return;
+		if (!uniqueNames.insert(*target).second) {
+			// ERR_TOOMANYTARGETS (407) // <target> :Duplicate recipients. No message delivered
+			errorHandler.error(index, ERR_TOOMANYTARGETS, *target);
+			continue ;
 		}
-		if (data[user].getAwayStatus() == true)
+		std::string message = ":" + data[index].getNickname() +  " " +  arguments[0] + " " + *target + " :" + arguments[2] + "\r\n";
+		if ((*target)[0] == '#') 	//  channel membership prefix character (@, +, etc) 
 		{
-			sendMsgUser(data[(pollfdIt)index].fd, message);
-			std::string mask = data[index].getUserMask();
-			std::string away_msg = ":" + serverName + " 301 " + data[index].getNickname() + " " + data[index].getNickname() + " :" + data[index].getAwayMsg() + "\r\n";
-			sendMsgUser(data[(pollfdIt)index].fd, away_msg);
+			
+			uint32_t channel = findChannel(target->substr(1));
+			if(channel == 0)
+			{
+				//std::cout << color::red << "ERROR NOCHANNEL 404" << color::reset << std::endl;
+				errorHandler.error(index, ERR_CANNOTSENDTOCHAN);//NO CHANNEL 404
+				continue;
+			}
+			////CHECK BANNED??? MOD??? ->>>>>> ERR_CANNOTSENDTOCHAN (404)  
+			channels[channel].broadcast(index, message); //PRIVMSG TO CHANNEL SUCCESS 
 		}
-		else
+		else 
 		{
-			sendMsgUser(data[(pollfdIt)user].fd, message);
+			clientIt user = data.findNickname(*target);
+			if (user != 0)
+			{
+				if (data[user].getAwayStatus() == true) // RPL_AWAY (301)
+				{
+					sendMsgUser(data[(pollfdIt)index].fd, message);
+					std::string away_msg = ":" + serverName + " 301 " + data[index].getNickname() + " " + data[user].getNickname() + " :" + data[user].getAwayMsg() + "\r\n";
+					sendMsgUser(data[(pollfdIt)index].fd, away_msg);
+				}
+				else //PRIVMSG TO USER SUCCESS 
+				{	
+					if(arguments[2].empty()) //ERR_NOTEXTTOSEND (412) 
+					{
+					//	std::cout << color::red << "ERROR NOTEXT" << color::reset << std::endl;
+						errorHandler.error(index, ERR_NOTEXTTOSEND); 
+					}
+					sendMsgUser(data[(pollfdIt)user].fd, message);
+				}
+			
+			}
+			else 
+			{
+				//std::cout << color::red << "ERROR NO NICK" << color::reset << std::endl;
+				errorHandler.error(index, ERR_NOSUCHNICK);
+			}
 		}
+	
 	}
 }
-/*
 
-ERR_NOSUCHNICK (401)
-ERR_NOSUCHSERVER (402)
-ERR_CANNOTSENDTOCHAN (404)
-ERR_TOOMANYTARGETS (407)
-ERR_NORECIPIENT (411)
-ERR_NOTEXTTOSEND (412)
-ERR_NOTOPLEVEL (413)
-ERR_WILDTOPLEVEL (414)
-RPL_AWAY (301)
-
-*/
 
 void	Server::join(clientIt index, std::vector<std::string> &arguments)
 {
@@ -326,11 +337,11 @@ void	Server::join(clientIt index, std::vector<std::string> &arguments)
 			errorHandler.error(index, ERR_BADCHANMASK, arguments[1]);
 			continue ;
 		}
-		uint32_t channel = findChannel(channelNames[i].substr(1, channelNames[i].size() - 1));
+		uint32_t channel = findChannel(channelNames[i].substr(1));
 		//NO EXISTE CHANNEL ->se crea y se une 
 		if(!channel) 
 		{
-			channels.push_back(Channel(channelNames[i].substr(1, channelNames[i].size() - 1), data[index].getUsername(), &data));
+			channels.push_back(Channel(channelNames[i].substr(1), data[index].getUsername(), &data));
 			channel = channels.size() - 1;
 			channels[channel].addClient(index);
 
@@ -389,7 +400,7 @@ void	Server::part(clientIt index, std::vector<std::string> &arguments)
 	if (arguments.size() > 2)//REASON
 	{
 		reason = joinStr(arguments, 2);
-		std::cout << "MESSAGE [ " << reason << "]\n";
+		//std::cout << "MESSAGE [ " << reason << "]\n";
 	}
 	std::vector<std::string> channelNames = split(arguments[1], ',');
 	for (std::vector<std::string>::iterator channelName = channelNames.begin(); channelName != channelNames.end(); channelName++)
@@ -400,7 +411,7 @@ void	Server::part(clientIt index, std::vector<std::string> &arguments)
 			errorHandler.error(index, ERR_BADCHANMASK, *channelName);
 			continue ;
 		}
-		uint32_t channel = findChannel(channelName->substr(1, channelName->size() - 1));
+		uint32_t channel = findChannel(channelName->substr(1));
 		if (channel == 0)//NO EXISTE CHANNEL 
 		{
 			errorHandler.error(index, ERR_NOSUCHCHANNEL, *channelName);
@@ -432,16 +443,16 @@ void	Server::topic(clientIt index, std::vector<std::string> &arguments) {
 		errorHandler.error(index, ERR_NEEDMOREPARAMS , "TOPIC");
 		return;
 	}
-	uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 1));
+	uint32_t channel = findChannel(arguments[1].substr(1));
 	if(!(arguments[1][0] == '#' || arguments[1][0] == '@')) //NO ES UN CHANNEL 
 	{
-			errorHandler.error(index, ERR_BADCHANMASK, arguments[1]);
-			return ;
+		errorHandler.error(index, ERR_BADCHANMASK, arguments[1]);
+		return ;
 	}
 	if (channel == 0)//NO EXISTE CHANNEL 
 	{
-			errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[1]);
-			return ;
+		errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[1]);
+		return ;
 	}
 	if(!channels[channel].findUser(index)) //NO ESTAS EN EL CHANNEL 
 	{
@@ -455,7 +466,7 @@ void	Server::topic(clientIt index, std::vector<std::string> &arguments) {
 	if( arguments.size() >= 3) //SETTING topic
 	{
 		channels[channel].setTopic(joinStr(arguments, 2));
-		std::string message = ":" + data[index].getUserMask() + " TOPIC #" + arguments[1].substr(1, arguments[1].size() - 1) + " :" + channels[channel].getTopic() + "\r\n"; //RPL_TOPIC (332)
+		std::string message = ":" + data[index].getUserMask() + " TOPIC #" + arguments[1].substr(1) + " :" + channels[channel].getTopic() + "\r\n"; //RPL_TOPIC (332)
 		channels[channel].broadcast(0, message);
 		channels[channel].setCreationDate(t_chrono::to_time_t(t_chrono::now()));
 	}
@@ -477,89 +488,168 @@ void	Server::topic(clientIt index, std::vector<std::string> &arguments) {
 
 void	Server::notice(clientIt index, std::vector<std::string> &arguments)
 {
-	std::string message = ":" + serverName +  " NOTICE " +  arguments[0] + " :" + joinStr(arguments, 1) + "\r\n";
-	if (arguments[1][0] == '#' /*&& usuarioEsOperador()*/) //a un CHANNEL ---- OJO!!!!! El NOTICE para los CHANNELS solo lo pueden usar los OPERADORES
+	if (arguments.size() < 2 || arguments[1].empty()) //NO ARGS
 	{
-		uint32_t channel = findChannel(arguments[1].substr(1, arguments[1].size() - 1));
-		if(channel == 0)
-		{
-			errorHandler.error(index, ERR_CANNOTSENDTOCHAN);//NO CHANNEL 404
-			return;
-		}
-		channels[channel].broadcast(index, message);
-	}
-/*	if (MENSAJE AL SERVIDOR)
-	{
-		402 ERR_NOSUCHSERVER
-	}
-	*/
-	else	//to a USER
-	{
-		clientIt user = data.findNickname(arguments[1]);
-		if (user == 0) {
-			errorHandler.error(index, ERR_NOSUCHNICK);
-			return;
-		}
-		sendMsgUser(data[(pollfdIt)user].fd, message);
-	}
-}
-
-// void	Server::quit(clientIt index, std::vector<std::string> &arguments)
-// {
-// 	(void)index;
-// 	(void)arguments;
-// }
-
-// void	Server::mode(clientIt index, std::vector<std::string> &arguments)
-// {
-// 	(void)index;
-// 	(void)arguments;
-// }
-
-// void	Server::names(clientIt index, std::vector<std::string> &arguments)
-// {
-// 	(void)index;
-// 	(void)arguments;
-// }
-
-// void	Server::whois(clientIt index, std::vector<std::string> &arguments)
-// {
-// 	(void)index;
-// 	(void)arguments;
-// }
-
-// void	Server::kick(clientIt index, std::vector<std::string> &arguments)
-// {
-// 	(void)index;
-// 	(void)arguments;
-// }
-
-void	Server::away(clientIt index, std::vector<std::string> &arguments)
-{
-	std::string mask = data[index].getUserMask();
-	if (data[index].getAwayStatus() == true || arguments.size() < 2) {
-		data[index].setAwayStatus(false);
-		data[index].setAwayMsg("");
-		std::string message  = ":" + mask + " 305 " + data[index].getNickname() + " :You are no longer marked as being away\r\n";
-		sendMsgUser(data[(pollfdIt)index].fd, message);
+		std::cout << color::red << "ERROR NORECIPIENT" << color::reset << std::endl;
+		errorHandler.error(index, ERR_NORECIPIENT); 
 		return ;
 	}
-	data[index].setAwayMsg(joinStr(arguments, 1));
-	data[index].setAwayStatus(true);
-	std::string message  = ":" + mask + " 306 " + data[index].getNickname() + " :You have been marked as being away\r\n";
-	sendMsgUser(data[(pollfdIt)index].fd, message);
+	std::vector<std::string> targets = split(arguments[1], ',');
+	std::set<std::string> uniqueNames;
+	for (std::vector<std::string>::iterator target = targets.begin(); target != targets.end(); target++)
+	{
+		if (!uniqueNames.insert(*target).second) {
+			errorHandler.error(index, ERR_TOOMANYTARGETS, *target);
+			continue ;
+		}
+		std::string message = ":" + serverName + " NOTICE " + " :-" + data[index].getNickname() + "- " + arguments[2] + "\r\n";
+		
+		if ((*target)[0] == '#' /*&& usuarioEsOperador()*/) //a un CHANNEL ---- OJO!!!!! El NOTICE para los CHANNELS solo lo pueden usar los OPERADORES
+		{
+			uint32_t channel = findChannel(target->substr(1));
+			if (channel == 0) {
+				errorHandler.error(index, ERR_CANNOTSENDTOCHAN);
+				continue;
+			}
+			channels[channel].broadcast(index, message);
+		}
+		else 
+		{
+			clientIt user = data.findNickname(*target);
+			if (user != 0)
+			{
+				if (arguments[2].empty()) {
+					errorHandler.error(index, ERR_NOTEXTTOSEND); 
+				}
+				sendMsgUser(data[(pollfdIt)user].fd, message);
+			}
+			else {
+				errorHandler.error(index, ERR_NOSUCHNICK);
+			}
+		}
+	}
 }
-/*	
-void	Server::invite(clientIt index, std::vector<std::string> &arguments)
+
+void	Server::quit(clientIt index, std::vector<std::string> &arguments)
 {
 	(void)index;
 	(void)arguments;
 }
 
-*/
+void	Server::mode(clientIt index, std::vector<std::string> &arguments)
+{
+	(void)index;
+	(void)arguments;
+}
+
+void	Server::names(clientIt index, std::vector<std::string> &arguments)
+{
+	(void)index;
+	(void)arguments;
+}
+
+void	Server::whois(clientIt index, std::vector<std::string> &arguments)
+{
+	(void)index;
+	(void)arguments;
+}
+
+void	Server::kick(clientIt index, std::vector<std::string> &arguments)
+{
+	if (arguments.size() < 3)
+	{
+		errorHandler.error(index, ERR_NEEDMOREPARAMS , "KICK");
+		return;
+	}
+	//REASON
+	std::string reason;
+	if (arguments.size() == 4)
+	{
+		reason = arguments[3];
+	}
+	else
+		reason = "The kick hammer has spoken!";   //no me gustaaaaaaa
+	uint32_t channel = findChannel(arguments[1].substr(1));
+	if (channel == 0)
+	{
+		errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[1]);
+		return ;
+	}
+	if (channels[channel].findUser(index) == 0) // NO ESTAS EN EL CHANNEL
+	{
+		errorHandler.error(index, ERR_NOTONCHANNEL, arguments[1]);
+	}
+	//ERR_CHANOPRIVSNEEDED (482) //no permissions
+	std::vector<std::string>targets = split(arguments[2], ',');
+	for(std::vector<std::string>::const_iterator target = targets.begin();target != targets.end(); target++)
+	{
+		clientIt clientIdx = data.findNickname(*target);
+		if (clientIdx == 0) 									//no existe target
+			errorHandler.error(index, ERR_NOSUCHNICK);
+		else if (channels[channel].findUser(clientIdx) == 0) 	//TARGET no esta en el canal 
+			errorHandler.error(index, ERR_USERNOTINCHANNEL);
+		else
+		{
+			std::string broadcast_message = ":" + data[index].getUserMask() + " KICK " + " #" + channels[channel].getName() + " " + data[clientIdx].getNickname() + " :" + reason + "\r\n";
+			channels[channel].broadcast(0, broadcast_message);
+			channels[channel].removeClient(clientIdx);
+		}
+	}
+}
+
+void	Server::away(clientIt index, std::vector<std::string> &arguments)
+{
+	if (data[index].getAwayStatus() == true || arguments.size() < 2) {
+		data[index].setAwayStatus(false);
+		data[index].setAwayMsg("");
+		std::string message  = ":" + data[index].getUserMask() + " 305 " + data[index].getNickname() + " :You are no longer marked as being away\r\n";
+		sendMsgUser(data[(pollfdIt)index].fd, message);
+		return ;
+	}
+	data[index].setAwayMsg(joinStr(arguments, 1));
+	data[index].setAwayStatus(true);
+	std::string message  = ":" + data[index].getUserMask() + " 306 " + data[index].getNickname() + " :You have been marked as being away\r\n";
+	sendMsgUser(data[(pollfdIt)index].fd, message);
+}
+
+void	Server::invite(clientIt index, std::vector<std::string> &arguments)
+{
+	if (arguments.size() < 2)//ARGUMENT ERROR
+	{
+		errorHandler.error(index, ERR_NEEDMOREPARAMS , "INVITE");
+		return;
+	}
+	else if (arguments.size() == 3)
+	{
+		clientIt target_user = data.findNickname(arguments[1]);
+		std::string channel_name = arguments[2].substr(1);
+		uint32_t channel = findChannel(channel_name);
+		if (channel == 0)
+			errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[2]); // NO EXISTE CHANNEL
+		else if (!channels[channel].findUser(index))
+			errorHandler.error(index, ERR_NOTONCHANNEL, data[index].getNickname()); //NO ESTAS EN ESE CHANNEL
+		//ERR_CHANOPRIVSNEEDED (482)
+		else if (channels[channel].findUser(target_user)) //TARGET YA ESTA EN EL CHANNEL
+		{
+			errorHandler.error(index, ERR_USERONCHANNEL, arguments[1]);
+		}
+		else
+		{
+			std::string message = ":" + data[index].getUserMask() + " " + arguments[0] + " "+ data[target_user].getNickname() + " " + arguments[2] + "\r\n"; //reply->  :dan-!d@localhost INVITE Wiz #test
+			sendMsgUser(data[(pollfdIt)target_user].fd, message);  ///SUCCESSSSS
+		}
+	}
+	/*else if (arguments.size() == 2)
+	{
+		//list //RPL_INVITELIST (336) // RPL_ENDOFINVITELIST (337)
+	}
+	*/
+
+}
+
+
 void	Server::ping(clientIt index, std::vector<std::string> &arguments)
 {
-	
 	if (arguments.size() < 2)//ARGUMENT ERROR 
 	{
 		errorHandler.error(index, ERR_NEEDMOREPARAMS , "PING"); // ERR_NOORIGIN (409) IN THE OLD IRCS 
@@ -577,15 +667,11 @@ void	Server::ping(clientIt index, std::vector<std::string> &arguments)
 
 void	Server::cap(clientIt index, std::vector<std::string> &arguments) 
 {
-	//std::cout << "CAP REACHED[" << arguments[1] << "]\n";
-	return;
-
-	for (uint32_t i = 0; i < CAP_COMMANDS;i++)
+	void (Server::*cap_func)(clientIt index, std::vector<std::string>& arguments) = commands.cap_funcmap[arguments[0]];
+	if (cap_func != nullptr)
 	{
-		if (commands.cap_cmd[i] == arguments[1])
-		{
-			(this->*(commands.cap_func[i]))(index, arguments);
-		}
+		(this->*cap_func)(index, arguments);
+		return;
 	}
 }
 //COMMAND CAP FUNCTIONS
@@ -783,57 +869,29 @@ bool checkAdmin(Client *client) {
 
 void Server::setCommands()
 {
-	commands.cmd[0]  = NICK;
-	commands.cmd[1]  = USER;
-	commands.cmd[2]  = JOIN;
-	commands.cmd[3]  = PART;
-	commands.cmd[4]  = PRIVMSG;
-	commands.cmd[5]  = NOTICE;
-	//commands.cmd[6]  = QUIT;
-	//commands.cmd[8]  = MODE;
-	//commands.cmd[9]  = NAMES;
-	//commands.cmd[10] = WHOIS;
-	//commands.cmd[11] = KICK;
-	commands.cmd[6] = AWAY;
-	//commands.cmd[13] = INVITE;
-	commands.cmd[7] = PING;
-	commands.cmd[8] = CAP;
-	commands.cmd[9] = TOPIC;
-	commands.cmd[10] = LIST;
+	commands.funcmap["NICK"]	= &Server::nick;
+	commands.funcmap["USER"]	= &Server::user;
+	commands.funcmap["JOIN"]	= &Server::join;
+	commands.funcmap["PRIVMSG"]	= &Server::privmsg;
+	commands.funcmap["NOTICE"]	= &Server::notice;
+	commands.funcmap["QUIT"]	= &Server::quit;
+	commands.funcmap["MODE"]	= &Server::mode;
+	commands.funcmap["NAMES"]	= &Server::names;
+	commands.funcmap["WHOIS"]	= &Server::whois;
+	commands.funcmap["KICK"]	= &Server::kick;
+	commands.funcmap["AWAY"]	= &Server::away;
+	commands.funcmap["INVITE"]	= &Server::invite;
+	commands.funcmap["PING"]	= &Server::ping;
+	commands.funcmap["CAP"]		= &Server::cap;
+	commands.funcmap["TOPIC"]	= &Server::topic;
+	commands.funcmap["LIST"]	= &Server::list;
+	commands.funcmap["PART"]	= &Server::part;
 
-	commands.func[0] = &Server::nick;
-	commands.func[1] = &Server::user;
-	commands.func[2] = &Server::join;
-	commands.func[3] = &Server::part;
-	commands.func[4] = &Server::privmsg;
-	commands.func[5] = &Server::notice;
-	commands.func[6] = &Server::away;
-	commands.func[7] = &Server::ping;
-	commands.func[8] = &Server::cap;
-	commands.func[9]  = &Server::topic;
-	commands.func[10]  = &Server::list;
-	
-
-	//commands.func[5]  = &Server::notice;
-	//commands.func[6]  = &Server::quit;
-	//commands.func[8]  = &Server::mode;
-	//commands.func[9]  = &Server::names;
-	//commands.func[10] = &Server::whois;
-	//commands.func[11] = &Server::kick;
-	//commands.func[13] = &Server::invite;
-
-
-	commands.cap_cmd[0]  = CAP_REQ;
-	commands.cap_cmd[1]  = CAP_LS;
-	commands.cap_cmd[2]  = CAP_END;
-	commands.cap_cmd[3]  = CAP_ACK;
-	commands.cap_cmd[4]  = CAP_NAK;
-
-	commands.cap_func[0] = &Server::cap_req;
-	commands.cap_func[1] = &Server::cap_ls;
-	commands.cap_func[2] = &Server::cap_end;
-	commands.cap_func[3] = &Server::cap_ack;
-	commands.cap_func[4] = &Server::cap_nak;
+	commands.cap_funcmap["CAP_REQ"]	= &Server::cap_req;
+	commands.cap_funcmap["CAP_LS"]	= &Server::cap_ls;
+	commands.cap_funcmap["CAP_END"]	= &Server::cap_end;
+	commands.cap_funcmap["CAP_ACK"]	= &Server::cap_ack;
+	commands.cap_funcmap["CAP_NAK"]	= &Server::cap_nak;
 }
 
 
@@ -873,7 +931,6 @@ void	Server::printServerStatus() const
 		last_time = now;
 	}
 }
-
 
 void	Server::deleteChannel(uint32_t channel)
 {

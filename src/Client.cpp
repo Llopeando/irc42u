@@ -4,7 +4,7 @@
 Client::Client(std::string hostName):hostname(hostName), role(1){
 	state = CL_STATE_INPUT;
 	this->isAway = 0;
-	this->away_msg = "Im Away From the Keyboard... I'll be right back!";
+	this->away_msg = "";
 	//this->hostname();
 	
 }

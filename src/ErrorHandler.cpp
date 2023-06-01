@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 18:17:21 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/30 14:33:53 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/06/01 19:11:05 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,10 @@ ErrorHandler::ErrorHandler()
 	errCodes[ERR_NICKCOLLISION]		= "";
 	errCodes[ERR_USERNOTINCHANNEL]	= "They aren't on that channel";
 	errCodes[ERR_NOTONCHANNEL]		= "You're not on that channel"; //442
-	errCodes[ERR_USERONCHANNEL]		= "";
+	errCodes[ERR_USERONCHANNEL]		= "is already in channel";
 	errCodes[ERR_NOTREGISTERED]		= "";
 	errCodes[ERR_NEEDMOREPARAMS]	= "Not enough parameters";                 //461 
-	errCodes[ERR_ALREADYREGISTERED]	= "";
+	errCodes[ERR_ALREADYREGISTERED]	= "You may not reregister"; 				//462
 	errCodes[ERR_PASSWDMISMATCH]	= "";
 	errCodes[ERR_YOUREBANNEDCREEP]	= "";
 	errCodes[ERR_CHANNELISFULL]		= "";
@@ -70,6 +70,7 @@ ErrorHandler::ErrorHandler()
 	errCodes[ERR_SASLABORTED]		= "";
 	errCodes[ERR_SASLALREADY]		= "";
 	errCodes[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";					//404
+	errCodes[ERR_TOOMANYTARGETS]	= "Duplicate recipients. No message delivered"; // 407
 }
 
 void ErrorHandler::setData(UsersData *data, std::string serverName)

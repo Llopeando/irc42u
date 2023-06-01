@@ -14,6 +14,7 @@
 #include <deque>
 #include <fcntl.h>
 #include <vector>
+#include <set>
 
 #include <cerrno>
 #include <system_error>
@@ -26,18 +27,19 @@
 #include "UsersData.hpp"
 #include "ErrorHandler.hpp"
 
-
 class Server;
 #define SERVER_NAME "10.13.8.1" ///cambiar??
-#define COMMANDS 11
+#define COMMANDS 13
 #define CAP_COMMANDS 6
 
 
 struct Commands{
-	std::string cmd[COMMANDS];
-	void (Server::*func[COMMANDS])(clientIt index, std::vector<std::string> &arguments);
-	std::string cap_cmd[CAP_COMMANDS];
-	void (Server::*cap_func[CAP_COMMANDS])(clientIt index, std::vector<std::string> &arguments);
+	std::unordered_map<std::string, void (Server::*)(clientIt index, std::vector<std::string> &arguments)> funcmap;
+	std::unordered_map<std::string, void (Server::*)(clientIt index, std::vector<std::string> &arguments)> cap_funcmap;
+	//std::string cmd[COMMANDS];
+	//void (Server::*func[COMMANDS])(clientIt index, std::vector<std::string> &arguments);
+	//std::string cap_cmd[CAP_COMMANDS];
+	//void (Server::*cap_func[CAP_COMMANDS])(clientIt index, std::vector<std::string> &arguments);
 };
 
 

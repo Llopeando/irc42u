@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 19:12:34 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/26 19:03:03 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/06/01 18:12:53 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ std::cout << s << std::endl;
 }
 
 */
-#include <sstream>
 
 std::vector<std::string> split(const std::string &string, const char c)
 {

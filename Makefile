@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+         #
+#    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/05/25 19:14:42 by ecamara          ###   ########.fr        #
+#    Updated: 2023/06/01 17:17:05 by ullorent         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ CPPSRC = src/Server.cpp \
 src/Client.cpp \
 src/Channel.cpp \
 src/UsersData.cpp \
-src/main.cpp \
+main.cpp \
 src/ErrorHandler.cpp\
 src/Utils.cpp
 
