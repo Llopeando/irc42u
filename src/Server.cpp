@@ -6,7 +6,7 @@
 
 Server::Server(t_serverInput *serverInput):serverInfo(*serverInput),serverName(serverInput->IP)
 {
-	data =  UsersData(serverInfo);
+	data = UsersData(serverInfo);
 	errorHandler.setData(&data, serverName);
 	setCommands();
 	channels.push_back(Channel("Lobby", data[(clientIt)0].getUsername() , &data));
@@ -162,13 +162,16 @@ void Server::handleInput(clientIt index, std::string input)
 	printVector(arguments);
 	//std::cout << "[" << arguments[0].c_str() << "]\n";
 	//std::cout << "[" << arguments[1].c_str() << "]\n";
+
+
 	void (Server::*func)(clientIt index, std::vector<std::string>& arguments) = commands.funcmap[arguments[0]];
 	if (func == nullptr)
 	{
-		std::cout << color::red << "[ERROR DE COMANDO \n" << color::reset ; ////////////ERROR DE COMANDO 
+		std::cout << color::red << "[ERROR DE COMANDO [" <<  input << "]\n" << color::reset ; ////////////ERROR DE COMANDO 
 		return;
 	}
 	(this->*func)(index, arguments);
+
 }
 
 void Server::handleEvents(pollfdIt index)
@@ -177,7 +180,6 @@ void Server::handleEvents(pollfdIt index)
 	{
 		std::string input = readTCPInput(data[index].fd);
 		std::cout << color::green << "INPUT:[" << color::boldwhite << input << "]\n" << color::reset;
-	//	std::cout <<"\n" << color::reset;
 		std::vector<std::string> lines = split(input, '\n');
 		for (uint32_t i = 0; i < lines.size();i++)
 		{
@@ -192,11 +194,32 @@ void Server::handleEvents(pollfdIt index)
 /*						COMMAND FUNCTION													*/
 /* ---------------------------------------------------------------------------------------- */
 
+void	Server::pass(clientIt index, std::vector<std::string> &arguments)
+{
+	if (data[index].getAuthentificied())
+		return ;
+	if (arguments.size() < 2)
+	{
+		errorHandler.error(index, ERR_PASSWDMISMATCH);
+		errorHandler.fatalError(index, ERR_BADPASSWORD);
+		return ;
+	}
+	if (serverInfo.password == arguments[1])
+	{
+		data[index].setAuthentificied(true);
+		return ;
+	}
+	else
+	{
+		errorHandler.error(index, ERR_PASSWDMISMATCH);
+		errorHandler.fatalError(index, ERR_BADPASSWORD);
+		//remove client from server
+	}
+}
+
 
 void	Server::nick(clientIt index, std::vector<std::string> &arguments)
 {
-
-
 	if (arguments.size() < 2 || arguments[1].empty())
 	{
 		errorHandler.error(index, ERR_NONICKNAMEGIVEN);
@@ -247,11 +270,19 @@ void	Server::user(clientIt index, std::vector<std::string> &arguments)
 		return ;
 	}
 	data[index].setUsername(arguments[1]);
-	//sendMsgUser(data[(pollfdIt)index].fd, message);
-	std::string message = "001 " + data[index].getNickname() + " :Welcome to A O I R C\n" ;
-	sendMsgUser(data[(pollfdIt)index].fd, message);
-	channels[0].addClient(index); //join to lobby
-	//std::cout << "----------New user changed: " << data[index].getUsername() << "]\n";
+
+	if (data[index].getAuthentificied()) //ha autentificado, ha mandado PASS y es ok )
+	{
+		std::string message = ":" + data[index].getUserMask() + " MOTD\r\n";
+		sendMsgUser(data[(pollfdIt)index].fd, message);
+		channels[0].addClient(index); 
+	}
+	else
+	{
+		errorHandler.error(index, ERR_PASSWDMISMATCH);
+		errorHandler.fatalError(index, ERR_BADPASSWORD);
+		//remove client from server
+	}
 }
 
 void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
@@ -317,7 +348,6 @@ void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 	}
 }
 
-
 void	Server::join(clientIt index, std::vector<std::string> &arguments)
 {
 	if (arguments.size() < 2)
@@ -346,9 +376,9 @@ void	Server::join(clientIt index, std::vector<std::string> &arguments)
 			channels[channel].addClient(index);
 
 			std::string back = ':' + data[index].getUserMask() + " JOIN " + "#" + channels[channel].getName() + "\r\n";//bien
-			std::string back_mode = ':' + std::string(SERVER_NAME) + " MODE #" + channels[channel].getName() + " " + " +nt\r\n";
-			std::string back_list = ':' + std::string(SERVER_NAME) + " 353 " + data[index].getNickname() + " = #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";//@for the operator
-			std::string back_list_end = ':' + std::string(SERVER_NAME) + " 366 " + data[index].getNickname() + " #" + channels[channel].getName() + " :End of /NAMES list.\r\n";
+			std::string back_mode = ':' + serverName + " MODE #" + channels[channel].getName() + " " + " +nt\r\n";
+			std::string back_list = ':' + serverName + " 353 " + data[index].getNickname() + " = #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";//@for the operator
+			std::string back_list_end = ':' + serverName + " 366 " + data[index].getNickname() + " #" + channels[channel].getName() + " :End of /NAMES list.\r\n";
 
 			sendMsgUser(data[(pollfdIt)index].fd, back);
 			sendMsgUser(data[(pollfdIt)index].fd, back_mode);
@@ -360,10 +390,10 @@ void	Server::join(clientIt index, std::vector<std::string> &arguments)
 			channels[channel].addClient(index);
 
 			std::string back = ':' + data[index].getUserMask() + " JOIN #" + channels[channel].getName() + "\r\n";
-			std::string back_topic = ':' + std::string(SERVER_NAME) + " 332 " + data[index].getNickname() + " #" + channels[channel].getName() + " :" + channels[channel].getTopic() + "\r\n";
-			//std::string back_channel  = ':' + std::string(SERVER_NAME) + " 333 " + data[index].getNickname() + " #" + channelNames[i] + "quien lo ha creado (mask) y cuando"  + "\r\n";
-			std::string back_list  = ':' + std::string(SERVER_NAME) + " 353 " + data[index].getNickname() + " @ #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";
-			std::string back_list_end = ':' + std::string(SERVER_NAME) + " 366 " + data[index].getNickname()  + " #"+ channels[channel].getName() + " :End of /NAMES list." + "\r\n";
+			std::string back_topic = ':' + serverName + " 332 " + data[index].getNickname() + " #" + channels[channel].getName() + " :" + channels[channel].getTopic() + "\r\n";
+			//std::string back_channel  = ':' + serverName + " 333 " + data[index].getNickname() + " #" + channelNames[i] + "quien lo ha creado (mask) y cuando"  + "\r\n";
+			std::string back_list  = ':' + serverName + " 353 " + data[index].getNickname() + " = #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";
+			std::string back_list_end = ':' + serverName + " 366 " + data[index].getNickname()  + " #"+ channels[channel].getName() + " :End of /NAMES list." + "\r\n";
 
 			sendMsgUser(data[(pollfdIt)index].fd, back);
 			sendMsgUser(data[(pollfdIt)index].fd, back_topic);
@@ -380,11 +410,11 @@ void	Server::list(clientIt index, std::vector<std::string> &arguments){
 	////LISTA RESET EN LIME????
 	// los demas parametros obviamos???
 	(void)arguments; 
-	std::string message = ":" + std::string(SERVER_NAME) + " 321: Channel Users Name\r\n";
+	std::string message = ":" + serverName + " 321: Channel Users Name\r\n";
 	sendMsgUser(data[(pollfdIt)index].fd, message);
 	for (uint32_t i = 1;i < channels.size() ; i++)
 	{
-		std::string back = ":" + std::string(SERVER_NAME) + " 322 " + data[index].getNickname() + " #" + channels[i].getName() + " " +  std::to_string(channels[i].getNumUser()) + " :" + channels[i].getTopic() + "\r\n";
+		std::string back = ":" + serverName + " 322 " + data[index].getNickname() + " #" + channels[i].getName() + " " +  std::to_string(channels[i].getNumUser()) + " :" + channels[i].getTopic() + "\r\n";
 		sendMsgUser(data[(pollfdIt)index].fd, back);
 	}
 }
@@ -433,8 +463,6 @@ void	Server::part(clientIt index, std::vector<std::string> &arguments)
 			deleteChannel(channel);
 	}
 }
-
-////////////////////////////////////////////
 
 void	Server::topic(clientIt index, std::vector<std::string> &arguments) {
 
@@ -544,8 +572,31 @@ void	Server::mode(clientIt index, std::vector<std::string> &arguments)
 
 void	Server::names(clientIt index, std::vector<std::string> &arguments)
 {
-	(void)index;
-	(void)arguments;
+	if (arguments.size() == 1)
+	{
+		for (std::deque<Channel>::const_iterator target = channels.begin() + 1; target != channels.end(); target++)
+		{
+			std::string message = ':' + serverName + " 353 " + data[index].getNickname() + " @ #" + target->getName() + " :" + target->getUserList() + "\r\n";
+			std::string back_list_end = ':' + serverName + " 366 " + data[index].getNickname() + " #" + target->getName() + " :End of /NAMES list.\r\n";
+			sendMsgUser(data[(pollfdIt)index].fd, message);
+			sendMsgUser(data[(pollfdIt)index].fd, back_list_end);
+		}
+		return ;
+	}
+	std::vector<std::string> targets = split(arguments[1], ',');
+	for (std::vector<std::string>::const_iterator target = targets.begin(); target != targets.end(); target++)
+	{
+		uint32_t channel = findChannel(target->substr(1));
+		if (!channel)
+		{
+			errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[1]);
+			continue;
+		}
+		std::string message = ':' + serverName + " 353 " + data[index].getNickname() + " = #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";
+		std::string back_list_end = ':' + serverName + " 366 " + data[index].getNickname() + " #" + channels[channel].getName() + " :End of /NAMES list.\r\n";
+		sendMsgUser(data[(pollfdIt)index].fd, message);
+		sendMsgUser(data[(pollfdIt)index].fd, back_list_end);
+	}
 }
 
 void	Server::whois(clientIt index, std::vector<std::string> &arguments)
@@ -622,6 +673,7 @@ void	Server::invite(clientIt index, std::vector<std::string> &arguments)
 	else if (arguments.size() == 3)
 	{
 		clientIt target_user = data.findNickname(arguments[1]);
+		//cliente no esta conectado
 		std::string channel_name = arguments[2].substr(1);
 		uint32_t channel = findChannel(channel_name);
 		if (channel == 0)
@@ -647,6 +699,19 @@ void	Server::invite(clientIt index, std::vector<std::string> &arguments)
 
 }
 
+void	Server::motd(clientIt index, std::vector<std::string> &arguments) {
+	(void)arguments;
+	std::string message = ":" + data[index].getUserMask() + " 375 " + data[index].getNickname() + " :- " + SERVER_NAME + " Message of the day - \r\n";
+	sendMsgUser(data[(pollfdIt)index].fd, message);
+
+	std::vector<std::string> words = split(std::string(MOTD), '\n');
+	for (std::vector<std::string>::iterator it = words.begin(); it != words.end(); it++) {
+		std::string motd_message = ":" + data[index].getUserMask() + " 372 " + data[index].getNickname() + " : " + *it + "\r\n";
+		sendMsgUser(data[(pollfdIt)index].fd, motd_message);
+	}
+	message = ":" + data[index].getUserMask() + " 376 " + data[index].getNickname() + " :End of /MOTD command.\r\n";
+	sendMsgUser(data[(pollfdIt)index].fd, message);
+}
 
 void	Server::ping(clientIt index, std::vector<std::string> &arguments)
 {
@@ -724,7 +789,6 @@ void	Server::cap_end(clientIt index, std::vector<std::string> &arguments)
 {
 	(void)index;
 	(void)arguments;	
-	
 	//mirar que es 001
 	std::string message = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n";
 	sendMsgUser(data[(pollfdIt)index].fd, message);
@@ -869,6 +933,7 @@ bool checkAdmin(Client *client) {
 
 void Server::setCommands()
 {
+	commands.funcmap["PASS"]	= &Server::pass;
 	commands.funcmap["NICK"]	= &Server::nick;
 	commands.funcmap["USER"]	= &Server::user;
 	commands.funcmap["JOIN"]	= &Server::join;
@@ -886,6 +951,7 @@ void Server::setCommands()
 	commands.funcmap["TOPIC"]	= &Server::topic;
 	commands.funcmap["LIST"]	= &Server::list;
 	commands.funcmap["PART"]	= &Server::part;
+	commands.funcmap["MOTD"]	= &Server::motd;
 
 	commands.cap_funcmap["CAP_REQ"]	= &Server::cap_req;
 	commands.cap_funcmap["CAP_LS"]	= &Server::cap_ls;

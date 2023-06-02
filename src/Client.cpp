@@ -1,12 +1,11 @@
 #include "../include/Client.hpp"
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
-Client::Client(std::string hostName):hostname(hostName), role(1){
+Client::Client(std::string hostName):hostname(hostName), role(1), authentificied(false) {
 	state = CL_STATE_INPUT;
-	this->isAway = 0;
+	this->isAway = false;
 	this->away_msg = "";
-	//this->hostname();
-	
+
 }
 
 Client::Client(const Client &client)
@@ -34,6 +33,11 @@ Client& Client::operator=(const Client& client) {
 
 
 /* --- DATA SETTERS --- */
+void Client::setAuthentificied(bool status)
+{
+	authentificied = status;
+}
+
 void Client::setRole(uint8_t role) {
 	this->role = role;
 }
@@ -59,6 +63,11 @@ void Client::setPassword(std::string password) { //ya veremos, esto no es muy se
 }
 
 /* --- DATA GETTERS --- */
+bool	Client::getAuthentificied()const
+{
+	return authentificied;
+}
+
 std::string	Client::getUsername() const {
 	return (username);
 }
@@ -81,10 +90,6 @@ uint8_t	Client::getState() const {
 
 uint32_t	Client::getRole()const {
 	return (role);
-}
-
-uint32_t	Client::getChannel()const {
-	return (channel);
 }
 
 std::string Client::getHostname()const{

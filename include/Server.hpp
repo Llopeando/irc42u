@@ -28,9 +28,32 @@
 #include "ErrorHandler.hpp"
 
 class Server;
-#define SERVER_NAME "10.13.8.1" ///cambiar??
-#define COMMANDS 13
+#define SERVER_NAME "AOIRC Server" ///cambiar??
+#define COMMANDS 14
 #define CAP_COMMANDS 6
+
+#define MOTD "\n " \
+			"         _____                           _______                           _____                            _____                            _____          \n" \
+			"         /\\    \\                         /::\\    \\                         /\\    \\                          /\\    \\                          /\\    \\         \n" \
+			"        /::\\    \\                       /::::\\    \\                       /::\\    \\                        /::\\    \\                        /::\\    \\        \n" \
+			"       /::::\\    \\                     /::::::\\    \\                      \\:::\\    \\                      /::::\\    \\                      /::::\\    \\       \n" \
+			"      /::::::\\    \\                   /::::::::\\    \\                      \\:::\\    \\                    /::::::\\    \\                    /::::::\\    \\      \n" \
+			"     /:::/\\:::\\    \\                 /:::/~~\\:::\\    \\                      \\:::\\    \\                  /:::/\\:::\\    \\                  /:::/\\:::\\    \\     \n" \
+			"    /:::/__\\:::\\    \\               /:::/    \\:::\\    \\                      \\:::\\    \\                /:::/__\\:::\\    \\                /:::/  \\:::\\    \\    \n" \
+			"   /::::\\   \\:::\\    \\             /:::/    / \\:::\\    \\                     /::::\\    \\              /::::\\   \\:::\\    \\              /:::/    \\:::\\    \\   \n" \
+			"  /::::::\\   \\:::\\    \\           /:::/____/   \\:::\\____\\           ____    /::::::\\    \\            /::::::\\   \\:::\\    \\            /:::/    / \\:::\\    \\  \n" \
+			" /:::/\\:::\\   \\:::\\    \\         |:::|    |     |:::|    |         /\\   \\  /:::/\\:::\\    \\          /:::/\\:::\\   \\:::\\____\\          /:::/    /   \\:::\\    \\ \n" \
+			"/:::/  \\:::\\   \\:::\\____\\        |:::|____|     |:::|    |        /::\\   \\/:::/  \\:::\\____\\        /:::/  \\:::\\   \\:::|    |        /:::/____/     \\:::\\____\\\n" \
+			"\\::/    \\:::\\  /:::/    /         \\:::\\    \\   /:::/    /         \\:::\\  /:::/    \\::/    /        \\::/   |::::\\  /:::|____|        \\:::\\    \\      \\::/    /\n" \
+			" \\/____/ \\:::\\/:::/    /           \\:::\\    \\ /:::/    /           \\:::\\/:::/    / \\/____/          \\/____|:::::\\/:::/    /          \\:::\\    \\      \\/____/ \n" \
+			"          \\::::::/    /             \\:::\\    /:::/    /             \\::::::/    /                         |:::::::::/    /            \\:::\\    \\             \n" \
+			"           \\::::/    /               \\:::\\__/:::/    /               \\::::/____/                          |::|\\::::/    /              \\:::\\    \\            \n" \
+			"           /:::/    /                 \\::::::::/    /                 \\:::\\    \\                          |::| \\::/____/                \\:::\\    \\           \n" \
+			"          /:::/    /                   \\::::::/    /                   \\:::\\    \\                         |::|  ~|                       \\:::\\    \\          \n" \
+			"         /:::/    /                     \\::::/    /                     \\:::\\____\\                        |::|   |                        \\:::\\____\\         \n" \
+			"        /:::/    /                       \\::/    /                       \\::/    /                         \\:|   |                         \\::/    /         \n" \
+			"        \\::/____/                         \\/____/                         \\/____/                           \\|___|                          \\/____/          \n"
+
 
 
 struct Commands{
@@ -81,6 +104,7 @@ class Server
 
 
 		//COMMAND FUNCTIONS
+		void	pass(clientIt index, std::vector<std::string> &arguments);
 		void	nick(clientIt index, std::vector<std::string> &arguments);
 		void	user(clientIt index, std::vector<std::string> &arguments);
 		void	join(clientIt index, std::vector<std::string> &arguments);
@@ -96,6 +120,8 @@ class Server
 		void	mode(clientIt index, std::vector<std::string> &arguments);
 		void	names(clientIt index, std::vector<std::string> &arguments);
 		void	whois(clientIt index, std::vector<std::string> &arguments);
+		void	who(clientIt index, std::vector<std::string> &arguments);
+		void	motd(clientIt index, std::vector<std::string> &arguments);
 		void	kick(clientIt index, std::vector<std::string> &arguments);
 		void	away(clientIt index, std::vector<std::string> &arguments);
 		void	invite(clientIt index, std::vector<std::string> &arguments);
@@ -118,9 +144,6 @@ class Server
 		UsersData data;
 		Commands commands;
 		ErrorHandler errorHandler;
-		
-		
-		
 		//////////OBSOLETE DOWN
 
 
@@ -174,7 +197,5 @@ class Server
 		std::deque<Client> registered;
 	*/
 };
-
-
 
 #endif

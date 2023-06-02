@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 18:17:21 by ecamara           #+#    #+#             */
-/*   Updated: 2023/06/01 19:11:05 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/06/02 18:14:06 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ ErrorHandler::ErrorHandler()
 	errCodes[ERR_NOTREGISTERED]		= "";
 	errCodes[ERR_NEEDMOREPARAMS]	= "Not enough parameters";                 //461 
 	errCodes[ERR_ALREADYREGISTERED]	= "You may not reregister"; 				//462
-	errCodes[ERR_PASSWDMISMATCH]	= "";
+	errCodes[ERR_PASSWDMISMATCH]	= "Password incorrect";						//464
 	errCodes[ERR_YOUREBANNEDCREEP]	= "";
 	errCodes[ERR_CHANNELISFULL]		= "";
 	errCodes[ERR_UNKNOWNMODE]		= "";
@@ -71,12 +71,20 @@ ErrorHandler::ErrorHandler()
 	errCodes[ERR_SASLALREADY]		= "";
 	errCodes[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";					//404
 	errCodes[ERR_TOOMANYTARGETS]	= "Duplicate recipients. No message delivered"; // 407
+	errCodes[ERR_BADPASSWORD]		= "Closing Link: localhost (Bad Password)";
 }
 
 void ErrorHandler::setData(UsersData *data, std::string serverName)
 {
 	this->data = data;
 	this->serverName = serverName;
+}
+
+void ErrorHandler::fatalError(uint32_t index, uint32_t errorCode)
+{
+	std::string errorMsg = "ERROR : " + errCodes[errorCode] + "\r\n";
+	sendMsgUser((*data)[(pollfdIt)index].fd, errorMsg);
+	//S <-   ERROR :Closing Link: localhost (Bad Password)
 }
 
 void ErrorHandler::error(uint32_t index, uint32_t errorCode)

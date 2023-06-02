@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 18:07:30 by ecamara           #+#    #+#             */
-/*   Updated: 2023/06/01 19:20:21 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/06/02 18:06:09 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,8 @@
 #define ERR_SASLALREADY 907
 #define ERR_TOOMANYTARGETS 407
 
+#define ERR_BADPASSWORD 1000
+
 #define RPL_TOPIC 332
 #define RPL_TOPICWHOTIME 333
 #define RPL_NAMREPLY 353
@@ -85,9 +87,14 @@
 #define RPL_UNAWAY 305 //When the user is no longer away
 #define RPL_NOWAWAY 306 //When the user is away
 
+#define RPL_MOTDSTART 375 //Start of the MOTD
+#define RPL_MOTD 372 //Server reply with each line of the MOTD
+#define RPL_ENDOFMOTD 376 //Indicates the end of MOTD to the client.
+
 struct ErrorHandler{
 	ErrorHandler();
 	void	setData(UsersData *data, std::string serverName);
+	void	fatalError(uint32_t index, uint32_t errorCode);
 	void	error(uint32_t index, uint32_t errorCode);
 	//void	error(uint32_t index, uint32_t errorCode, std::string command);
 	void	error(uint32_t index, uint32_t errorCode, /*std::string command, */std::string param);

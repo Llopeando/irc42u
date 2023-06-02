@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/01 18:06:37 by ullorent          #+#    #+#             */
-/*   Updated: 2023/06/01 18:06:38 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/06/02 18:12:38 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ void	serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
 int	main(int argc, char *argv[])
 {
 	t_serverInput serverInfo;
-
+	
 	serverInfo.IP = printIp();	
 	try {
 		serverCreateInfo(argv + 1, argc, &serverInfo);
