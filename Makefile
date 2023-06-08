@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
+#    By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/06/01 17:17:05 by ullorent         ###   ########.fr        #
+#    Updated: 2023/06/08 17:42:27 by ecamara          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,14 +18,16 @@ src/Channel.cpp \
 src/UsersData.cpp \
 main.cpp \
 src/ErrorHandler.cpp\
-src/Utils.cpp
+src/Utils.cpp\
+src/OperBlock.cpp
 
 CPPINCLUDE = include/Server.hpp \
 include/Channel.hpp \
 include/Client.hpp \
 include/UsersData.hpp \
 include/defines.hpp	\
-include/Utils.hpp
+include/Utils.hpp\
+include/OperBlock.hpp
 
 CPPOBJ = $(CPPSRC:.cpp=.o)
 

@@ -194,6 +194,32 @@ void Server::handleEvents(pollfdIt index)
 /*						COMMAND FUNCTION													*/
 /* ---------------------------------------------------------------------------------------- */
 
+void	Server::oper(clientIt index, std::vector<std::string> &arguments) // OPER <name> <password> // OPER mike WzerT8zq 
+{
+	if (arguments.size() < 2)
+	{
+		errorHandler.error(index, ERR_NEEDMOREPARAMS); 
+		return ;
+	}
+	if (operators.findOper(arguments[1]))
+	{
+		if (operators.checkPass(arguments[1], arguments[2]) == false) //no es la contraseña correcta
+		{
+			errorHandler.error(index, ERR_PASSWDMISMATCH);
+			return ;
+		}
+		else 
+		{
+			std::string msg = ":" + serverName + " 381 " + data[index].getNickname() + " :You are now an IRC operator\r\n";
+			sendMsgUser(data[(pollfdIt)index].fd, msg);
+
+		}
+	}
+	else 
+		errorHandler.error(index, ERR_NOOPERHOST); //no estas como oper en el host
+}
+
+
 void	Server::pass(clientIt index, std::vector<std::string> &arguments)
 {
 	if (data[index].getAuthentificied())
@@ -273,9 +299,12 @@ void	Server::user(clientIt index, std::vector<std::string> &arguments)
 
 	if (data[index].getAuthentificied()) //ha autentificado, ha mandado PASS y es ok )
 	{
-		std::string message = ":" + data[index].getUserMask() + " MOTD\r\n";
-		sendMsgUser(data[(pollfdIt)index].fd, message);
 		channels[0].addClient(index); 
+		std::string welcome = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; ///PARA MI NO TIENE QUE IR AQUI , FUERA EN EL BUCLE DE COMANDOS COMO METER???
+		sendMsgUser(data[(pollfdIt)index].fd, welcome);
+		/////NO FUNCIONA 
+		//std::string message = ":" + data[index].getUserMask() + " MOTD\r\n";
+		//sendMsgUser(data[(pollfdIt)index].fd, message);
 	}
 	else
 	{
@@ -507,7 +536,7 @@ void	Server::topic(clientIt index, std::vector<std::string> &arguments) {
 		}
 		std::string message  = ":" + serverName + " 332 " + data[index].getNickname() + " #" + channels[channel].getName() + " :" + channels[channel].getTopic() + "\r\n"; //RPL_TOPIC (332)
 		std::time_t date = channels[channel].getCreationDate();
-		std::string message2 = ":" + serverName + " 332 " + data[index].getNickname() + " #" + channels[channel].getName() + " " +  channels[channel].getCreator() + " " +  std::ctime(&date) + "\r\n"; //RPL_TOPICWHOTIME (333) //cambiar la fecha a legible?
+		std::string message2 = ":" + serverName + " 333 " + data[index].getNickname() + " #" + channels[channel].getName() + " " +  channels[channel].getCreator() + " " +  std::ctime(&date) + "\r\n"; //RPL_TOPICWHOTIME (333) //cambiar la fecha a legible?
 		channels[channel].broadcast(0, message);
 		channels[channel].broadcast(0, message2);
 	}
@@ -612,6 +641,11 @@ void	Server::kick(clientIt index, std::vector<std::string> &arguments)
 		errorHandler.error(index, ERR_NEEDMOREPARAMS , "KICK");
 		return;
 	}
+	/*if ()  //COMPROBAR LA BOOL OPERATOR FINDCLIENT() Y GETROLE().....
+	{
+		//y si esta registrado como oper
+		//ERR_CHANOPRIVSNEEDED (482) //no permissions
+	}*/
 	//REASON
 	std::string reason;
 	if (arguments.size() == 4)
@@ -630,7 +664,7 @@ void	Server::kick(clientIt index, std::vector<std::string> &arguments)
 	{
 		errorHandler.error(index, ERR_NOTONCHANNEL, arguments[1]);
 	}
-	//ERR_CHANOPRIVSNEEDED (482) //no permissions
+	
 	std::vector<std::string>targets = split(arguments[2], ',');
 	for(std::vector<std::string>::const_iterator target = targets.begin();target != targets.end(); target++)
 	{
@@ -789,8 +823,8 @@ void	Server::cap_end(clientIt index, std::vector<std::string> &arguments)
 {
 	(void)index;
 	(void)arguments;	
-	//mirar que es 001
-	std::string message = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n";
+	std::cout << "CAP END!!!! \n";
+	std::string message = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; ///PARA MI NO TIENE QUE IR AQUI , FUERA EN EL BUCLE DE COMANDOS COMO METER???
 	sendMsgUser(data[(pollfdIt)index].fd, message);
 }
 
@@ -952,6 +986,7 @@ void Server::setCommands()
 	commands.funcmap["LIST"]	= &Server::list;
 	commands.funcmap["PART"]	= &Server::part;
 	commands.funcmap["MOTD"]	= &Server::motd;
+	commands.funcmap["OPER"]	= &Server::oper;
 
 	commands.cap_funcmap["CAP_REQ"]	= &Server::cap_req;
 	commands.cap_funcmap["CAP_LS"]	= &Server::cap_ls;

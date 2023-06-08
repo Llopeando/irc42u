@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 19:12:28 by ecamara           #+#    #+#             */
-/*   Updated: 2023/06/01 18:12:40 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/06/08 17:49:54 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <netinet/in.h>
 #include <net/if.h>
 #include <netdb.h>
+#include <fstream>
 
 std::string printIp();
 std::string joinStr(std::vector<std::string>& arguments, uint32_t index);
@@ -32,5 +33,7 @@ std::vector<std::string> split(const std::string &string, char c);
 std::vector<std::string> splitIrcPrameters(const std::string &string, const char c);
 
 void sendMsgUser(int fd, const std::string &str);
+
+std::string readFile(const char *filepath);
 
 #endif

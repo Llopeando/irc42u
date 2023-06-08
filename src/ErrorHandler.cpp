@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ErrorHandler.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 18:17:21 by ecamara           #+#    #+#             */
-/*   Updated: 2023/06/02 18:14:06 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/06/08 17:40:58 by ecamara          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ ErrorHandler::ErrorHandler()
 	errCodes[ERR_NOPRIVILEGES]		= "";
 	errCodes[ERR_CHANOPRIVSNEEDED]	= "";
 	errCodes[ERR_CANTKILLSERVER]	= "";
-	errCodes[ERR_NOOPERHOST]		= "";
+	errCodes[ERR_NOOPERHOST]		= "No O-lines for your host"; 				//491
 	errCodes[ERR_UMODEUNKNOWNFLAG]	= "";
 	errCodes[ERR_USERSDONTMATCH]	= "";
 	errCodes[ERR_HELPNOTFOUND]		= "";
