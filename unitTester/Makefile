@@ -6,8 +6,8 @@ SRC = mainTester.cpp\
 ../src/Channel.cpp \
 ../src/UsersData.cpp \
 ../src/ErrorHandler.cpp\
-../src/Utils.cpp
-		
+../src/Utils.cpp\
+../src/OperBlock.cpp\
 
 OBJ  = $(SRC:.cpp=.o)
 

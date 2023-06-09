@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/01 17:36:42 by ecamara           #+#    #+#             */
-/*   Updated: 2023/05/26 19:52:12 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/06/09 17:41:08 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ std::vector<std::pair<std::string, std::vector<std::string> > > setVectorsSplitI
 		{"third third third : thirdthird third", {"third", "third", "third", " thirdthird third"}},
 		{"        forth       ",{"forth"}},
 		{"fifth fifth        fifth",{"fifth","fifth","fifth"}},
+		{"sixth sixth        sixth :",{"sixth","sixth","sixth"}},
 	};
 	return cases;
 }
@@ -111,26 +112,6 @@ void	serverCreateInfo(t_serverInput *serverInfo)
 	serverInfo->address.sin_addr.s_addr = INADDR_ANY;
 	serverInfo->address.sin_port = htons( port ); //mirar htons
 }
-
-void checkChannel(Checker &checker, Server &server)
-{
-	;
-}
-
-void checkServer(Checker &checker)
-{
-	t_serverInput input;
-	serverCreateInfo(&input);
-	Server server(&input);
-	std::thread serverThread([&server](){
-		server.run();
-	});
-	checkChannel(checker);
-	
-	serverThread.join();
-}
-
-
 
 int main()
 {

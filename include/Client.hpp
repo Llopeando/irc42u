@@ -8,11 +8,11 @@
 class Client
 {
 	public:
+		Client();
 		Client(std::string hostname);
 		Client(const Client &client);
 		~Client();
 		
-		//void operator=(const Client &client);
 		
 		Client& operator=(const Client& client);
 		std::string	getUserMask()const;

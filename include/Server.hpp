@@ -102,7 +102,7 @@ class Server
 
 		void	deleteChannel(uint32_t channel);
 
-
+		void removeClientChannels(clientIt index);
 
 		//COMMAND FUNCTIONS
 		void	oper(clientIt index, std::vector<std::string> &arguments);
@@ -129,6 +129,7 @@ class Server
 		void	invite(clientIt index, std::vector<std::string> &arguments);
 		void	ping(clientIt index, std::vector<std::string> &arguments);
 		void	cap(clientIt index, std::vector<std::string> &arguments);
+		void	kill(clientIt index, std::vector<std::string> &arguments);
 	
 		uint32_t	findChannel(const std::string &name) const;
 
@@ -144,6 +145,7 @@ class Server
 		std::string serverName;
 		std::deque<Channel> channels;
 		UsersData data;
+		//UsersData dataBack;
 		Commands commands;
 		ErrorHandler errorHandler;
 

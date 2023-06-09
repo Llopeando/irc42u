@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ErrorHandler.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 18:17:21 by ecamara           #+#    #+#             */
-/*   Updated: 2023/06/08 17:40:58 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/06/09 17:03:31 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,8 +45,8 @@ ErrorHandler::ErrorHandler()
 	errCodes[ERR_BANNEDFROMCHAN]	= "Cannot join channel (+b)";				//474
 	errCodes[ERR_BADCHANNELKEY]		= "Cannot join channel (+k)";				//475
 	errCodes[ERR_BADCHANMASK]		= "Bad Channel Mask";						//476
-	errCodes[ERR_NOPRIVILEGES]		= "";
-	errCodes[ERR_CHANOPRIVSNEEDED]	= "";
+	errCodes[ERR_NOPRIVILEGES]		= "Permission Denied- You're not an IRC operator";	//481
+	errCodes[ERR_CHANOPRIVSNEEDED]	= "You're not channel operator";	//482
 	errCodes[ERR_CANTKILLSERVER]	= "";
 	errCodes[ERR_NOOPERHOST]		= "No O-lines for your host"; 				//491
 	errCodes[ERR_UMODEUNKNOWNFLAG]	= "";

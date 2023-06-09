@@ -2,7 +2,6 @@
 
 UsersData::UsersData()
 {
-
 }
 
 UsersData::UsersData(t_serverInput serverInfo)
@@ -16,6 +15,7 @@ UsersData::UsersData(t_serverInput serverInfo)
 	server.events = POLLOUT | POLLIN;
 	pollfds.push_back(server);
 	clients.push_back(root);
+	back.push_back(root);
 }
 
 UsersData::~UsersData()
@@ -46,135 +46,57 @@ void	UsersData::setSocket(pollfd &server, t_serverInput &serverInfo){
 
 }
 
-
-/*
-void UsersData::newRegisteredUser(uint32_t indexAct)
+void	UsersData::backClient(clientIt index)
 {
-	uint32_t indexTemp = actives[indexAct].index;
-	registered.push_back((*this)[indexAct]);
-	actives[indexAct].registered = true;
-
-	if (tempClients[indexTemp].getNewClient())//sign up
-		actives[indexAct].index = registered.size() - 1;
-	else//logIn
-		actives[indexAct].index = findUsername((*this)[indexAct].getUsername());
-	popTemp(indexTemp);
-}
-
-void UsersData::findTmpIndexAndRest(uint32_t indexTemp, uint32_t num)
-{
-	for(uint32_t i = 0;i < actives.size();i++)
-		if (!actives[i].registered  && actives[i].index == indexTemp)
-			actives[i].index -= num;
-}
-
-void UsersData::popTemp(uint32_t indexTemp)
-{
-	if (tempClients.size() > 2 && indexTemp != tempClients.size() - 1)
+	back.push_back(Client(clients[index]));
+	if (index != clients.size() - 1)
 	{
-		tempClients[indexTemp] = tempClients[tempClients.size() - 1];
-		findTmpIndexAndRest(tempClients.size() - 1, tempClients.size() - 1 - indexTemp);
+		clients[index] = clients[clients.size() - 1];
+		pollfds[index] = pollfds[pollfds.size() - 1];
 	}
-	tempClients.pop_back();
+	clients.resize(clients.size() - 1);
+	pollfds.resize(pollfds.size() - 1);
 }
 
-Client& UsersData::operator[](uint32_t indexAct)
+
+void	UsersData::removeClient(clientIt index)
 {
-	if (actives[indexAct].registered)
-		return registered[actives[indexAct].index];
-	else
-		return tempClients[actives[indexAct].index];
-}
-
-const Client& UsersData::operator[](uint32_t indexAct) const
-{
-	if (actives[indexAct].registered)
-		return registered[actives[indexAct].index];
-	else
-		return tempClients[actives[indexAct].index];
-}
-
-void UsersData::newTempUser(int fd)
-{
-     //añadir a actives
-	t_activeIndex newClientIdxAct;
-	
-	newClientIdxAct.index = static_cast<uint32_t>(tempClients.size());
-	newClientIdxAct.registered = false;
-	actives.push_back(newClientIdxAct);
-
-    //añadir a pollfd
-	struct pollfd newClientFd;
-
-	newClientFd.fd = fd;
-	newClientFd.events = POLLOUT | POLLIN;
-	pollfds.push_back(newClientFd); 
-
-	//añadir a temp
-	tempClients.push_back(Client());
-
-}
-
-int UsersData::getFd(uint32_t indexAct)const{
-	return pollfds[indexAct].fd;
-}
-*/
-/*struct pollfd UsersData::getPollfd(uint32_t indexAct)const
-{
-
-	return pollfds[indexAct];
-}
-
-struct pollfd *UsersData::getPollfdData()
-{
-	return pollfds.data();
-}*/
-
-/*
-std::vector<struct pollfd>&	UsersData::Pollfd(){
-	return this->pollfds;
-}
-		
-std::vector<t_activeIndex>&	UsersData::Actives(){
-	return this->actives;
-}
-		
-std::vector<Client>&	UsersData::Registered(){
-	return this->registered;
-}
-		
-std::vector<Client>&	UsersData::TempClients(){
-    return this->tempClients;
-}
-		
-
-uint32_t	UsersData::sizeAct(){
-
-    return actives.size();
-}
-		
-uint32_t	UsersData::sizeReg(){
-    
-    return registered.size();
-}
-		
-uint32_t	UsersData::sizeTmp(){
-    
-    return tempClients.size();
-}
-
-uint32_t	UsersData::findUsername(const std::string &username) const
-{
-	for (uint32_t i =0;i < registered.size();i++)
+	if (index != clients.size() - 1)
 	{
-		if (registered[i].getUsername() == username)
-		{	
-			return i;
-		}
+		clients[index] = clients[clients.size() - 1];
+		pollfds[index] = pollfds[pollfds.size() - 1];
 	}
-	return (0);
+	clients.resize(clients.size() - 1);
+	pollfds.resize(pollfds.size() - 1);
 }
-*/
+
+
+void	UsersData::forwardClient(const std::string& nickname) //no existe el caso porque no puedes entrar por back 
+{
+	uint32_t index = findNicknameBack(nickname);
+	if (index == 0)
+		return ;
+	clients.push_back(Client(clients[index]));
+	if (index != back.size() - 1)
+	{
+		back[index] = back[clients.size() - 1];
+	}
+	back.resize(back.size() - 1);
+}
+
+void	UsersData::transferIndex(clientIt index, const std::string& nickname)
+{
+	uint32_t backIndex = findNicknameBack(nickname);
+	if (index == 0)
+		return ;
+	clients[index] = back[backIndex];
+	if (backIndex != back.size() - 1)
+	{
+		back[index] = back[clients.size() - 1];
+	}
+	back.resize(back.size() - 1);
+}
+
 pollfd *UsersData::getPollfdData()
 {
 	return pollfds.data();
@@ -182,7 +104,7 @@ pollfd *UsersData::getPollfdData()
 
 uint32_t UsersData::size()const
 {
-	return clients.size();
+	return pollfds.size();
 }
 
 
@@ -206,7 +128,7 @@ const pollfd &UsersData::operator[](pollfdIt idx) const
 	return pollfds[idx];
 }
 
-clientIt UsersData::findUsername(std::string argument)
+clientIt UsersData::findUsername(std::string argument) const
 {
 	for(clientIt i = 0  ; i < this->size(); i++)
 		if (clients[i].getUsername() == argument )
@@ -214,10 +136,20 @@ clientIt UsersData::findUsername(std::string argument)
 	return (0);
 }
 
-clientIt UsersData::findNickname(std::string argument)
+clientIt UsersData::findNickname(std::string argument) const
 {
 	for(clientIt i = 0  ; i < this->size(); i++)
 		if (clients[i].getNickname() == argument )
 			return(i);
 	return (0);
 }
+
+clientIt UsersData::findNicknameBack(std::string argument) const
+ {
+	for(clientIt i = 0  ; i < back.size(); i++)
+		if (back[i].getNickname() == argument)
+			return(i);
+	return (0);
+}
+
+

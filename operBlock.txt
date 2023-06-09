@@ -1,5 +1,5 @@
 /*OPERADORES*/
 
-ecamara@1234
-eperaita@1234
-ullorent@1234
+ecamara@a
+eperaita@a
+ullorent@a

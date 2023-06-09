@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/25 19:12:34 by ecamara           #+#    #+#             */
-/*   Updated: 2023/06/08 17:32:08 by ecamara          ###   ########.fr       */
+/*   Updated: 2023/06/09 17:41:52 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,8 @@ std::vector<std::string> splitIrcPrameters(const std::string &string, const char
 		if (colom < end)
 		{
 			//tokens.push_back(string.substr(start, colom - start));
+			if (string.size() - colom - 1 == 0)
+				break ;
 			tokens.push_back(string.substr(colom + 1, string.size() - colom - 1));
 			break ;
 		}

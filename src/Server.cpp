@@ -113,14 +113,7 @@ struct sockaddr {
         ushort  sa_family;
         char    sa_data[14];
 };
-
-
-
-
 */
-
-
-
 
 }
 
@@ -211,8 +204,8 @@ void	Server::oper(clientIt index, std::vector<std::string> &arguments) // OPER <
 		else 
 		{
 			std::string msg = ":" + serverName + " 381 " + data[index].getNickname() + " :You are now an IRC operator\r\n";
+			data[index].setRole(CL_OPER);
 			sendMsgUser(data[(pollfdIt)index].fd, msg);
-
 		}
 	}
 	else 
@@ -228,6 +221,8 @@ void	Server::pass(clientIt index, std::vector<std::string> &arguments)
 	{
 		errorHandler.error(index, ERR_PASSWDMISMATCH);
 		errorHandler.fatalError(index, ERR_BADPASSWORD);
+		data.removeClient(index);
+		removeClientChannels(index);
 		return ;
 	}
 	if (serverInfo.password == arguments[1])
@@ -239,8 +234,44 @@ void	Server::pass(clientIt index, std::vector<std::string> &arguments)
 	{
 		errorHandler.error(index, ERR_PASSWDMISMATCH);
 		errorHandler.fatalError(index, ERR_BADPASSWORD);
-		//remove client from server
+		data.removeClient(index);
+		removeClientChannels(index);
 	}
+}
+
+
+
+void	Server::kill(clientIt index, std::vector<std::string> &arguments)
+{
+
+	if (arguments.size() < 1)//ARGUMENT ERROR
+	{
+		errorHandler.error(index, ERR_NEEDMOREPARAMS , "KILL");
+		return;
+	}
+	if (data[index].getRole() != CL_OPER)
+	{
+		errorHandler.error(index, ERR_NOPRIVILEGES);
+		return;
+	}
+	std::string reason = "YOU HAVE BEEN KILLED";
+	if (arguments.size() > 2)
+	{
+		reason = joinStr(arguments, 2);
+	}
+	clientIt target_user = data.findNickname(arguments[1]);
+	if (!target_user)
+	{
+		errorHandler.error(index, ERR_NOSUCHNICK, arguments[1]);
+		return;
+	}
+	std::string message = ":" + data[index].getUserMask() + " 361 " + data[target_user].getNickname() + " :" + reason + "\r\n"; //361	RPL_KILLDONE	RFC1459
+	//channels[0].broadcast(0, message);
+	sendMsgUser(data[(pollfdIt)target_user].fd, message);
+	removeClientChannels(target_user);
+	data.backClient(target_user);
+	//SE QUEDA EN UN LIMBO , se va a back, pero sigue conectado, pero se le echa de los channels, no puede hacer join-.....
+	
 }
 
 
@@ -249,7 +280,7 @@ void	Server::nick(clientIt index, std::vector<std::string> &arguments)
 	if (arguments.size() < 2 || arguments[1].empty())
 	{
 		errorHandler.error(index, ERR_NONICKNAMEGIVEN);
-		//nueva string par que pueda meter uno nuevo 
+		//nueva string par que pueda meter uno nuevo ?
 		return ;
 	}
 	if (arguments[1].size() == 0)
@@ -295,22 +326,33 @@ void	Server::user(clientIt index, std::vector<std::string> &arguments)
 		errorHandler.error(index, ERR_ALREADYREGISTERED); 
 		return ;
 	}
-	data[index].setUsername(arguments[1]);
-
+	if (data.findNicknameBack(data[index].getNickname())) //si esta en back 
+	{
+		//std::cout << color::blue << "cliente recuperado : antes fd : " << color::reset << std::endl;
+		data.transferIndex(index, data[index].getNickname());
+		removeClientChannels(index);
+	}
+	else
+	{
+		//std::cout << color::blue << "nuevo cliente" << color::reset << std::endl;
+		data[index].setUsername(arguments[1]); //lo añade a clients
+	}
+		
 	if (data[index].getAuthentificied()) //ha autentificado, ha mandado PASS y es ok )
 	{
-		channels[0].addClient(index); 
-		std::string welcome = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; ///PARA MI NO TIENE QUE IR AQUI , FUERA EN EL BUCLE DE COMANDOS COMO METER???
+		channels[0].addClient(index);
+		std::string welcome = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; ///TIENE QUE IR AQUI??? , o FUERA EN EL BUCLE DE COMANDOS COMO METER???
 		sendMsgUser(data[(pollfdIt)index].fd, welcome);
-		/////NO FUNCIONA 
-		//std::string message = ":" + data[index].getUserMask() + " MOTD\r\n";
-		//sendMsgUser(data[(pollfdIt)index].fd, message);
+		std::vector<std::string> motd_arguments;
+		motd(index, motd_arguments);
 	}
 	else
 	{
 		errorHandler.error(index, ERR_PASSWDMISMATCH);
 		errorHandler.fatalError(index, ERR_BADPASSWORD);
 		//remove client from server
+		data.removeClient(index);
+		removeClientChannels(index);
 	}
 }
 
@@ -400,6 +442,8 @@ void	Server::join(clientIt index, std::vector<std::string> &arguments)
 		//NO EXISTE CHANNEL ->se crea y se une 
 		if(!channel) 
 		{
+			if (data[index].getRole() != CL_OPER)
+				data[index].setRole(CL_OP);
 			channels.push_back(Channel(channelNames[i].substr(1), data[index].getUsername(), &data));
 			channel = channels.size() - 1;
 			channels[channel].addClient(index);
@@ -457,10 +501,8 @@ void	Server::part(clientIt index, std::vector<std::string> &arguments)
 	}
 	std::string reason;
 	if (arguments.size() > 2)//REASON
-	{
 		reason = joinStr(arguments, 2);
-		//std::cout << "MESSAGE [ " << reason << "]\n";
-	}
+
 	std::vector<std::string> channelNames = split(arguments[1], ',');
 	for (std::vector<std::string>::iterator channelName = channelNames.begin(); channelName != channelNames.end(); channelName++)
 	{
@@ -500,6 +542,11 @@ void	Server::topic(clientIt index, std::vector<std::string> &arguments) {
 		errorHandler.error(index, ERR_NEEDMOREPARAMS , "TOPIC");
 		return;
 	}
+	if (!data[index].getRole()) //solo operators
+	{
+		errorHandler.error(index, ERR_CHANOPRIVSNEEDED, arguments[1].substr(1));//(481)   no channel operator 
+		return;
+	}
 	uint32_t channel = findChannel(arguments[1].substr(1));
 	if(!(arguments[1][0] == '#' || arguments[1][0] == '@')) //NO ES UN CHANNEL 
 	{
@@ -516,7 +563,7 @@ void	Server::topic(clientIt index, std::vector<std::string> &arguments) {
 		errorHandler.error(index, ERR_NOTONCHANNEL, arguments[1]);
 		return ;
 	}
-	//si no eres operator          
+	//si no eres operator
 			// ERR_CHANOPRIVSNEEDED (482)
 			// s-> :irc.example.com 482 dan #v5 :You're not channel operator
 
@@ -587,10 +634,21 @@ void	Server::notice(clientIt index, std::vector<std::string> &arguments)
 	}
 }
 
-void	Server::quit(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)index;
-	(void)arguments;
+	/*
+	 casos en los que server hace quit a alguen "Ping timeout: 120 seconds", "Excess Flood", and "Too many connections from this IP" are examples of relevant reasons for closing or for a connection with a client to have been closed.
+	*/
+
+void	Server::quit(clientIt index, std::vector<std::string> &arguments) //reply->  :dan-!d@localhost QUIT :Quit: Bye for now!
+{	
+	std::string reason = "";
+	if (arguments.size() == 2)
+		reason = arguments[1];
+	std::string message = ':' + data[index].getUserMask() + " QUIT :Quit:" + reason + "\r\n";
+	channels[0].broadcast(0, message);
+	data.backClient(index);
+	removeClientChannels(index);
+	//std::cout << color::blue << "cliente a back" << color::reset << std::endl;
+	
 }
 
 void	Server::mode(clientIt index, std::vector<std::string> &arguments)
@@ -634,37 +692,40 @@ void	Server::whois(clientIt index, std::vector<std::string> &arguments)
 	(void)arguments;
 }
 
-void	Server::kick(clientIt index, std::vector<std::string> &arguments)
+void	Server::kick(clientIt index, std::vector<std::string> &arguments) // KICK <channel> <user> *( "," <user> ) [<comment>]
 {
 	if (arguments.size() < 3)
 	{
 		errorHandler.error(index, ERR_NEEDMOREPARAMS , "KICK");
 		return;
 	}
-	/*if ()  //COMPROBAR LA BOOL OPERATOR FINDCLIENT() Y GETROLE().....
+	if (!data[index].getRole())
 	{
-		//y si esta registrado como oper
-		//ERR_CHANOPRIVSNEEDED (482) //no permissions
-	}*/
-	//REASON
+		errorHandler.error(index, ERR_CHANOPRIVSNEEDED, arguments[2].substr(1));//(481)   no channel operator 
+		return;
+	}
+	////no operators are out!
+
 	std::string reason;
-	if (arguments.size() == 4)
+	
+	if (arguments.size() == 4) //REASON
 	{
 		reason = arguments[3];
 	}
 	else
+	{
 		reason = "The kick hammer has spoken!";   //no me gustaaaaaaa
+	}
 	uint32_t channel = findChannel(arguments[1].substr(1));
 	if (channel == 0)
 	{
-		errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[1]);
+		errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[1].substr(1));
 		return ;
 	}
-	if (channels[channel].findUser(index) == 0) // NO ESTAS EN EL CHANNEL
+	else if (data[index].getRole() == CL_OP && !channels[channel].findUser(index))
 	{
-		errorHandler.error(index, ERR_NOTONCHANNEL, arguments[1]);
+		errorHandler.error(index, ERR_NOTONCHANNEL, channels[channel].getName()); //NO ESTAS EN ESE CHANNEL 
 	}
-	
 	std::vector<std::string>targets = split(arguments[2], ',');
 	for(std::vector<std::string>::const_iterator target = targets.begin();target != targets.end(); target++)
 	{
@@ -697,6 +758,7 @@ void	Server::away(clientIt index, std::vector<std::string> &arguments)
 	sendMsgUser(data[(pollfdIt)index].fd, message);
 }
 
+
 void	Server::invite(clientIt index, std::vector<std::string> &arguments)
 {
 	if (arguments.size() < 2)//ARGUMENT ERROR
@@ -704,17 +766,27 @@ void	Server::invite(clientIt index, std::vector<std::string> &arguments)
 		errorHandler.error(index, ERR_NEEDMOREPARAMS , "INVITE");
 		return;
 	}
+	if (!data[index].getRole())
+	{
+		errorHandler.error(index, ERR_CHANOPRIVSNEEDED, arguments[2].substr(1));//(481)   no channel operator 
+		return;
+	}
 	else if (arguments.size() == 3)
 	{
 		clientIt target_user = data.findNickname(arguments[1]);
-		//cliente no esta conectado
+		if (!target_user)
+		{
+			errorHandler.error(index, ERR_NOSUCHNICK, arguments[1]);
+			return;
+		}
 		std::string channel_name = arguments[2].substr(1);
 		uint32_t channel = findChannel(channel_name);
 		if (channel == 0)
 			errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[2]); // NO EXISTE CHANNEL
-		else if (!channels[channel].findUser(index))
-			errorHandler.error(index, ERR_NOTONCHANNEL, data[index].getNickname()); //NO ESTAS EN ESE CHANNEL
-		//ERR_CHANOPRIVSNEEDED (482)
+		else if (data[index].getRole() == CL_OP && !channels[channel].findUser(index))
+		{
+			errorHandler.error(index, ERR_NOTONCHANNEL, channels[channel].getName()); //NO ESTAS EN ESE CHANNEL 
+		}
 		else if (channels[channel].findUser(target_user)) //TARGET YA ESTA EN EL CHANNEL
 		{
 			errorHandler.error(index, ERR_USERONCHANNEL, arguments[1]);
@@ -987,6 +1059,7 @@ void Server::setCommands()
 	commands.funcmap["PART"]	= &Server::part;
 	commands.funcmap["MOTD"]	= &Server::motd;
 	commands.funcmap["OPER"]	= &Server::oper;
+	commands.funcmap["KILL"]	= &Server::kill;
 
 	commands.cap_funcmap["CAP_REQ"]	= &Server::cap_req;
 	commands.cap_funcmap["CAP_LS"]	= &Server::cap_ls;
@@ -1036,4 +1109,15 @@ void	Server::printServerStatus() const
 void	Server::deleteChannel(uint32_t channel)
 {
 	channels.erase(channels.begin() + channel);
+}
+
+void Server::removeClientChannels(clientIt index)
+{
+	for(std::deque<Channel>::iterator channel = channels.begin(); channel != channels.end(); channel++)
+	{
+		if(channel->findUser(index))
+		{
+			channel->removeClient(index);
+		}
+	}
 }

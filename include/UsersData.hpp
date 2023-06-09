@@ -26,10 +26,15 @@ class UsersData{
 		~UsersData();
 
 		pollfd *getPollfdData();
-		clientIt findUsername(std::string argument);
-		clientIt findNickname(std::string argument);
+		clientIt findUsername(std::string argument) const;
+		clientIt findNickname(std::string argument) const;
+		clientIt findNicknameBack(const std::string argument) const;
 		void	addClient(pollfd clientPollfd, Client newClient);
 
+		void	transferIndex(clientIt index, const std::string& nickname);
+		void	backClient(clientIt index); // fom client to back
+		void	forwardClient(const std::string& nickname); //from back to client
+		void	removeClient(clientIt index);
 		//override de operadores [] para acceder a polfds y a array de clients
 		Client& operator[](clientIt indexAct);
 		const Client& operator[](clientIt indexAct) const;
@@ -37,30 +42,12 @@ class UsersData{
 		const pollfd &operator[](pollfdIt idx) const;
 
 		uint32_t size()const;
-	
-		///////OBSOLETE DOWN
-	
-
-
-		//void newTempUser(int fd); 
-		//void newRegisteredUser(uint32_t indexAct);
-		//
-		//uint32_t findUsername(const std::string &username) const;
-		//
-		////int		getFd(uint32_t indexAct)const;
-		//void	popTemp(uint32_t indexAct);
-		//
-		//void findTmpIndexAndRest(uint32_t indexTemp, uint32_t num);
-		
-	//	std::vector<struct pollfd>&	Pollfd();
-	//	std::vector<t_activeIndex>&	Actives();
-	//	std::vector<Client>&	Registered();
-	//	std::vector<Client>&	TempClients();
 	private:
 		void	setSocket(pollfd &server, t_serverInput &serverInfo);
 		
 		std::vector<struct pollfd> pollfds;
 		std::vector<Client> clients;
+		std::vector<Client> back;//no se puede acceder con operators
 };
 
 #endif

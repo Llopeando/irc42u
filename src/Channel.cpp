@@ -88,7 +88,6 @@ void	Channel::broadcast(clientIt sender, std::string const &msg) {
 			//std::cout << color::green << "SENDED TO: [" << i << "]" << (*data)[(clientIt)users[i]].getUsername() << "\n" << color::reset;
 			sendMsgUser((*data)[(pollfdIt)users[i]].fd, msg);
 		}
-
 	}
 }
 

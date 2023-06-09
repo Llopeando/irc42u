@@ -1,7 +1,10 @@
 #include "../include/Client.hpp"
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
-Client::Client(std::string hostName):hostname(hostName), role(1), authentificied(false) {
+
+Client::Client(){};
+
+Client::Client(std::string hostName):hostname(hostName), role(CL_USER), authentificied(false) {
 	state = CL_STATE_INPUT;
 	this->isAway = false;
 	this->away_msg = "";
@@ -26,8 +29,8 @@ Client& Client::operator=(const Client& client) {
 	this->state = client.state;
 	this->isAway = client.isAway;
 	this->hostname = client.getHostname();
-    }
-    return *this;
+	}
+	return *this;
 }
 
 
