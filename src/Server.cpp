@@ -254,10 +254,10 @@ void	Server::kill(clientIt index, std::vector<std::string> &arguments)
 		errorHandler.error(index, ERR_NOPRIVILEGES);
 		return;
 	}
-	std::string reason = "YOU HAVE BEEN KILLED";
+	std::string reason = "";
 	if (arguments.size() > 2)
 	{
-		reason = joinStr(arguments, 2);
+		reason += joinStr(arguments, 2);
 	}
 	clientIt target_user = data.findNickname(arguments[1]);
 	if (!target_user)
@@ -265,13 +265,39 @@ void	Server::kill(clientIt index, std::vector<std::string> &arguments)
 		errorHandler.error(index, ERR_NOSUCHNICK, arguments[1]);
 		return;
 	}
-	std::string message = ":" + data[index].getUserMask() + " 361 " + data[target_user].getNickname() + " :" + reason + "\r\n"; //361	RPL_KILLDONE	RFC1459
-	//channels[0].broadcast(0, message);
-	sendMsgUser(data[(pollfdIt)target_user].fd, message);
-	removeClientChannels(target_user);
-	data.backClient(target_user);
-	//SE QUEDA EN UN LIMBO , se va a back, pero sigue conectado, pero se le echa de los channels, no puede hacer join-.....
+
+	std::string reason1 = "Killed (" + data[index].getNickname() + ")";
+
+	std::string message_u = ':' + data[target_user].getUserMask() + " QUIT :Quit:" + data[index].getNickname() + "\r\n";
+	//std::string message = data[index].getUserMask() + " has forced " + data[target_user].getNickname() + " to leave " + serverName + reason1 + "\r\n";
+	std::string message_user = "ERROR :Closing Link: (~" + data[target_user].getUserMask() +  ") [Killed (" + data[index].getNickname() + " (" + reason + "))]\r\n";
+	channels[0].broadcast(0, message_u);
+	//sendMsgUser(data[(pollfdIt)target_user].fd, message_u);
+	sendMsgUser(data[(pollfdIt)target_user].fd, message_user);
+
+
+
+	close(data[(pollfdIt)target_user].fd);
+//Closing link: (~eperaita@195.53.111.155) [Killed (DickCheney (meow))]
+//Closing Link: (~eperaita!eperaita@10.12.7.2) [Killed (ullorent (Killed (ullorent)))] 
 	
+	data.backClient(target_user);
+	removeClientChannels(target_user);
+
+// this->quit(target_user, arguments);
+/* QUIT
+
+	std::string reason = "";
+	if (arguments.size() == 2)
+		reason = arguments[1];
+	std::string message = ':' + data[index].getUserMask() + " QUIT :Quit:" + reason + "\r\n";
+	channels[0].broadcast(0, message);
+	data.backClient(index);
+	removeClientChannels(index);
+*/
+	//std::string message = ":" + data[	index].getUserMask() + " 361 " + data[target_user].getNickname() + " :" + reason + "\r\n"; //361	RPL_KILLDONE	RFC1459
+	//:dan-!d@localhost QUIT :Quit: Bye for now!
+	//std::string message = ':' + data[index].getUserMask() + " QUIT :Quit:" + argument[1] + "\r\n";
 }
 
 
@@ -341,10 +367,39 @@ void	Server::user(clientIt index, std::vector<std::string> &arguments)
 	if (data[index].getAuthentificied()) //ha autentificado, ha mandado PASS y es ok )
 	{
 		channels[0].addClient(index);
+
+		/* SUCCESSFUL CONNECTION : info del server para el USUARIO */
+
 		std::string welcome = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; ///TIENE QUE IR AQUI??? , o FUERA EN EL BUCLE DE COMANDOS COMO METER???
 		sendMsgUser(data[(pollfdIt)index].fd, welcome);
+		
+
+
+	/* INFO extra del server para el USUARIO 
+	Upon successful completion of the registration process, the server MUST send, in this order, the 
+	RPL_WELCOME (001), RPL_YOURHOST (002), RPL_CREATED (003), RPL_MYINFO (004), and at least one RPL_ISUPPORT (005) numeric to the client.
+	*/
+
+		std::string welcome_2 = "002 " + data[index].getNickname() + " : Your host is " + serverName + ", running version 1.0 " + "\r\n";//"<client> :Your host is <servername>, running version <version>"
+		std::string welcome_3 = "003 " + data[index].getNickname() + " : This server was created 1" + "\r\n"; // "<client> :This server was created <datetime>"
+		/*  "<client> <servername> <version> <available user modes>
+			<available channel modes> [<channel modes with a parameter>]*/
+		std::string welcome_4 = "004 " + data[index].getNickname() + " " + serverName + " 1.0 +i,+o\r\n";
+		sendMsgUser(data[(pollfdIt)index].fd, welcome_2);
+		sendMsgUser(data[(pollfdIt)index].fd, welcome_3);
+		sendMsgUser(data[(pollfdIt)index].fd, welcome_4);
+
 		std::vector<std::string> motd_arguments;
 		motd(index, motd_arguments);
+
+	/*llama a comando LUSERS 
+	
+	The server SHOULD then respond as though the client sent the LUSERS command and return the appropriate numerics. If the user has client modes set on them automatically upon joining the network, 
+	the server SHOULD send the client the RPL_UMODEIS (221) reply or a MODE message with the client as target, preferably the former. The server MAY send other numerics and messages. 
+	The server MUST then respond as though the client sent it the MOTD command, i.e. it must send either the successful Message of the Day numerics or the ERR_NOMOTD (422) numeric.
+	
+	*/
+
 	}
 	else
 	{
@@ -355,6 +410,9 @@ void	Server::user(clientIt index, std::vector<std::string> &arguments)
 		removeClientChannels(index);
 	}
 }
+
+
+
 
 void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
 {
@@ -898,6 +956,7 @@ void	Server::cap_end(clientIt index, std::vector<std::string> &arguments)
 	std::cout << "CAP END!!!! \n";
 	std::string message = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; ///PARA MI NO TIENE QUE IR AQUI , FUERA EN EL BUCLE DE COMANDOS COMO METER???
 	sendMsgUser(data[(pollfdIt)index].fd, message);
+
 }
 
 void	Server::cap_ack(clientIt index, std::vector<std::string> &arguments)
@@ -957,18 +1016,12 @@ std::string Server::readTCPInput(int client_fd) {
 	if (recvMsgSize == SERVER_FAILURE)
 	{
 		perror("recv failed, debug here: ");
-		//exit (EXIT_FAILURE);
 		return (std::string(nullptr));
 	}
-	//////////////////
-	//////////////////
-	//////////////////SI SALE ALGUIEN DEL SERVIDOR, HAY QUE CERRAR EL FD CORRECTAMENTE PORQUE SI NO CRASHEA EL SERVIDOR
-	//////////////////HAY QUE SOLUCIONAR ESTO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//////////////////
-	//////////////////
 	else if (recvMsgSize == 0) {
-		close(client_fd);
-		return std::string("A client was disconnected from server");
+		std::vector<std::string> quit_arguments;
+		quit(client_fd, quit_arguments);
+		return std::string("A client was disconnected from the server");
 	}
 	///////////////LIMPIACARRO///////////
 	ssize_t index = 0;
