@@ -51,46 +51,4 @@ typedef struct activeIndex
 	uint32_t	index;
 }t_activeIndex;
 
-struct clientIt{
-	uint32_t index;
-	clientIt(int value = 0):index(value){};
-	operator uint32_t() const {
-		return index;
-	}
-	clientIt& operator=(uint32_t value){
-		index = value;
-		return *this;
-	}
-	clientIt& operator++() {
-		++index;
-		return *this;
-	}
-	clientIt operator++(int) {
-		clientIt tmp(*this);
-		++index;
-		return tmp;
-	}
-};
-
-struct pollfdIt{
-	uint32_t index;
-	pollfdIt(int value = 0):index(value){};
-	operator uint32_t() const {
-		return index;
-	}
-	pollfdIt& operator=(uint32_t value){
-		index = value;
-		return *this;
-	}
-	pollfdIt& operator++() {
-		++index;
-		return *this;
-	}
-	pollfdIt operator++(int) {
-		pollfdIt tmp(*this);
-		++index;
-		return tmp;
-	}
-};
-
 #endif

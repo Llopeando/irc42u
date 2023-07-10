@@ -1,7 +1,11 @@
 #include "../include/Channel.hpp"
 
+#include "Client.hpp"
+
+START_SERVER_DATA_NAMESPACE
+
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
-Channel::Channel(std::string name, std::string username, UsersData *data)
+Channel::Channel(std::string name, std::string username, ServerData *data)
 {
 	this->name = name;
 	this->topic = "";
@@ -100,3 +104,5 @@ std::string Channel::getUserList()const
 	}
 	return result;
 }
+
+END_SERVER_DATA_NAMESPACE

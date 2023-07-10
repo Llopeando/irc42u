@@ -7,5 +7,8 @@
 #include <netdb.h>
 
 #include "include/Server.hpp"
+#include "include/ServerDataStructs.h"
+
+#define SERVER_NAME "AOIRC"
 
 #endif

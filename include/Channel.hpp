@@ -1,28 +1,30 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
+#include "Config.h"
 #include "defines.hpp"
 #include "Utils.hpp"
+#include "ServerDataStructs.h"
+
 
 #include <iostream>
-//#include <cstring>
-//#include <cstdlib>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string>
-//#include <cstdio>
 #include <poll.h>
 #include <deque>
-#include "Client.hpp"
-#include "UsersData.hpp"
+
+class ServerData;
+
+START_SERVER_DATA_NAMESPACE
 
 class Channel
 {
 	public:
 		typedef std::chrono::system_clock t_chrono;
 
-		Channel(std::string name, std::string username, UsersData *data);
+		Channel(std::string name, std::string username, ServerData *data);
 		~Channel();
 
 		std::string			getCreator() const;
@@ -30,7 +32,7 @@ class Channel
 		void				setCreationDate(std::time_t);
 		std::string			getName()const;
 		std::string			getUserList()const;
-		void 				addClient(clientIt index);
+		void				addClient(clientIt index);
 		void				removeClient(clientIt indexAct);
 		void 				broadcast(clientIt sender, std::string const &msg);
 		//void				refresh(uint32_t indexAct);
@@ -42,16 +44,18 @@ class Channel
 
 	private:
 
-		void		sendInfoChannel(uint32_t user_pos, std::string const &str);
+		void	sendInfoChannel(uint32_t user_pos, std::string const &str);
 		uint32_t numOfUsers;
-		UsersData *data;
+		ServerData *data;
 		std::string name;
 		std::string topic;
 		std::deque<uint32_t> users;
-		//std::deque<uint32_t>msgIndexUsr; //ultimo mensaje leido
 		std::string creator;
-		std::deque<std::string> msg_log;
 		std::time_t creationDate;
 };
+
+END_SERVER_DATA_NAMESPACE
+
+#include "ServerData.hpp"
 
 #endif

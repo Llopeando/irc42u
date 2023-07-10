@@ -21,12 +21,8 @@
 
 #include "Utils.hpp"
 #include "defines.hpp"
-#include "Channel.hpp"
-#include "Client.hpp"
 #include "color.h"
-#include "UsersData.hpp"
-#include "ErrorHandler.hpp"
-#include "OperBlock.hpp"
+#include "ServerData.hpp"
 
 class Server;
 #define SERVER_NAME "AOIRC Server" ///cambiar??
@@ -55,25 +51,21 @@ class Server;
 			"        /:::/    /                       \\::/    /                       \\::/    /                         \\:|   |                         \\::/    /         \n" \
 			"        \\::/____/                         \\/____/                         \\/____/                           \\|___|                          \\/____/          \n"
 
-
-
 struct Commands{
-	std::unordered_map<std::string, void (Server::*)(clientIt index, std::vector<std::string> &arguments)> funcmap;
-	std::unordered_map<std::string, void (Server::*)(clientIt index, std::vector<std::string> &arguments)> cap_funcmap;
+	//std::unordered_map<std::string, void (Server::*)(clientIt index, std::vector<std::string> &arguments)> funcmap;
+	//std::unordered_map<std::string, void (Server::*)(clientIt index, std::vector<std::string> &arguments)> cap_funcmap;
 	//std::string cmd[COMMANDS];
 	//void (Server::*func[COMMANDS])(clientIt index, std::vector<std::string> &arguments);
 	//std::string cap_cmd[CAP_COMMANDS];
 	//void (Server::*cap_func[CAP_COMMANDS])(clientIt index, std::vector<std::string> &arguments);
 };
 
-
-
 class Server
 {
 	public:
 		typedef std::chrono::system_clock t_chrono;
 
-		Server(t_serverInput *serverInput);
+		Server(sd::t_serverInput &serverInput);
 		~Server();
 
 		void	run();
@@ -82,18 +74,22 @@ class Server
 		std::string	getName()const;
 	private:
 
+		int	status;
+		sd::t_serverInput serverInfo;
+		sd::ServerData serverData;
+
 		void	acceptConnection();
 		void	listenConnection();
-		void	handleNewUser(std::string &input, clientIt);
-		void	handleInput(clientIt index, std::string input);
-		void	sendCapabilities(pollfdIt index);
-		void	acknowledgeCapabilities(pollfdIt index, std::string input);
+		void	handleNewUser(std::string &input, sd::clientIt);
+		void	handleInput(sd::clientIt index, std::string input);
+		void	sendCapabilities(sd::pollfdIt index);
+		void	acknowledgeCapabilities(sd::pollfdIt index, std::string input);
 
 		void	saveNick(std::vector<std::string> &arguments, Client &newUser);
 		void	saveUser(std::vector<std::string> &arguments, Client &newUser);
 
 		void	checkFds(int events);
-		void	handleEvents(pollfdIt index);
+		void	handleEvents(sd::pollfdIt index);
 
 		std::string	readTCPInput(int client_fd);
 		//void	sendMsgUser(int fd, const std::string &str) const;
@@ -102,55 +98,43 @@ class Server
 
 		void	deleteChannel(uint32_t channel);
 
-		void removeClientChannels(clientIt index);
+		void removeClientChannels(sd::clientIt index);
 
 		//COMMAND FUNCTIONS
-		void	oper(clientIt index, std::vector<std::string> &arguments);
-		void	pass(clientIt index, std::vector<std::string> &arguments);
-		void	nick(clientIt index, std::vector<std::string> &arguments);
-		void	user(clientIt index, std::vector<std::string> &arguments);
-		void	join(clientIt index, std::vector<std::string> &arguments);
-		void	privmsg(clientIt index, std::vector<std::string> &arguments);
-		
-		void	part(clientIt index, std::vector<std::string> &arguments);
-		void	topic(clientIt index, std::vector<std::string> &arguments);
-		void	list(clientIt index, std::vector<std::string> &arguments);
-
-		
-		void	notice(clientIt index, std::vector<std::string> &arguments);
-		void	quit(clientIt index, std::vector<std::string> &arguments);
-		void	mode(clientIt index, std::vector<std::string> &arguments);
-		void	names(clientIt index, std::vector<std::string> &arguments);
-		void	whois(clientIt index, std::vector<std::string> &arguments);
-		void	who(clientIt index, std::vector<std::string> &arguments);
-		void	motd(clientIt index, std::vector<std::string> &arguments);
-		void	kick(clientIt index, std::vector<std::string> &arguments);
-		void	away(clientIt index, std::vector<std::string> &arguments);
-		void	invite(clientIt index, std::vector<std::string> &arguments);
-		void	ping(clientIt index, std::vector<std::string> &arguments);
-		void	cap(clientIt index, std::vector<std::string> &arguments);
-		void	kill(clientIt index, std::vector<std::string> &arguments);
+//		void	oper(clientIt index, std::vector<std::string> &arguments);
+//		void	pass(clientIt index, std::vector<std::string> &arguments);
+//		void	nick(clientIt index, std::vector<std::string> &arguments);
+//		void	user(clientIt index, std::vector<std::string> &arguments);
+//		void	join(clientIt index, std::vector<std::string> &arguments);
+//		void	privmsg(clientIt index, std::vector<std::string> &arguments);
+//		
+//		void	part(clientIt index, std::vector<std::string> &arguments);
+//		void	topic(clientIt index, std::vector<std::string> &arguments);
+//		void	list(clientIt index, std::vector<std::string> &arguments);
+//
+//		
+//		void	notice(clientIt index, std::vector<std::string> &arguments);
+//		void	quit(clientIt index, std::vector<std::string> &arguments);
+//		void	mode(clientIt index, std::vector<std::string> &arguments);
+//		void	names(clientIt index, std::vector<std::string> &arguments);
+//		void	whois(clientIt index, std::vector<std::string> &arguments);
+//		void	who(clientIt index, std::vector<std::string> &arguments);
+//		void	motd(clientIt index, std::vector<std::string> &arguments);
+//		void	kick(clientIt index, std::vector<std::string> &arguments);
+//		void	away(clientIt index, std::vector<std::string> &arguments);
+//		void	invite(clientIt index, std::vector<std::string> &arguments);
+//		void	ping(clientIt index, std::vector<std::string> &arguments);
+//		void	cap(clientIt index, std::vector<std::string> &arguments);
+//		void	kill(clientIt index, std::vector<std::string> &arguments);
 	
 		uint32_t	findChannel(const std::string &name) const;
 
 		//COMMAND CAP FUNCTIONS
-		void	cap_req(clientIt index, std::vector<std::string> &arguments);
-		void	cap_ls(clientIt index, std::vector<std::string> &arguments);
-		void	cap_end(clientIt index, std::vector<std::string> &arguments);
-		void	cap_ack(clientIt index, std::vector<std::string> &arguments);
-		void	cap_nak(clientIt index, std::vector<std::string> &arguments);
-
-		int	status;
-		t_serverInput serverInfo;
-		std::string serverName;
-		std::deque<Channel> channels;
-		UsersData data;
-		//UsersData dataBack;
-		Commands commands;
-		ErrorHandler errorHandler;
-
-		OperBlock operators;
-	
+		void	cap_req(sd::clientIt index, std::vector<std::string> &arguments);
+		void	cap_ls(sd::clientIt index, std::vector<std::string> &arguments);
+		void	cap_end(sd::clientIt index, std::vector<std::string> &arguments);
+		void	cap_ack(sd::clientIt index, std::vector<std::string> &arguments);
+		void	cap_nak(sd::clientIt index, std::vector<std::string> &arguments);
 };
 
 #endif

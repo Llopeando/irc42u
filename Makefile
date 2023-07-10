@@ -6,7 +6,7 @@
 #    By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/06/08 17:42:27 by ecamara          ###   ########.fr        #
+#    Updated: 2023/06/15 13:05:48 by ecamara          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,19 +15,25 @@ NAME = ircserv
 CPPSRC = src/Server.cpp \
 src/Client.cpp \
 src/Channel.cpp \
-src/UsersData.cpp \
 main.cpp \
 src/ErrorHandler.cpp\
 src/Utils.cpp\
-src/OperBlock.cpp
+src/OperBlock.cpp\
+src/ServerData.cpp
 
 CPPINCLUDE = include/Server.hpp \
 include/Channel.hpp \
 include/Client.hpp \
-include/UsersData.hpp \
 include/defines.hpp	\
 include/Utils.hpp\
-include/OperBlock.hpp
+include/OperBlock.hpp\
+include/command_structs.h\
+include/commands.h\
+include/command_structs.h\
+include/Config.h\
+include/function.h\
+include/ServerData.hpp\
+include/ServerDataStructs.h
 
 CPPOBJ = $(CPPSRC:.cpp=.o)
 

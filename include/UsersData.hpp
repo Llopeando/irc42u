@@ -12,13 +12,6 @@
 #include "Client.hpp"
 #include "defines.hpp"
 
-typedef struct s_serverInput{
-	struct sockaddr_in address;
-	std::string password;
-	std::string IP;
-}t_serverInput;
-
-
 class UsersData{
 	public:
 		UsersData();
@@ -35,6 +28,7 @@ class UsersData{
 		void	backClient(clientIt index); // fom client to back
 		void	forwardClient(const std::string& nickname); //from back to client
 		void	removeClient(clientIt index);
+
 		//override de operadores [] para acceder a polfds y a array de clients
 		Client& operator[](clientIt indexAct);
 		const Client& operator[](clientIt indexAct) const;
