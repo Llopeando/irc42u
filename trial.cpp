@@ -25,6 +25,10 @@
 
 
 
+
+
+
+
 int main()
 {
 	std::cout << MOTD << std::endl;
