@@ -1,8 +1,10 @@
+#ifndef COMMAND_STRUCTS_H
+#define COMMAND_STRUCTS_H
+
 #include "defines.hpp"
 #include <vector>
 #include "ServerDataStructs.h"
-
-class ServerData;
+#include "ServerData.hpp"
 
 namespace cmd
 {
@@ -17,3 +19,6 @@ namespace cmd
 		sd::clientIt index;
 	};
 }
+
+
+#endif

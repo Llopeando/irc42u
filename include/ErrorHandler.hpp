@@ -100,7 +100,7 @@ enum Type{
 };
 
 
-void	fatalError(const cmd::CmdInput &bundle, Type errorCode)
+void	fatalError(cmd::CmdInput &bundle, Type errorCode)
 {
 	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
 	if (it != getErrorMap().end()) {
@@ -109,12 +109,12 @@ void	fatalError(const cmd::CmdInput &bundle, Type errorCode)
 	}	
 }
 
-void	error(const cmd::CmdInput &bundle, Type errorCode)
+void	error(cmd::CmdInput &bundle, Type errorCode)
 {
 	
 }
 
-void	error(const cmd::CmdInput &bundle, Type errorCode, std::string param)
+void	error(cmd::CmdInput &bundle, Type errorCode, std::string param)
 {
 	
 }
