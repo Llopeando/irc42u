@@ -1,6 +1,17 @@
-#include "../include/Channel.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Channel.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/11 14:00:32 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/11 14:04:27 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include "Client.hpp"
+#include "../include/Channel.hpp"
+#include "../include/Client.hpp"
 
 START_SERVER_DATA_NAMESPACE
 
@@ -13,7 +24,7 @@ Channel::Channel(std::string name, std::string username, ServerData *data)
 	this->data = data;
 	users.resize(1);
 	numOfUsers = 0;
-	creationDate = t_chrono::to_time_t(t_chrono::now());
+	creationDate = utils::t_chrono::to_time_t(utils::t_chrono::now());
 }
 
 Channel::~Channel() {
@@ -90,7 +101,7 @@ void	Channel::broadcast(clientIt sender, std::string const &msg) {
 		if (users[i] != sender)
 		{
 			//std::cout << color::green << "SENDED TO: [" << i << "]" << (*data)[(clientIt)users[i]].getUsername() << "\n" << color::reset;
-			sendMsgUser((*data)[(pollfdIt)users[i]].fd, msg);
+			utils::sendMsgUser((*data)[(pollfdIt)users[i]].fd, msg);
 		}
 	}
 }

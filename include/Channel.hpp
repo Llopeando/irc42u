@@ -15,15 +15,13 @@
 #include <poll.h>
 #include <deque>
 
-class ServerData;
-
 START_SERVER_DATA_NAMESPACE
+
+class ServerData;
 
 class Channel
 {
 	public:
-		typedef std::chrono::system_clock t_chrono;
-
 		Channel(std::string name, std::string username, ServerData *data);
 		~Channel();
 

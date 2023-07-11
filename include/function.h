@@ -22,24 +22,11 @@
 
 START_CMD_NAMESPACE
 
-static eFlags callFunction(const std::string& key, CmdInput& input)
-{
-	CmdMap::const_iterator it = getFunctionMap().find(key);
-	if (it != getFunctionMap().end()) {
-		it->second(input);
-		return eFlags::eSuccess;
-	}
-	else
-	{
-		return eFlags::eNoSuchFunction;
-	}
-}
+typedef void (*pFunction)(CmdInput& input);
+typedef std::unordered_map<std::string, pFunction> CmdMap;
 
 START_ANONYMOUS_NAMESPACE
 //anonymous namespace, similar to private in a class. Obscures access to types and cmdMap from outside.
-
-typedef void (*pFunction)(CmdInput& input);
-typedef std::unordered_map<std::string, pFunction> CmdMap;
 
 static const CmdMap& getFunctionMap()
 {
@@ -60,7 +47,7 @@ static const CmdMap& getFunctionMap()
 		cmdMap["AWAY"]		= &away;
 		cmdMap["INVITE"]	= &invite;
 		cmdMap["PING"]		= &ping;
-		cmdMap["CAP"]		= &cap;
+		//cmdMap["CAP"]		= &cap;
 		cmdMap["TOPIC"]		= &topic;
 		cmdMap["LIST"]		= &list;
 		cmdMap["PART"]		= &part;
@@ -71,9 +58,21 @@ static const CmdMap& getFunctionMap()
 	return cmdMap;
 }
 
-
-
 END_ANONYMOUS_NAMESPACE
+
+static eFlags callFunction(const std::string& key, CmdInput& input)
+{
+	CmdMap::const_iterator it = getFunctionMap().find(key);
+	if (it != getFunctionMap().end()) {
+		it->second(input);
+		return eSuccess;
+	}
+	else
+	{
+		return eNoSuchFunction;
+	}
+}
+
 END_CMD_NAMESPACE
 
 #endif

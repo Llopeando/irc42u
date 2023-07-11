@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+         #
+#    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/06/15 13:05:48 by ecamara          ###   ########.fr        #
+#    Updated: 2023/07/11 14:06:40 by ullorent         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,9 +16,7 @@ CPPSRC = src/Server.cpp \
 src/Client.cpp \
 src/Channel.cpp \
 main.cpp \
-src/ErrorHandler.cpp\
 src/Utils.cpp\
-src/OperBlock.cpp\
 src/ServerData.cpp
 
 CPPINCLUDE = include/Server.hpp \
@@ -26,7 +24,6 @@ include/Channel.hpp \
 include/Client.hpp \
 include/defines.hpp	\
 include/Utils.hpp\
-include/OperBlock.hpp\
 include/command_structs.h\
 include/commands.h\
 include/command_structs.h\

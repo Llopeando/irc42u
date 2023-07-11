@@ -24,11 +24,6 @@
 #include "color.h"
 #include "ServerData.hpp"
 
-class Server;
-#define SERVER_NAME "AOIRC Server" ///cambiar??
-#define COMMANDS 14
-#define CAP_COMMANDS 6
-
 #define MOTD "\n " \
 			"         _____                           _______                           _____                            _____                            _____          \n" \
 			"         /\\    \\                         /::\\    \\                         /\\    \\                          /\\    \\                          /\\    \\         \n" \
@@ -51,27 +46,16 @@ class Server;
 			"        /:::/    /                       \\::/    /                       \\::/    /                         \\:|   |                         \\::/    /         \n" \
 			"        \\::/____/                         \\/____/                         \\/____/                           \\|___|                          \\/____/          \n"
 
-struct Commands{
-	//std::unordered_map<std::string, void (Server::*)(clientIt index, std::vector<std::string> &arguments)> funcmap;
-	//std::unordered_map<std::string, void (Server::*)(clientIt index, std::vector<std::string> &arguments)> cap_funcmap;
-	//std::string cmd[COMMANDS];
-	//void (Server::*func[COMMANDS])(clientIt index, std::vector<std::string> &arguments);
-	//std::string cap_cmd[CAP_COMMANDS];
-	//void (Server::*cap_func[CAP_COMMANDS])(clientIt index, std::vector<std::string> &arguments);
-};
-
 class Server
 {
 	public:
-		typedef std::chrono::system_clock t_chrono;
-
 		Server(sd::t_serverInput &serverInput);
 		~Server();
 
 		void	run();
-		//void	setSocket(t_serverInput *serverCreateInfo);
 		void	printServerStatus() const;
 		std::string	getName()const;
+		
 	private:
 
 		int	status;
@@ -92,49 +76,9 @@ class Server
 		void	handleEvents(sd::pollfdIt index);
 
 		std::string	readTCPInput(int client_fd);
-		//void	sendMsgUser(int fd, const std::string &str) const;
-		//void	sendMsgUser(clientIt it, const std::string &str) const;
 		void	setCommands();
 
-		void	deleteChannel(uint32_t channel);
 
-		void removeClientChannels(sd::clientIt index);
-
-		//COMMAND FUNCTIONS
-//		void	oper(clientIt index, std::vector<std::string> &arguments);
-//		void	pass(clientIt index, std::vector<std::string> &arguments);
-//		void	nick(clientIt index, std::vector<std::string> &arguments);
-//		void	user(clientIt index, std::vector<std::string> &arguments);
-//		void	join(clientIt index, std::vector<std::string> &arguments);
-//		void	privmsg(clientIt index, std::vector<std::string> &arguments);
-//		
-//		void	part(clientIt index, std::vector<std::string> &arguments);
-//		void	topic(clientIt index, std::vector<std::string> &arguments);
-//		void	list(clientIt index, std::vector<std::string> &arguments);
-//
-//		
-//		void	notice(clientIt index, std::vector<std::string> &arguments);
-//		void	quit(clientIt index, std::vector<std::string> &arguments);
-//		void	mode(clientIt index, std::vector<std::string> &arguments);
-//		void	names(clientIt index, std::vector<std::string> &arguments);
-//		void	whois(clientIt index, std::vector<std::string> &arguments);
-//		void	who(clientIt index, std::vector<std::string> &arguments);
-//		void	motd(clientIt index, std::vector<std::string> &arguments);
-//		void	kick(clientIt index, std::vector<std::string> &arguments);
-//		void	away(clientIt index, std::vector<std::string> &arguments);
-//		void	invite(clientIt index, std::vector<std::string> &arguments);
-//		void	ping(clientIt index, std::vector<std::string> &arguments);
-//		void	cap(clientIt index, std::vector<std::string> &arguments);
-//		void	kill(clientIt index, std::vector<std::string> &arguments);
-	
-		uint32_t	findChannel(const std::string &name) const;
-
-		//COMMAND CAP FUNCTIONS
-//		void	cap_req(sd::clientIt index, std::vector<std::string> &arguments);
-//		void	cap_ls(sd::clientIt index, std::vector<std::string> &arguments);
-//		void	cap_end(sd::clientIt index, std::vector<std::string> &arguments);
-//		void	cap_ack(sd::clientIt index, std::vector<std::string> &arguments);
-//		void	cap_nak(sd::clientIt index, std::vector<std::string> &arguments);
 };
 
 #endif

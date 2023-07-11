@@ -3,6 +3,8 @@
 #include "../include/commands.h"
 #include "../include/command_structs.h"
 #include "../include/function.h"
+#include "../include/ServerDataStructs.h"
+
 /* ------------------------------------------------------------ */
 /* 			CONSTRUCTOR DESTRUCTOR INITIALIZATION 				*/
 /* ------------------------------------------------------------ */
@@ -12,7 +14,7 @@ Server::Server(sd::t_serverInput &serverInput)
 
 Server::~Server()
 {
-	if ((status = close(data[(pollfdIt)0].fd) == SERVER_FAILURE))
+	if ((status = close(serverData[(sd::pollfdIt)0].fd) == SERVER_FAILURE))
 	{
 		perror("socket closing failed");
 		exit(EXIT_FAILURE);
@@ -140,13 +142,10 @@ void	Server::acceptConnection() {
 
 void Server::handleInput(sd::clientIt index, std::string input) 
 {
-	std::vector<std::string>arguments = utils::splitIrcPrameters(input, ' ');
+	std::vector<std::string> arguments = utils::splitIrcPrameters(input, ' ');
 
-	cmd::CmdInput package;
-	package.arguments = arguments;
-	package.server = this;
-	package.it = index;
-	if (cmd::callFunction(arguments[0], package) != cmd::eFlags::eSuccess)
+	cmd::CmdInput package(arguments, serverData, index);
+	if (cmd::callFunction(arguments[0], package) != cmd::eSuccess)
 	{
 		std::cout << color::red << "[ERROR DE COMANDO [" <<  input << "]\n" << color::reset;
 		//send error message client;
@@ -171,19 +170,8 @@ void Server::handleEvents(sd::pollfdIt index)
 
 std::string Server::getName()const
 {
-	return serverName;
+	return serverData.getName();
 }
-
-/*void	Server::cap_available(std::vector<std::string> &arguments)
-{
-		//va a devolver las capabilities disponibles, osea las que coinciden 
-
-	std::vector<std::string> availables;
-
-
-		
-
-}*/
 
 
 /* ------------------------------------------------------------ */
@@ -191,15 +179,6 @@ std::string Server::getName()const
 /* ------------------------------------------------------------ */
 
 
-uint32_t	Server::findChannel(const std::string &name) const
-{
-	for (uint32_t i =0;i < channels.size();i++)
-	{
-		if (channels[i].getName() == name)
-			return i;
-	}
-	return (0);
-}
 
 std::string Server::readTCPInput(int client_fd) {
 	char echoBuffer[RCVBUFSIZE];
@@ -214,7 +193,12 @@ std::string Server::readTCPInput(int client_fd) {
 	}
 	else if (recvMsgSize == 0) {
 		std::vector<std::string> quit_arguments;
-		quit(client_fd, quit_arguments);
+
+		//QUIIIIIIIIIIIIIIIIIIIIIIIITTTTTTTT
+		//cmd::CmdInput input(quit_arguments, serverData, );  
+		//cmd::callfunction("QUIT", input);
+		//quit(client_fd, quit_arguments);
+		
 		return std::string("A client was disconnected from the server");
 	}
 	///////////////LIMPIACARRO///////////
@@ -284,14 +268,14 @@ bool checkAdmin(Client *client) {
 
 
 
-void Server::setCommands()
-{
-	commands.cap_funcmap["CAP_REQ"]	= &Server::cap_req;
-	commands.cap_funcmap["CAP_LS"]	= &Server::cap_ls;
-	commands.cap_funcmap["CAP_END"]	= &Server::cap_end;
-	commands.cap_funcmap["CAP_ACK"]	= &Server::cap_ack;
-	commands.cap_funcmap["CAP_NAK"]	= &Server::cap_nak;
-}
+//void Server::setCommands()
+//{
+//	commands.cap_funcmap["CAP_REQ"]	= &Server::cap_req;
+//	commands.cap_funcmap["CAP_LS"]	= &Server::cap_ls;
+//	commands.cap_funcmap["CAP_END"]	= &Server::cap_end;
+//	commands.cap_funcmap["CAP_ACK"]	= &Server::cap_ack;
+//	commands.cap_funcmap["CAP_NAK"]	= &Server::cap_nak;
+//}
 
 
 /* ---------------------------------------------------------------------------------------- */
@@ -310,15 +294,15 @@ void	Server::printServerStatus() const
 	if (timeElapsed > 1)
 	{
 		system("clear");
-		printIp();
+		utils::printIp();
 		std::cout << "≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡ 🖥️  SERVER STATUS ℹ️  ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡\n";
 	
 		//std::cout << "🖥️  👥 SERVER ACTIVE USERS: " << data.size() << '\n' << std::endl;
 
-		std::cout << "USERS (waiting to login or register): " << data.size() << '\n';
-		for(clientIt i = 0; i < data.size(); i++)
+		std::cout << "USERS (waiting to login or register): " << serverData.pollfdSize() << '\n';
+		for(sd::clientIt i = 0; i < serverData.pollfdSize(); i++)
 		{
-			std::cout << "\t[" << i << "]  username: " << data[i].getUsername() << " nickname: " << data[i].getNickname() << " role: " << data[i].getRole() << "\n";
+			std::cout << "\t[" << i << "]  username: " << serverData[i].getUsername() << " nickname: " << serverData[i].getNickname() << " role: " << serverData[i].getRole() << "\n";
 		}
 
 		//std::cout << "\t\t CHANNELS LIST:" << channels.size() << "\n";
@@ -331,18 +315,3 @@ void	Server::printServerStatus() const
 	}
 }
 
-void	Server::deleteChannel(uint32_t channel)
-{
-	channels.erase(channels.begin() + channel);
-}
-
-void Server::removeClientChannels(clientIt index)
-{
-	for(std::deque<Channel>::iterator channel = channels.begin(); channel != channels.end(); channel++)
-	{
-		if(channel->findUser(index))
-		{
-			channel->removeClient(index);
-		}
-	}
-}

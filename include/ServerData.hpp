@@ -3,12 +3,12 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 
 #include "Config.h"
 #include "ServerDataStructs.h"
 
 #include "Client.hpp"
-#include "OperBlock.hpp"
 #include "Channel.hpp"
 
 START_SERVER_DATA_NAMESPACE
@@ -19,6 +19,8 @@ class ServerData{
 		~ServerData();
 
 		pollfd		*getPollfdData();
+		std::string getName() const;
+		std::string getPassword() const {return password;}
 
 		uint32_t	pollfdSize() const {return pollfds.size();}
 
@@ -32,8 +34,22 @@ class ServerData{
 		void	forwardClient(const std::string& nickname); //from back to client
 		void	removeClient(clientIt index);
 
-		//override de operadores [] para acceder a polfds y a array de clients
-		//clients
+		//OPERATOR BLOCK
+
+		std::string getOperList();
+	//	void addOper(std::sting user, std::string pass);
+		bool findOper(const std::string &user)const;
+		bool checkOperPass(const std::string &user, const std::string& pass) const;
+		//CHANNEL OPERATIONS 
+
+		void		addChannel(std::string name, std::string username, ServerData &serverData);
+		uint32_t	getNumOfChannels() const;
+		void 		removeClientChannels(sd::clientIt index);
+		void		deleteChannel(uint32_t channel);
+		uint32_t	findChannel(const std::string &name) const;
+
+		// OPERATOR OVERRIDES
+
 		Client& operator[](clientIt idx){return clients[idx];}
 		const Client& operator[](clientIt idx)const {return clients[idx];}
 		pollfd &operator[](pollfdIt idx){return pollfds[idx];}
@@ -46,9 +62,9 @@ class ServerData{
 		std::vector<Client> clients;
 		std::vector<Client> back;//no se puede acceder con operators
 		std::deque<Channel> channels;
-		OperBlock operators;
+		std::unordered_map<std::string, std::string> operblock;
 		std::string serverName;
-
+		std::string password;
 
 		void	setSocket(pollfd &server, t_serverInput &serverInfo);
 };

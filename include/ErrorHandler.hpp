@@ -29,6 +29,8 @@
 
 START_ERROR_NAMESPACE
 
+typedef std::unordered_map<int, std::string> ErrMap;
+
 enum Type{
 	ERR_UNKNOWNERROR = 400,
 	ERR_NOSUCHNICK = 401,
@@ -99,23 +101,107 @@ enum Type{
 	RPL_ENDOFMOTD = 376, //Indicates the end of MOTD to the client.
 };
 
+START_ANONYMOUS_NAMESPACE
+
+static const ErrMap& getErrorMap()
+{
+	static ErrMap errMap;
+	if (errMap.empty())
+	{
+	errMap[ERR_UNKNOWNERROR]		= "";
+	errMap[ERR_NOSUCHNICK]			= "No such nick/channel";
+	errMap[ERR_NOSUCHSERVER]		= "No such server";
+	errMap[ERR_NOSUCHCHANNEL]		= "No such channel";
+	errMap[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";
+	errMap[ERR_TOOMANYCHANNELS]		= "You have joined too many channels";
+	errMap[ERR_WASNOSUCHNICK]		= "There was no such nickname";
+	errMap[ERR_NOORIGIN]			= "No origin specified";
+	errMap[ERR_NORECIPIENT]			= "";
+	errMap[ERR_NOTEXTTOSEND]		= "No text to send";
+	errMap[ERR_INPUTTOOLONG]		= "Input line was too long";
+	errMap[ERR_UNKNOWNCOMMAND]		= "Unknown command";
+	errMap[ERR_NOMOTD]				= "MOTD File is missing";
+	errMap[ERR_NONICKNAMEGIVEN]		= "No nickname given";										//431
+	errMap[ERR_ERRONEUSNICKNAME]	= "Erroneus nickname";										//432
+	errMap[ERR_NICKNAMEINUSE]		= "Nickname is already in use"; 							//433
+	errMap[ERR_NICKCOLLISION]		= "";
+	errMap[ERR_USERNOTINCHANNEL]	= "They aren't on that channel";
+	errMap[ERR_NOTONCHANNEL]		= "You're not on that channel"; //442
+	errMap[ERR_USERONCHANNEL]		= "is already in channel";
+	errMap[ERR_NOTREGISTERED]		= "";
+	errMap[ERR_NEEDMOREPARAMS]		= "Not enough parameters";                 //461 
+	errMap[ERR_ALREADYREGISTERED]	= "You may not reregister"; 				//462
+	errMap[ERR_PASSWDMISMATCH]		= "Password incorrect";						//464
+	errMap[ERR_YOUREBANNEDCREEP]	= "";
+	errMap[ERR_CHANNELISFULL]		= "";
+	errMap[ERR_UNKNOWNMODE]			= "";
+	errMap[ERR_INVITEONLYCHAN]		= "Cannot join channel (+i)";				//473
+	errMap[ERR_BANNEDFROMCHAN]		= "Cannot join channel (+b)";				//474
+	errMap[ERR_BADCHANNELKEY]		= "Cannot join channel (+k)";				//475
+	errMap[ERR_BADCHANMASK]			= "Bad Channel Mask";						//476
+	errMap[ERR_NOPRIVILEGES]		= "Permission Denied- You're not an IRC operator";	//481
+	errMap[ERR_CHANOPRIVSNEEDED]	= "You're not channel operator";	//482
+	errMap[ERR_CANTKILLSERVER]		= "";
+	errMap[ERR_NOOPERHOST]			= "No O-lines for your host"; 				//491
+	errMap[ERR_UMODEUNKNOWNFLAG]	= "";
+	errMap[ERR_USERSDONTMATCH]		= "";
+	errMap[ERR_HELPNOTFOUND]		= "";
+	errMap[ERR_INVALIDKEY]			= "";
+	errMap[RPL_STARTTLS]			= "";
+	errMap[RPL_WHOISSECURE]			= "";
+	errMap[ERR_STARTTLS]			= "";
+	errMap[ERR_INVALIDMODEPARAM]	= "";
+	errMap[RPL_HELPSTART]			= "";
+	errMap[RPL_HELPTXT]				= "";
+	errMap[RPL_ENDOFHELP]			= "";
+	errMap[ERR_NOPRIVS]				= "";
+	errMap[RPL_LOGGEDIN]			= "";
+	errMap[RPL_LOGGEDOUT]			= "";
+	errMap[ERR_NICKLOCKED]			= "";
+	errMap[RPL_SASLSUCCESS]			= "";
+	errMap[ERR_SASLFAIL]			= "";
+	errMap[ERR_SASLTOOLONG]			= "";
+	errMap[ERR_SASLABORTED]			= "";
+	errMap[ERR_SASLALREADY]			= "";
+	errMap[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";					//404
+	errMap[ERR_TOOMANYTARGETS]		= "Duplicate recipients. No message delivered"; // 407
+	errMap[ERR_BADPASSWORD]			= "Closing Link: localhost (Bad Password)";
+	}
+	return errMap;
+}
+
+END_ANONYMOUS_NAMESPACE
+
 
 void	fatalError(cmd::CmdInput &bundle, Type errorCode)
 {
 	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
 	if (it != getErrorMap().end()) {
 		std::string errorMsg = "ERROR : " + it->second + "\r\n";
-		sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, errorMsg);
+		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, errorMsg);
 	}	
 }
 
 void	error(cmd::CmdInput &bundle, Type errorCode)
 {
+	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
+	if (it != getErrorMap().end()) {
+		std::string err_msg = ":" + bundle.serverData.getName() + " " + std::to_string(errorCode) + " " + bundle.serverData[(sd::clientIt)bundle.index].getNickname() + " :" + it->second + "\r\n";
+		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, err_msg);
+		//std::cout << color::red << "ERROR: [" << err_msg.substr(0, err_msg.size() - 2) << "]\n" << color::reset;
+	}	
 	
 }
 
 void	error(cmd::CmdInput &bundle, Type errorCode, std::string param)
 {
+	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
+	if (it != getErrorMap().end()) {
+		//std::string err_msg = (*data)[(clientIt)index].getNickname() + " " + command + " :" + errCodes[errorCode] + "\r\n";
+		std::string err_msg = ":" + bundle.serverData.getName() + " " + std::to_string(errorCode) + " " + bundle.serverData[(sd::clientIt)bundle.index].getNickname() + " " + param + " :" + it->second + "\r\n";
+		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, err_msg);
+		//std::cout << color::red << "ERROR: [" << err_msg << "]\n" << color::reset;
+	}
 	
 }
 
@@ -147,91 +233,6 @@ void ErrorHandler::error(uint32_t index, uint32_t errorCode, std::string param)
 }
 
 */
-START_ANONYMOUS_NAMESPACE
-
-typedef std::unordered_map<int, std::string> ErrMap;
-
-static const ErrMap& getErrorMap()
-{
-	static ErrMap errMap;
-	if (errMap.empty())
-	{
-	errMap[ERR_UNKNOWNERROR]		= "";
-	errMap[ERR_NOSUCHNICK]		= "No such nick/channel";
-	errMap[ERR_NOSUCHSERVER]		= "No such server";
-	errMap[ERR_NOSUCHCHANNEL]		= "No such channel";
-	errMap[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";
-	errMap[ERR_TOOMANYCHANNELS]	= "You have joined too many channels";
-	errMap[ERR_WASNOSUCHNICK]		= "There was no such nickname";
-	errMap[ERR_NOORIGIN]			= "No origin specified";
-	errMap[ERR_NORECIPIENT]		= "";
-	errMap[ERR_NOTEXTTOSEND]		= "No text to send";
-	errMap[ERR_INPUTTOOLONG]		= "Input line was too long";
-	errMap[ERR_UNKNOWNCOMMAND]	= "Unknown command";
-	errMap[ERR_NOMOTD]			= "MOTD File is missing";
-	errMap[ERR_NONICKNAMEGIVEN]	= "No nickname given";										//431
-	errMap[ERR_ERRONEUSNICKNAME]	= "Erroneus nickname";										//432
-	errMap[ERR_NICKNAMEINUSE]		= "Nickname is already in use"; 							//433
-	errMap[ERR_NICKCOLLISION]		= "";
-	errMap[ERR_USERNOTINCHANNEL]	= "They aren't on that channel";
-	errMap[ERR_NOTONCHANNEL]		= "You're not on that channel"; //442
-	errMap[ERR_USERONCHANNEL]		= "is already in channel";
-	errMap[ERR_NOTREGISTERED]		= "";
-	errMap[ERR_NEEDMOREPARAMS]	= "Not enough parameters";                 //461 
-	errMap[ERR_ALREADYREGISTERED]	= "You may not reregister"; 				//462
-	errMap[ERR_PASSWDMISMATCH]	= "Password incorrect";						//464
-	errMap[ERR_YOUREBANNEDCREEP]	= "";
-	errMap[ERR_CHANNELISFULL]		= "";
-	errMap[ERR_UNKNOWNMODE]		= "";
-	errMap[ERR_INVITEONLYCHAN]	= "Cannot join channel (+i)";				//473
-	errMap[ERR_BANNEDFROMCHAN]	= "Cannot join channel (+b)";				//474
-	errMap[ERR_BADCHANNELKEY]		= "Cannot join channel (+k)";				//475
-	errMap[ERR_BADCHANMASK]		= "Bad Channel Mask";						//476
-	errMap[ERR_NOPRIVILEGES]		= "Permission Denied- You're not an IRC operator";	//481
-	errMap[ERR_CHANOPRIVSNEEDED]	= "You're not channel operator";	//482
-	errMap[ERR_CANTKILLSERVER]	= "";
-	errMap[ERR_NOOPERHOST]		= "No O-lines for your host"; 				//491
-	errMap[ERR_UMODEUNKNOWNFLAG]	= "";
-	errMap[ERR_USERSDONTMATCH]	= "";
-	errMap[ERR_HELPNOTFOUND]		= "";
-	errMap[ERR_INVALIDKEY]		= "";
-	errMap[RPL_STARTTLS]			= "";
-	errMap[RPL_WHOISSECURE]		= "";
-	errMap[ERR_STARTTLS]			= "";
-	errMap[ERR_INVALIDMODEPARAM]	= "";
-	errMap[RPL_HELPSTART]			= "";
-	errMap[RPL_HELPTXT]			= "";
-	errMap[RPL_ENDOFHELP]			= "";
-	errMap[ERR_NOPRIVS]			= "";
-	errMap[RPL_LOGGEDIN]			= "";
-	errMap[RPL_LOGGEDOUT]			= "";
-	errMap[ERR_NICKLOCKED]		= "";
-	errMap[RPL_SASLSUCCESS]		= "";
-	errMap[ERR_SASLFAIL]			= "";
-	errMap[ERR_SASLTOOLONG]		= "";
-	errMap[ERR_SASLABORTED]		= "";
-	errMap[ERR_SASLALREADY]		= "";
-	errMap[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";					//404
-	errMap[ERR_TOOMANYTARGETS]	= "Duplicate recipients. No message delivered"; // 407
-	errMap[ERR_BADPASSWORD]		= "Closing Link: localhost (Bad Password)";
-	}
-	return errMap;
-}
-
-//struct ErrorHandler{
-//	ErrorHandler();
-//		void	setData(ServerData *data, std::string serverName);
-//		void	fatalError(uint32_t index, uint32_t errorCode);
-//		void	error(uint32_t index, uint32_t errorCode);
-//		//void	error(uint32_t index, uint32_t errorCode, std::string command);
-//		void	error(uint32_t index, uint32_t errorCode, /*std::string command, */std::string param);
-//	private:
-//		std::unordered_map<uint32_t, std::string> errCodes;
-//		ServerData *data;
-//		std::string serverName;
-//};
-
-END_ANONYMOUS_NAMESPACE
 
 END_ERROR_NAMESPACE
 

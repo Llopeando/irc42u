@@ -2,8 +2,9 @@
 #define SERVERDATASTRUCTS_H
 
 #include <iostream>
+#include <netinet/in.h>
 
-namespace sd{
+START_SERVER_DATA_NAMESPACE
 struct clientIt{
 	uint32_t index;
 	clientIt(int value = 0):index(value){};
@@ -73,6 +74,7 @@ typedef struct s_serverInput{
 	std::string IP;
 	std::string serverName;
 }t_serverInput;
-}
+
+END_SERVER_DATA_NAMESPACE
 
 #endif

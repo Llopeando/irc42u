@@ -17,6 +17,8 @@
 
 namespace utils{
 
+	typedef std::chrono::system_clock t_chrono;
+	
 	std::string printIp();
 	std::string joinStr(std::vector<std::string>& arguments, uint32_t index);
 	std::vector<std::string> split(const std::string &string, char c);
