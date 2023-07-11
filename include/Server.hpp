@@ -130,11 +130,11 @@ class Server
 		uint32_t	findChannel(const std::string &name) const;
 
 		//COMMAND CAP FUNCTIONS
-		void	cap_req(sd::clientIt index, std::vector<std::string> &arguments);
-		void	cap_ls(sd::clientIt index, std::vector<std::string> &arguments);
-		void	cap_end(sd::clientIt index, std::vector<std::string> &arguments);
-		void	cap_ack(sd::clientIt index, std::vector<std::string> &arguments);
-		void	cap_nak(sd::clientIt index, std::vector<std::string> &arguments);
+//		void	cap_req(sd::clientIt index, std::vector<std::string> &arguments);
+//		void	cap_ls(sd::clientIt index, std::vector<std::string> &arguments);
+//		void	cap_end(sd::clientIt index, std::vector<std::string> &arguments);
+//		void	cap_ack(sd::clientIt index, std::vector<std::string> &arguments);
+//		void	cap_nak(sd::clientIt index, std::vector<std::string> &arguments);
 };
 
 #endif
