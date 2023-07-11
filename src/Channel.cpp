@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/11 14:00:32 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/11 14:04:27 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/11 17:32:11 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,9 +38,9 @@ std::string Channel::getCreator()const
 	return creator;
 }
 
-std::time_t Channel::getCreationDate()const
+char	*Channel::getCreationDate()const
 {
-	return creationDate;
+	return std::ctime(&creationDate);
 }
 
 std::string Channel::getName() const{

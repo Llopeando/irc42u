@@ -24,6 +24,21 @@
 #include "color.h"
 #include "ServerData.hpp"
 
+//___________SERVER DEFAULT CONFIG ___________
+//
+//CHANTYPES=# 
+//PREFIX=(o)@ 
+//MODES=4 
+//CHANLIMIT=#:20 
+//NICKLEN=16 
+//USERLEN=10 
+//HOSTLEN=63 
+//TOPICLEN=390 
+//KICKLEN=307 
+//CHANNELLEN=32
+//
+//____________________________________________
+
 #define MOTD "\n " \
 			"         _____                           _______                           _____                            _____                            _____          \n" \
 			"         /\\    \\                         /::\\    \\                         /\\    \\                          /\\    \\                          /\\    \\         \n" \

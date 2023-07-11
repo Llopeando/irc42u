@@ -11,6 +11,7 @@ START_SERVER_DATA_NAMESPACE
 
 ServerData::ServerData(t_serverInput &serverInfo)
 {
+	creationDate = utils::t_chrono::to_time_t(utils::t_chrono::now());
 	pollfd server;
 	Client root(serverInfo.serverName);
 
@@ -50,6 +51,10 @@ std::string ServerData::getName() const
 	return(serverName);
 }
 
+char	*ServerData::getCreationDate()const
+{
+	return std::ctime(&creationDate);
+}
 
 void	ServerData::addClient(pollfd userPollfd,Client newClient)
 {

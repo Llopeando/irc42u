@@ -18,13 +18,20 @@ START_CMD_NAMESPACE
 START_ANONYMOUS_NAMESPACE
 
 /*
-*	All functions reside inside namespace cmd namespace anonymous so it cannot be accessed from outside
+*	All functions  reside inside the <namespace cmd namespace anonymous> so that they cannot be accessed from outside
 */
 
 	/*	----------------------      COMMAND INDEX    --------------------------
 
+		/-----/Server Queries and Commands//
+
+		motd
+		mode
+
+
 		/-----/Connection messages//
 
+		ping
 		cap
 
 			cap_req
@@ -36,7 +43,6 @@ START_ANONYMOUS_NAMESPACE
 		pass
 		nick
 		user
-		ping
 		oper
 		quit
 
@@ -50,10 +56,6 @@ START_ANONYMOUS_NAMESPACE
 		invit
 		kick
 
-		/-----/Server Queries and Commands//
-
-		motd
-		mode
 
 		/-----/Sending Messages//
 
@@ -77,10 +79,40 @@ START_ANONYMOUS_NAMESPACE
 */
 
 
+/* --------------------------------Server Queries and Commands-------------------------- */
 
+ void	motd(CmdInput& input)  
+ {
+ 	(void)input;
+ 	std::string message = ":" + input.serverData[input.index].getUserMask() + " 375 " + input.serverData[input.index].getNickname() + " :- " + input.serverData.getName() + " Message of the day - \r\n";
+ 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, message);
+ 	std::vector<std::string> words = utils::split(std::string(MOTD), '\n');
+ 	for (std::vector<std::string>::iterator it = words.begin(); it != words.end(); it++) {
+ 		std::string motd_message = ":" + input.serverData[input.index].getUserMask() + " 372 " + input.serverData[input.index].getNickname() + " : " + *it + "\r\n";
+ 		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, motd_message);
+ 	}
+ 	message = ":" + input.serverData[input.index].getUserMask() + " 376 " + input.serverData[input.index].getNickname() + " :End of /MOTD command.\r\n";
+ 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, message);
+ }
 
+void	mode(CmdInput& input)  
+{
+	(void)input;
+}
 
 /* --------------------------------Connection Messages---------------------------------- */
+
+void	ping(CmdInput& input)
+{
+	if (input.arguments.size() < 2)
+	{
+		error::error(input, error::ERR_NEEDMOREPARAMS , "PING");
+		return;
+	}
+	std::string mask = input.serverData[input.index].getUserMask();
+	std::string message = ":" + mask + input.arguments[0] + " PONG " + utils::joinStr(input.arguments, 2) + "\r\n";
+	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, message);
+}
 
 //void	cap(CmdInput& input)
 //{
@@ -175,7 +207,6 @@ void	pass(CmdInput& input)
 		return ;
 	if (input.arguments.size() < 2)
 	{
-		error::error(input, error::ERR_PASSWDMISMATCH);
 		error::fatalError(input, error::ERR_BADPASSWORD);
 		input.serverData.removeClient(input.index);
 		input.serverData.removeClientChannels(input.index);
@@ -189,9 +220,9 @@ void	pass(CmdInput& input)
 	else
 	{
 		error::error(input, error::ERR_PASSWDMISMATCH);
-		error::fatalError(input, error::ERR_BADPASSWORD);
 		input.serverData.removeClient(input.index);
 		input.serverData.removeClientChannels(input.index);
+		return ;
 	}
 }
 
@@ -217,7 +248,7 @@ void	nick(CmdInput& input)
 	}
 	if (input.serverData.findNickname(input.arguments[1])) 
 	{
-		error::error(input, error::ERR_NICKNAMEINUSE);//nickname repetido -> ERROR y cliente devielve  NICK automodificado ????
+		error::error(input, error::ERR_NICKNAMEINUSE);
 		return ;
 	}
 	else 
@@ -236,7 +267,6 @@ void	user(CmdInput& input)
 		error::error(input, error::ERR_NEEDMOREPARAMS); //NO ARGS
 		return ;
 	}
-	//username format handler : The maximum length of <username> may be specified by the USERLEN RPL_ISUPPORT parameter.  MUST be silently truncated to the given length // The minimum length of <username> is 1, ie. it MUST NOT be empty. 
 	if (input.serverData.findUsername(input.arguments[1])) 
 	{
 		error::error(input, error::ERR_ALREADYREGISTERED); 
@@ -244,13 +274,11 @@ void	user(CmdInput& input)
 	}
 	if (input.serverData.findNicknameBack(input.serverData[input.index].getNickname())) //ESTA EN BACK 
 	{
-		//std::cout << color::blue << "cliente recuperado de back " << color::reset << std::endl;
 		input.serverData.transferIndex(input.index, input.serverData[input.index].getNickname());
 		input.serverData.removeClientChannels(input.index);
 	}
 	else
 	{
-		//std::cout << color::blue << "nuevo cliente" << color::reset << std::endl;
 		input.serverData[input.index].setUsername(input.arguments[1]);
 	}
 		
@@ -260,31 +288,30 @@ void	user(CmdInput& input)
 
 		/* SUCCESSFUL CONNECTION : info del server para el USUARIO */   
 
-		///TIENE QUE IR AQUI??? , o FUERA como WELCOME message?
-		/* Upon successful completion of the registration process, the server MUST send, in this order, the RPL_WELCOME (001), RPL_YOURHOST (002), RPL_CREATED (003), RPL_MYINFO (004), and at least one RPL_ISUPPORT (005) numeric to the client.*/
+		std::string welcome_1= "001 " + input.serverData[input.index].getNickname() + " :Welcome to the A O I R C server\n"; 
+		std::string welcome_2 = "002 " + input.serverData[input.index].getNickname() + " : Your host is " + input.serverData.getName() + ", running version " + std::to_string(VERSION) + "\r\n"; //RPL_WELCOME (001)
+		std::string welcome_3 = "003 " + input.serverData[input.index].getNickname() + " : This server was created " + input.serverData.getCreationDate() + "\r\n"; // RPL_YOURHOST (002)
+		std::string welcome_4 = "004 " + input.serverData[input.index].getNickname() + " " + input.serverData.getName() + " " + std::to_string(VERSION) + "\r\n"; //RPL_MYINFO (004)
+		std::string welcome_5 = "005 " + input.serverData[input.index].getNickname() + " CHANTYPES=# PREFIX=(o)@ MODES=4 CHANLIMIT=#:20 NICKLEN=16 USERLEN=10 HOSTLEN=63 TOPICLEN=390 KICKLEN=307 CHANNELLEN=32" + " :are supported by this server\r\n"; //RPL_ISUPPORT (005)
 
-		std::string welcome = "001 " + input.serverData[input.index].getNickname() + " :Welcome to the A O I R C server\n"; 
-		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, welcome);
-		
-		//TODO ESTO ESTA ESCRITO MANUAL Y HAY QUE VER QUE PRAMETRS NECESITA 
-
-		std::string welcome_2 = "002 " + input.serverData[input.index].getNickname() + " : Your host is " + input.serverData.getName() + ", running version 1.0 " + "\r\n";//"<client> :Your host is <servername>, running version <version>"
-		std::string welcome_3 = "003 " + input.serverData[input.index].getNickname() + " : This server was created 1" + "\r\n"; // "<client> :This server was created <datetime>"
-		std::string welcome_4 = "004 " + input.serverData[input.index].getNickname() + " " + input.serverData.getName() + " 1.0 +i,+o\r\n";
+		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, welcome_1);
 		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, welcome_2);
 		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, welcome_3);
 		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, welcome_4);
+		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, welcome_5);
 
-
-	/////////////////////////////	cmd::callFunction("MOTD", input );
-
-	/*llama a comando LUSERS 
 	
-	The server SHOULD then respond as though the client sent the LUSERS command and return the appropriate numerics. If the user has client modes set on them automatically upon joining the network, 
-	the server SHOULD send the client the RPL_UMODEIS (221) reply or a MODE message with the client as target, preferably the former. The server MAY send other numerics and messages. 
-	The server MUST then respond as though the client sent it the MOTD command, i.e. it must send either the successful Message of the Day numerics or the ERR_NOMOTD (422) numeric.
-	
-	*/
+		if (input.serverData[(sd::clientIt)input.index].getNickname().size() > 16) //	NICKLEN=16 
+			input.serverData[(sd::clientIt)input.index].setNickname(input.serverData[(sd::clientIt)input.index].getNickname().substr(0, 16));
+		if (input.serverData[(sd::clientIt)input.index].getUsername().size() > 10) // USERLEN=10
+			input.serverData[(sd::clientIt)input.index].setNickname(input.serverData[(sd::clientIt)input.index].getUsername().substr(0, 10));
+
+		/*	
+		The server SHOULD then respond as though the client sent the LUSERS command and return the appropriate numerics. 
+		Send RPL_UMODEIS (221) reply or a MODE message with the client as target, preferably the former. The server MAY send other numerics and messages. 
+		*/
+
+		motd(input);
 
 	}
 	else
@@ -296,18 +323,6 @@ void	user(CmdInput& input)
 	}
 }
 
-void	ping(CmdInput& input) // Servers MUST send a <server> parameter, and clients SHOULD ignore it. Parameters: [<server>] <token>
-{
-	if (input.arguments.size() < 2)//ARGUMENT ERROR 
-	{
-		error::error(input, error::ERR_NEEDMOREPARAMS , "PING"); // ERR_NOORIGIN (409) IN THE OLD IRCS 
-		return;
-	}
-	std::string mask = input.serverData[input.index].getUserMask();
-	std::string message = ":" + mask + input.arguments[0] + " PONG " + utils::joinStr(input.arguments, 2) + "\r\n";
-	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, message);
-}
-
 void	oper(CmdInput& input) 
 {
 	if (input.arguments.size() < 2)
@@ -317,7 +332,7 @@ void	oper(CmdInput& input)
 	}
 	if (input.serverData.findOper(input.arguments[1]))
 	{
-		if (input.serverData.checkOperPass(input.arguments[1], input.arguments[2]) == false) //INCORRECT PASS
+		if (input.serverData.checkOperPass(input.arguments[1], input.arguments[2]) == false)
 		{
 			error::error(input, error::ERR_PASSWDMISMATCH);
 			return ;
@@ -330,7 +345,7 @@ void	oper(CmdInput& input)
 		}
 	}
 	else 
-		error::error(input, error::ERR_NOOPERHOST); //NO OPER
+		error::error(input, error::ERR_NOOPERHOST);
 }
 
 
@@ -343,7 +358,6 @@ void	quit(CmdInput& input)
 	input.serverData[(sd::channIt)0].broadcast(0, message);
 	input.serverData.backClient(input.index);
 	input.serverData.removeClientChannels(input.index);
-	//std::cout << color::blue << "cliente a back" << color::reset << std::endl;
 	
 }
 
@@ -358,42 +372,44 @@ void	join(CmdInput& input)
 		return ;
 	}
 	std::vector<std::string>channelNames = utils::split(input.arguments[1], ',');
-
-	//JOIN 0 -> te piras de todos los canales 
-
+	if (input.arguments[1] == "#0")
+	{
+		input.serverData.removeClientChannels(input.index);
+		return; 
+	}
 	for (uint32_t i = 0;i < channelNames.size();i++)
 	{
 		if (input.arguments[1][0] != '#' || input.arguments[1].size() < 2 || !std::isprint(input.arguments[1][1]))
 		{
-			error::error(input, error::ERR_BADCHANMASK, input.arguments[1]); //ARGUMENT ERROR 
+			error::error(input, error::ERR_BADCHANMASK, input.arguments[1]); 
 			continue ;
 		}
 		sd::channIt channel = input.serverData.findChannel(channelNames[i].substr(1));
-		if(!channel) //NO EXISTE CHANNEL ->se crea y se une 
+		if(!channel) //NO EXISTE CHANNEL -> se crea y se une 
 		{
 			if (input.serverData[input.index].getRole() != CL_OPER)
 				input.serverData[input.index].setRole(CL_OP);
 			input.serverData.addChannel(channelNames[i].substr(1), input.serverData[input.index].getUsername(), input.serverData);
-			channel = input.serverData.getNumOfChannels();
+			channel = input.serverData.getNumOfChannels() - 1;
 			input.serverData[channel].addClient(input.index);
 
 			std::string back = ':' + input.serverData[input.index].getUserMask() + " JOIN " + "#" + input.serverData[channel].getName() + "\r\n";
 			std::string back_mode = ':' + input.serverData.getName() + " MODE #" + input.serverData[channel].getName() + " " + " +nt\r\n";
 			std::string back_list = ':' + input.serverData.getName() + " 353 " + input.serverData[input.index].getNickname() + " = #" + input.serverData[channel].getName() + " :" + input.serverData[channel].getUserList() + "\r\n";   //@for the operator??
-			std::string back_list_end = ':' + input.serverData.getName() + " 366 " + input.serverData[input.index].getNickname() + " #" + input.serverData[channel].getName() + " :End of /NAMES list.\r\n";
+			std::string back_list_end = ':' + input.serverData.getName() + " 366 " + input.serverData[input.index].getNickname() + " #" + input.serverData[channel].getName() + " :End of /NAMES list\r\n";
 
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, back);
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, back_mode);
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, back_list);
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, back_list_end);
 		}
-		else // EXISTE CHANNEL ->se une
+		else // EXISTE CHANNEL -> se une
 		{
 			input.serverData[channel].addClient(input.index);
 
 			std::string back = ':' + input.serverData[input.index].getUserMask() + " JOIN #" + input.serverData[channel].getName() + "\r\n";
 			std::string back_topic = ':' + input.serverData.getName() + " 332 " + input.serverData[input.index].getNickname() + " #" + input.serverData[channel].getName() + " :" + input.serverData[channel].getTopic() + "\r\n";
-			//std::string back_channel  = ':' + serverName + " 333 " + data[index].getNickname() + " #" + channelNames[i] + "quien lo ha creado (mask) y cuando"  + "\r\n";
+			std::string back_channel  = ':' + input.serverData.getName() + " 333 " + input.serverData[input.index].getNickname() + " #" + channelNames[i] + input.serverData[channel].getCreator() + " " + input.serverData[channel].getCreationDate() + "\r\n";
 			std::string back_list  = ':' + input.serverData.getName() + " 353 " + input.serverData[input.index].getNickname() + " = #" + input.serverData[channel].getName() + " :" + input.serverData[channel].getUserList() + "\r\n";
 			std::string back_list_end = ':' + input.serverData.getName() + " 366 " + input.serverData[input.index].getNickname()  + " #"+ input.serverData[channel].getName() + " :End of /NAMES list." + "\r\n";
 
@@ -445,7 +461,7 @@ void	part(CmdInput& input)
 		input.serverData[channel].broadcast(0, message);
 		input.serverData[channel].removeClient(input.index);
 		if (input.serverData[channel].getNumUser() == 0) 
-			input.serverData.deleteChannel(channel); //when all users leave a group channel, the channel is deleted
+			input.serverData.deleteChannel(channel);
 	}
 }
 
@@ -493,8 +509,8 @@ void	topic(CmdInput& input)
 			return ;
 		}
 		std::string message  = ":" + input.serverData.getName() + " 332 " + input.serverData[input.index].getNickname() + " #" + input.serverData[channel].getName() + " :" + input.serverData[channel].getTopic() + "\r\n"; //RPL_TOPIC (332) 
-		std::time_t date = input.serverData[channel].getCreationDate();
-		std::string message2 = ":" + input.serverData.getName() + " 333 " + input.serverData[input.index].getNickname() + " #" + input.serverData[channel].getName() + " " +  input.serverData[channel].getCreator() + " " +  std::ctime(&date) + "\r\n"; //RPL_TOPICWHOTIME (333) //cambiar la fecha a legible?
+		const char *date = input.serverData[channel].getCreationDate();
+		std::string message2 = ":" + input.serverData.getName() + " 333 " + input.serverData[input.index].getNickname() + " #" + input.serverData[channel].getName() + " " +  input.serverData[channel].getCreator() + " " +  date + "\r\n"; //RPL_TOPICWHOTIME (333) //cambiar la fecha a legible?
 		input.serverData[channel].broadcast(0, message);
 		input.serverData[channel].broadcast(0, message2);
 	}
@@ -531,9 +547,9 @@ void	names(CmdInput& input)
 
 void	list(CmdInput& input) 
 {
-	////Reset lista EN LIME????// los demas parametros obviamos???
-	(void)input; 
-	std::string message = ":" + input.serverData.getName() + " 321: Channel Users Name\r\n";
+	////RESET lista EN LIME????//
+
+	std::string message = ":" + input.serverData.getName() + " 321 Channel:Users Name\r\n";
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, message);
 	for (sd::channIt i = 1;i < input.serverData.getNumOfChannels() ; i++)
 	{
@@ -588,7 +604,7 @@ void	invite(CmdInput& input)
 
 }
 
-void	kick(CmdInput& input)  // KICK <channel> <user> *( "," <user> ) [<comment>]
+void	kick(CmdInput& input) 
 {
 	if (input.arguments.size() < 3)
 	{
@@ -635,29 +651,6 @@ void	kick(CmdInput& input)  // KICK <channel> <user> *( "," <user> ) [<comment>]
 			input.serverData[channel].removeClient(clientIdx);
 		}
 	}
-}
-
-
-/* --------------------------------Server Queries and Commands-------------------------- */
-
-void	motd(CmdInput& input)  
-{
-	(void)input;
-	std::string message = ":" + input.serverData[input.index].getUserMask() + " 375 " + input.serverData[input.index].getNickname() + " :- " + input.serverData.getName() + " Message of the day - \r\n";
-	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, message);
-
-	std::vector<std::string> words = utils::split(std::string(MOTD), '\n');
-	for (std::vector<std::string>::iterator it = words.begin(); it != words.end(); it++) {
-		std::string motd_message = ":" + input.serverData[input.index].getUserMask() + " 372 " + input.serverData[input.index].getNickname() + " : " + *it + "\r\n";
-		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, motd_message);
-	}
-	message = ":" + input.serverData[input.index].getUserMask() + " 376 " + input.serverData[input.index].getNickname() + " :End of /MOTD command.\r\n";
-	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, message);
-}
-
-void	mode(CmdInput& input)  
-{
-	(void)input;
 }
 
 /* --------------------------------Sending Messages------------------------------------- */

@@ -26,7 +26,7 @@ class Channel
 		~Channel();
 
 		std::string			getCreator() const;
-		std::time_t			getCreationDate()const;
+		char				*getCreationDate()const;
 		void				setCreationDate(std::time_t);
 		std::string			getName()const;
 		std::string			getUserList()const;

@@ -27,6 +27,7 @@ namespace utils{
 	void sendMsgUser(int fd, const std::string &str);
 	
 	std::string readFile(const char *filepath);
+
 }
 
 #endif

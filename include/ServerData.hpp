@@ -24,6 +24,9 @@ class ServerData{
 
 		uint32_t	pollfdSize() const {return pollfds.size();}
 
+
+		char		*getCreationDate()const;
+
 		clientIt	findUsername(const std::string& argument) const;
 		clientIt	findNickname(const std::string& argument) const;
 		clientIt	findNicknameBack(const std::string& argument) const;
@@ -40,6 +43,7 @@ class ServerData{
 	//	void addOper(std::sting user, std::string pass);
 		bool findOper(const std::string &user)const;
 		bool checkOperPass(const std::string &user, const std::string& pass) const;
+
 		//CHANNEL OPERATIONS 
 
 		void		addChannel(std::string name, std::string username, ServerData &serverData);
@@ -65,6 +69,7 @@ class ServerData{
 		std::unordered_map<std::string, std::string> operblock;
 		std::string serverName;
 		std::string password;
+		std::time_t creationDate;
 
 		void	setSocket(pollfd &server, t_serverInput &serverInfo);
 };

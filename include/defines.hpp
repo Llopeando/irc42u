@@ -20,8 +20,9 @@
 #define CL_OPER 2
 
 #define RCVBUFSIZE 1024
+#define VERSION 1.0
 
-//CREAR DEFINES DE NUMEROS: RPL_WELCOME = 001
+
 namespace color {
 	const std::string reset		= "\033[0m";
 	const std::string black		= "\033[30m";

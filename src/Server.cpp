@@ -10,7 +10,8 @@
 /* ------------------------------------------------------------ */
 
 Server::Server(sd::t_serverInput &serverInput)
-			:serverInfo(serverInput),serverData(serverInfo){}
+			:serverInfo(serverInput),serverData(serverInfo){
+}
 
 Server::~Server()
 {
@@ -123,7 +124,6 @@ void	Server::acceptConnection() {
 	struct pollfd new_client;
 
 	std::cout << "The connection has been accepted, continuing" << std::endl;
-	//////PINGGGGGGGGGGGGGGGGGG//////
 	if ((new_client.fd = accept(serverData[(sd::pollfdIt)0].fd, (struct sockaddr *)&serverInfo.address, &size)) == SERVER_FAILURE)
 	{
 		perror("connection refused");
@@ -131,9 +131,7 @@ void	Server::acceptConnection() {
 	}
 	new_client.events = POLLOUT | POLLIN;
 	std::string hostName = getHostName(new_client.fd);
-
 	serverData.addClient(new_client, Client(hostName));
-	//sendMsgUser(data.size() - 1, "Welcome to - A O I R C - \n");
 }
 
 /* ---------------------------------------------------------------------------------------- */
@@ -157,11 +155,10 @@ void Server::handleEvents(sd::pollfdIt index)
 	if (serverData[index].revents & POLLIN)
 	{
 		std::string input = readTCPInput(serverData[index].fd);
-		std::cout << color::green << "INPUT:[" << color::boldwhite << input << "]\n" << color::reset;
 		std::vector<std::string> lines = utils::split(input, '\n');
 		for (uint32_t i = 0; i < lines.size(); i++)
 		{
-		//	std::cout << color::boldgreen << "[" << lines[i] << "]\n" << color::reset;
+			std::cout << color::green << serverData[(sd::clientIt)index].getUsername() << ":[" << color::boldwhite << lines[i] << "]\n" << color::reset;
 			handleInput((sd::clientIt)index, lines[i]);
 		}
 	}
