@@ -5,6 +5,7 @@
 #include "defines.hpp"
 #include "ErrorHandler.hpp"
 #include "command_structs.h"
+#include "Client.hpp"
 
 #include <string>
 #include <vector>
@@ -173,8 +174,8 @@ void	pass(CmdInput& input)
 		return ;
 	if (input.arguments.size() < 2)
 	{
-		error::error(input, error::Type::ERR_PASSWDMISMATCH);
-		error::fatalError(input, error::Type::ERR_BADPASSWORD);
+		error::error(input, error::ERR_PASSWDMISMATCH);
+		error::fatalError(input, error::ERR_BADPASSWORD);
 		input.serverData.removeClient(index);
 		removeClientChannels(index);
 		return ;
@@ -186,8 +187,8 @@ void	pass(CmdInput& input)
 	}
 	else
 	{
-		error::error(input, error::Type::ERR_PASSWDMISMATCH);
-		errorHandler.fatalError(index, error::Type::ERR_BADPASSWORD);
+		error::error(input, error::ERR_PASSWDMISMATCH);
+		errorHandler.fatalError(index, error::ERR_BADPASSWORD);
 		input.serverData.removeClient(index);
 		removeClientChannels(index);
 	}
@@ -197,25 +198,25 @@ void	nick(CmdInput& input)
 {
 	if (input.arguments.size() < 2 || input.arguments[1].empty())
 	{
-		errorHandler.error(index, error::Type::ERR_NONICKNAMEGIVEN);
+		errorHandler.error(index, error::ERR_NONICKNAMEGIVEN);
 		return ;
 	}
 	if (input.arguments[1].size() == 0)
 	{
-		errorHandler.error(index, error::Type::ERR_ERRONEUSNICKNAME);
+		errorHandler.error(index, error::ERR_ERRONEUSNICKNAME);
 		return;
 	}
 	for (std::string::iterator c = input.arguments[1].begin(); c != input.arguments[1].end(); c++)
 	{
 		if (*c == '#' || !std::isprint(*c))
 		{
-			errorHandler.error(index, error::Type::ERR_ERRONEUSNICKNAME, input.arguments[1]); 
+			errorHandler.error(index, error::ERR_ERRONEUSNICKNAME, input.arguments[1]); 
 			return;
 		}
 	}
 	if (input.serverData.findNickname(input.arguments[1])) 
 	{
-		errorHandler.error(index, error::Type::ERR_NICKNAMEINUSE);//nickname repetido -> ERROR y cliente devielve  NICK automodificado ????
+		errorHandler.error(index, error::ERR_NICKNAMEINUSE);//nickname repetido -> ERROR y cliente devielve  NICK automodificado ????
 		return ;
 	}
 	else 
@@ -231,13 +232,13 @@ void	user(CmdInput& input)
 {
 	if (input.arguments.size() < 5 || input.arguments[1].empty()) 
 	{
-		errorHandler.error(index, error::Type::ERR_NEEDMOREPARAMS); //NO ARGS
+		errorHandler.error(index, error::ERR_NEEDMOREPARAMS); //NO ARGS
 		return ;
 	}
 	//username format handler : The maximum length of <username> may be specified by the USERLEN RPL_ISUPPORT parameter.  MUST be silently truncated to the given length // The minimum length of <username> is 1, ie. it MUST NOT be empty. 
 	if (input.serverData.findUsername(arguments[1])) 
 	{
-		errorHandler.error(index, error::Type::ERR_ALREADYREGISTERED); 
+		errorHandler.error(index, error::ERR_ALREADYREGISTERED); 
 		return ;
 	}
 	if (input.serverData.findNicknameBack(input.serverData[index].getNickname())) //ESTA EN BACK 
@@ -286,8 +287,8 @@ void	user(CmdInput& input)
 	}
 	else
 	{
-		errorHandler.error(index, error::Type::ERR_PASSWDMISMATCH);
-		errorHandler.fatalError(index, error::Type::ERR_BADPASSWORD);
+		errorHandler.error(index, error::ERR_PASSWDMISMATCH);
+		errorHandler.fatalError(index, error::ERR_BADPASSWORD);
 		input.serverData.removeClient(index);
 		removeClientChannels(index);
 	}
@@ -297,7 +298,7 @@ void	ping(CmdInput& input) // Servers MUST send a <server> parameter, and client
 {
 	if (input.arguments.size() < 2)//ARGUMENT ERROR 
 	{
-		errorHandler.error(index, error::Type::ERR_NEEDMOREPARAMS , "PING"); // ERR_NOORIGIN (409) IN THE OLD IRCS 
+		errorHandler.error(index, error::ERR_NEEDMOREPARAMS , "PING"); // ERR_NOORIGIN (409) IN THE OLD IRCS 
 		return;
 	}
 	std::string mask = input.serverData[index].getUserMask();
@@ -309,14 +310,14 @@ void	oper(CmdInput& input)
 {
 	if (input.arguments.size() < 2)
 	{
-		errorHandler.error(index, error::Type::ERR_NEEDMOREPARAMS); 
+		errorHandler.error(index, error::ERR_NEEDMOREPARAMS); 
 		return ;
 	}
 	if (operators.findOper(arguments[1]))
 	{
 		if (operators.checkPass(arguments[1], arguments[2]) == false) //INCORRECT PASS
 		{
-			errorHandler.error(index, error::Type::ERR_PASSWDMISMATCH);
+			errorHandler.error(index, error::ERR_PASSWDMISMATCH);
 			return ;
 		}
 		else 
@@ -327,7 +328,7 @@ void	oper(CmdInput& input)
 		}
 	}
 	else 
-		errorHandler.error(index, error::Type::ERR_NOOPERHOST); //NO OPER
+		errorHandler.error(index, error::ERR_NOOPERHOST); //NO OPER
 }
 
 
@@ -351,7 +352,7 @@ void	join(CmdInput& input)
 {
 	if (input.arguments.size() < 2)
 	{
-		errorHandler.error(index, error::Type::ERR_NEEDMOREPARAMS, "JOIN");
+		errorHandler.error(index, error::ERR_NEEDMOREPARAMS, "JOIN");
 		return ;
 	}
 	std::vector<std::string>channelNames = utils::split(input.arguments[1], ',');
@@ -362,7 +363,7 @@ void	join(CmdInput& input)
 	{
 		if (input.arguments[1][0] != '#' || input.arguments[1].size() < 2 || !std::isprint(input.arguments[1][1]))
 		{
-			errorHandler.error(index, error::Type::ERR_BADCHANMASK, input.arguments[1]); //ARGUMENT ERROR 
+			errorHandler.error(index, error::ERR_BADCHANMASK, input.arguments[1]); //ARGUMENT ERROR 
 			continue ;
 		}
 		uint32_t channel = findChannel(channelNames[i].substr(1));
@@ -408,7 +409,7 @@ void	part(CmdInput& input)
 {
 	if (input.arguments.size() < 2)
 	{
-		errorHandler.error(index, error::Type::ERR_NEEDMOREPARAMS , "PART"); //ARGUMENT ERROR
+		errorHandler.error(index, error::ERR_NEEDMOREPARAMS , "PART"); //ARGUMENT ERROR
 		return;
 	}
 	std::string reason;
@@ -420,18 +421,18 @@ void	part(CmdInput& input)
 	{
 		if(!((*channelName)[0] == '#' || (*channelName)[0] == '@')) 
 		{
-			errorHandler.error(index, error::Type::ERR_BADCHANMASK, *channelName); //FORMAT INCORRECT  
+			errorHandler.error(index, error::ERR_BADCHANMASK, *channelName); //FORMAT INCORRECT  
 			continue ;
 		}
 		uint32_t channel = findChannel(channelName->substr(1));
 		if (channel == 0)
 		{
-			errorHandler.error(index, error::Type::ERR_NOSUCHCHANNEL, *channelName); //NO CHANNEL
+			errorHandler.error(index, error::ERR_NOSUCHCHANNEL, *channelName); //NO CHANNEL
 			continue ;
 		}
 		if(!channels[channel].findUser(index)) 
 		{
-			errorHandler.error(index, error::Type::ERR_NOTONCHANNEL, *channelName); //NO ESTAS EN EL CHANNEL 
+			errorHandler.error(index, error::ERR_NOTONCHANNEL, *channelName); //NO ESTAS EN EL CHANNEL 
 			continue ;
 		}
 		std::string message;
@@ -451,28 +452,28 @@ void	topic(CmdInput& input)
 
 	if (input.arguments.size() < 2)
 	{
-		errorHandler.error(index, error::Type::ERR_NEEDMOREPARAMS , "TOPIC"); //ARGUMENT ERROR
+		errorHandler.error(index, error::ERR_NEEDMOREPARAMS , "TOPIC"); //ARGUMENT ERROR
 		return;
 	}
 	if (!data[index].getRole()) 
 	{
-		errorHandler.error(index, error::Type::ERR_CHANOPRIVSNEEDED, input.arguments[1].substr(1));// NO CHANNEL OPER 
+		errorHandler.error(index, error::ERR_CHANOPRIVSNEEDED, input.arguments[1].substr(1));// NO CHANNEL OPER 
 		return;
 	}
 	uint32_t channel = findChannel(input.arguments[1].substr(1));
 	if(!(input.arguments[1][0] == '#' || arguments[1][0] == '@')) 
 	{
-		errorHandler.error(index, error::Type::ERR_BADCHANMASK, arguments[1]); //INCORRECT FORMAT 
+		errorHandler.error(index, error::ERR_BADCHANMASK, arguments[1]); //INCORRECT FORMAT 
 		return ;
 	}
 	if (channel == 0)
 	{
-		errorHandler.error(index, error::Type::ERR_NOSUCHCHANNEL, arguments[1]); //NO EXISTE CHANNEL 
+		errorHandler.error(index, error::ERR_NOSUCHCHANNEL, arguments[1]); //NO EXISTE CHANNEL 
 		return ;
 	}
 	if(!channels[channel].findUser(index)) 
 	{
-		errorHandler.error(index, error::Type::ERR_NOTONCHANNEL, arguments[1]); //NO ESTAS EN EL CHANNEL 
+		errorHandler.error(index, error::ERR_NOTONCHANNEL, arguments[1]); //NO ESTAS EN EL CHANNEL 
 		return ;
 	}
 	if( arguments.size() >= 3) //SETTING TOPIC 
@@ -516,7 +517,7 @@ void	names(CmdInput& input)
 		uint32_t channel = findChannel(target->substr(1));
 		if (!channel)
 		{
-			errorHandler.error(index, error::Type::ERR_NOSUCHCHANNEL, input.arguments[1]);
+			errorHandler.error(index, error::ERR_NOSUCHCHANNEL, input.arguments[1]);
 			continue;
 		}
 		std::string message = ':' + serverName + " 353 " + data[index].getNickname() + " = #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";
@@ -543,12 +544,12 @@ void	invite(CmdInput& input)
 {
 	if (input.arguments.size() < 2)
 	{
-		errorHandler.error(index, error::Type::ERR_NEEDMOREPARAMS , "INVITE"); //ARGUMENT ERROR
+		errorHandler.error(index, error::ERR_NEEDMOREPARAMS , "INVITE"); //ARGUMENT ERROR
 		return;
 	}
 	if (!input.serverData[index].getRole())
 	{
-		errorHandler.error(index, error::Type::ERR_CHANOPRIVSNEEDED, input.arguments[2].substr(1));//NO OPERATOR  
+		errorHandler.error(index, error::ERR_CHANOPRIVSNEEDED, input.arguments[2].substr(1));//NO OPERATOR  
 		return;
 	}
 	else if (input.arguments.size() == 3)
@@ -556,20 +557,20 @@ void	invite(CmdInput& input)
 		clientIt target_user = data.findNickname(arguments[1]);
 		if (!target_user)
 		{
-			errorHandler.error(index, error::Type::ERR_NOSUCHNICK, input.arguments[1]);
+			errorHandler.error(index, error::ERR_NOSUCHNICK, input.arguments[1]);
 			return;
 		}
 		std::string channel_name = input.arguments[2].substr(1);
 		uint32_t channel = findChannel(channel_name);
 		if (channel == 0)
-			errorHandler.error(index, error::Type::ERR_NOSUCHCHANNEL, input.arguments[2]); // NO EXISTE CHANNEL
+			errorHandler.error(index, error::ERR_NOSUCHCHANNEL, input.arguments[2]); // NO EXISTE CHANNEL
 		else if (input.serverData[index].getRole() == CL_OP && !channels[channel].findUser(index))
 		{
-			errorHandler.error(index, error::Type::ERR_NOTONCHANNEL, channels[channel].getName()); //NO ESTAS EN ESE CHANNEL 
+			errorHandler.error(index, error::ERR_NOTONCHANNEL, channels[channel].getName()); //NO ESTAS EN ESE CHANNEL 
 		}
 		else if (channels[channel].findUser(target_user)) 
 		{
-			errorHandler.error(index, error::Type::ERR_USERONCHANNEL, input.arguments[1]); //TARGET YA ESTA EN EL CHANNEL
+			errorHandler.error(index, error::ERR_USERONCHANNEL, input.arguments[1]); //TARGET YA ESTA EN EL CHANNEL
 		}
 		else
 		{
@@ -589,12 +590,12 @@ void	kick(CmdInput& input)  // KICK <channel> <user> *( "," <user> ) [<comment>]
 {
 	if (input.arguments.size() < 3)
 	{
-		errorHandler.error(index, error::Type::ERR_NEEDMOREPARAMS , "KICK"); // ARGUMENT ERROR 
+		errorHandler.error(index, error::ERR_NEEDMOREPARAMS , "KICK"); // ARGUMENT ERROR 
 		return;
 	}
 	if (!input.serverData[index].getRole())
 	{
-		errorHandler.error(index, error::Type::ERR_CHANOPRIVSNEEDED, arguments[2].substr(1)); //NO OPER 
+		errorHandler.error(index, error::ERR_CHANOPRIVSNEEDED, arguments[2].substr(1)); //NO OPER 
 		return;
 	}
 
@@ -610,21 +611,21 @@ void	kick(CmdInput& input)  // KICK <channel> <user> *( "," <user> ) [<comment>]
 	uint32_t channel = findChannel(input.arguments[1].substr(1));
 	if (channel == 0)
 	{
-		errorHandler.error(index, error::Type::ERR_NOSUCHCHANNEL, input.arguments[1].substr(1)); //INCORRECT FORMAT 
+		errorHandler.error(index, error::ERR_NOSUCHCHANNEL, input.arguments[1].substr(1)); //INCORRECT FORMAT 
 		return ;
 	}
 	else if (input.serverData[index].getRole() == CL_OP && !channels[channel].findUser(index))
 	{
-		errorHandler.error(index, error::Type::ERR_NOTONCHANNEL, channels[channel].getName()); //NO ESTAS EN ESE CHANNEL 
+		errorHandler.error(index, error::ERR_NOTONCHANNEL, channels[channel].getName()); //NO ESTAS EN ESE CHANNEL 
 	}
 	std::vector<std::string>targets = utils::split(input.arguments[2], ',');
 	for(std::vector<std::string>::const_iterator target = targets.begin();target != targets.end(); target++)
 	{
 		clientIt clientIdx = input.serverData.findNickname(*target);
 		if (clientIdx == 0) 									
-			errorHandler.error(index, error::Type::ERR_NOSUCHNICK); //NO TARGET 
+			errorHandler.error(index, error::ERR_NOSUCHNICK); //NO TARGET 
 		else if (channels[channel].findUser(clientIdx) == 0) 	
-			errorHandler.error(index, error::Type::ERR_USERNOTINCHANNEL); //TARGET NO ESTA EN CANAL 
+			errorHandler.error(index, error::ERR_USERNOTINCHANNEL); //TARGET NO ESTA EN CANAL 
 		else
 		{
 			std::string broadcast_message = ":" + input.serverData[index].getUserMask() + " KICK " + " #" + channels[channel].getName() + " " + input.serverData[clientIdx].getNickname() + " :" + reason + "\r\n";
@@ -664,7 +665,7 @@ void	privmsg(CmdInput& input)
 {
 	if (input.arguments.size() < 2 || arguments[1].empty()) 
 	{
-		errorHandler.error(index, error::Type::ERR_NORECIPIENT); //NO ARGS
+		errorHandler.error(index, error::ERR_NORECIPIENT); //NO ARGS
 		return ;
 	}
 	std::vector<std::string> targets = utils::split(arguments[1], ',');
@@ -672,7 +673,7 @@ void	privmsg(CmdInput& input)
 	for (std::vector<std::string>::iterator target = targets.begin(); target != targets.end(); target++)
 	{
 		if (!uniqueNames.insert(*target).second) {
-			errorHandler.error(index, error::Type::ERR_TOOMANYTARGETS, *target);
+			errorHandler.error(index, error::ERR_TOOMANYTARGETS, *target);
 			continue ;
 		}
 		std::string message = ":" + input.serverData[index].getNickname() +  " " +  input.arguments[0] + " " + *target + " :" + input.arguments[2] + "\r\n";
@@ -681,7 +682,7 @@ void	privmsg(CmdInput& input)
 			uint32_t channel = findChannel(target->substr(1));
 			if(channel == 0)
 			{
-				errorHandler.error(index, error::Type::ERR_CANNOTSENDTOCHAN);  //NO CHANNEL 
+				errorHandler.error(index, error::ERR_CANNOTSENDTOCHAN);  //NO CHANNEL 
 				continue;
 			}
 			////CHECK BANNED??? MOD??? ->>>>>> ERR_CANNOTSENDTOCHAN (404)  
@@ -702,7 +703,7 @@ void	privmsg(CmdInput& input)
 				{	
 					if(arguments[2].empty())  
 					{
-						errorHandler.error(index, error::Type::ERR_NOTEXTTOSEND); //NO TEXT
+						errorHandler.error(index, error::ERR_NOTEXTTOSEND); //NO TEXT
 					}
 					utils::sendMsgUser(dainput.serverDatata[(pollfdIt)user].fd, message);
 				}
@@ -711,7 +712,7 @@ void	privmsg(CmdInput& input)
 			else 
 			{
 				//std::cout << color::red << "ERROR NO NICK" << color::reset << std::endl;
-				errorHandler.error(index, error::Type::ERR_NOSUCHNICK);
+				errorHandler.error(index, error::ERR_NOSUCHNICK);
 			}
 		}
 	
@@ -723,7 +724,7 @@ void	notice(CmdInput& input)
 	if (input.arguments.size() < 2 || arguments[1].empty()) 
 	{
 
-		errorHandler.error(index, error::Type::ERR_NORECIPIENT); //NO ARGS
+		errorHandler.error(index, error::ERR_NORECIPIENT); //NO ARGS
 		return ;
 	}
 	std::vector<std::string> targets = utils::split(input.arguments[1], ',');
@@ -731,7 +732,7 @@ void	notice(CmdInput& input)
 	for (std::vector<std::string>::iterator target = targets.begin(); target != targets.end(); target++)
 	{
 		if (!uniqueNames.insert(*target).second) {
-			errorHandler.error(index, error::Type::ERR_TOOMANYTARGETS, *target);
+			errorHandler.error(index, error::ERR_TOOMANYTARGETS, *target);
 			continue ;
 		}
 		std::string message = ":" + serverName + " NOTICE " + " :-" + input.serverData[index].getNickname() + "- " + arguments[2] + "\r\n";
@@ -740,7 +741,7 @@ void	notice(CmdInput& input)
 		{
 			uint32_t channel = findChannel(target->substr(1));
 			if (channel == 0) {
-				errorHandler.error(index, error::Type::ERR_CANNOTSENDTOCHAN);
+				errorHandler.error(index, error::ERR_CANNOTSENDTOCHAN);
 				continue;
 			}
 			channels[channel].broadcast(index, message);
@@ -751,12 +752,12 @@ void	notice(CmdInput& input)
 			if (user != 0)
 			{
 				if (input.arguments[2].empty()) {
-					errorHandler.error(index, error::Type::ERR_NOTEXTTOSEND); 
+					errorHandler.error(index, error::ERR_NOTEXTTOSEND); 
 				}
 				utils::sendMsgUser(data[(pollfdIt)user].fd, message);
 			}
 			else {
-				errorHandler.error(index, error::Type::ERR_NOSUCHNICK);
+				errorHandler.error(index, error::ERR_NOSUCHNICK);
 			}
 		}
 	}
@@ -778,12 +779,12 @@ void	kill(CmdInput& input)
 
 	if (input.arguments.size() < 1)
 	{
-		error::error(input, error::Type::ERR_NEEDMOREPARAMS , "KILL"); //ARGUMENT ERROR
+		error::error(input, error::ERR_NEEDMOREPARAMS , "KILL"); //ARGUMENT ERROR
 		return;
 	}
 	if (data[index].getRole() != CL_OPER)
 	{
-		error::error(input, error::Type::ERR_NOPRIVILEGES);
+		error::error(input, error::ERR_NOPRIVILEGES);
 		return;
 	}
 	std::string reason = "";
@@ -794,7 +795,7 @@ void	kill(CmdInput& input)
 	clientIt target_user = input.serverData.findNickname(arguments[1]);
 	if (!target_user)
 	{
-		error::error(input, error::Type::ERR_NOSUCHNICK, input.arguments[1]);
+		error::error(input, error::ERR_NOSUCHNICK, input.arguments[1]);
 		return;
 	}
 
