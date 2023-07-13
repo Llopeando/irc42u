@@ -7,7 +7,7 @@
 #include "Config.h"
 #include "defines.hpp"
 #include "Utils.hpp"
-#include "command_structs.h"
+#include "cmd_structs.h"
 #include "ServerData.hpp"
 #include "ServerDataStructs.h"
 

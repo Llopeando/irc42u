@@ -1,7 +1,7 @@
 #include "../include/Utils.hpp"
 
 namespace utils{
-	void sendMsgUser(int fd, const std::string &str)
+	void sendMsgUser(int fd, std::string str)
 	{
 		int buffer_size = 65536;
 	
@@ -10,7 +10,7 @@ namespace utils{
 		if ((code = send(fd, str.c_str(), str.size(), 0)) <= 0)
 		{
 			std::error_code ec(errno, std::system_category());
-			std::cerr << "[fd: " << fd << "]\n" << "An error ocurred sending the message: " << color::boldwhite << ec.message() << color::reset << std::endl;
+			std::cerr << color::red << "ERROR "<< color::boldwhite <<"An error ocurred sending the message: [" << str << "] error [" << color::boldwhite << ec.message() << "]" << color::reset << std::endl;
 		}
 	//std::cout << "bytes sent " << code << '\n';
 	}

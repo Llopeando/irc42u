@@ -6,7 +6,7 @@
 #    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/07/11 14:06:40 by ullorent         ###   ########.fr        #
+#    Updated: 2023/07/13 16:53:13 by ullorent         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,17 +24,17 @@ include/Channel.hpp \
 include/Client.hpp \
 include/defines.hpp	\
 include/Utils.hpp\
-include/command_structs.h\
+include/cmd_structs.h\
 include/commands.h\
-include/command_structs.h\
 include/Config.h\
 include/function.h\
 include/ServerData.hpp\
-include/ServerDataStructs.h
+include/ServerDataStructs.h\
+include/cmd_reply.h
 
 CPPOBJ = $(CPPSRC:.cpp=.o)
 
-CPPFLAGS = -Wall -Werror -Wextra -O2 -std=c++98 #-g3 -fsanitize=address
+CPPFLAGS = -Wall -Werror -Wextra -O2 -std=c++98 -g3 -fsanitize=address
 CC = clang++
 
 all: $(NAME)

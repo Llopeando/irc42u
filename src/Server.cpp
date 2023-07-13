@@ -1,7 +1,7 @@
 #include <chrono>
 #include "../include/Server.hpp"
 #include "../include/commands.h"
-#include "../include/command_structs.h"
+#include "../include/cmd_structs.h"
 #include "../include/function.h"
 #include "../include/ServerDataStructs.h"
 
@@ -158,7 +158,7 @@ void Server::handleEvents(sd::pollfdIt index)
 		std::vector<std::string> lines = utils::split(input, '\n');
 		for (uint32_t i = 0; i < lines.size(); i++)
 		{
-			std::cout << color::green << serverData[(sd::clientIt)index].getUsername() << ":[" << color::boldwhite << lines[i] << "]\n" << color::reset;
+			std::cout << color::boldyellow << serverData[(sd::clientIt)index].getUsername() << color::green << " >> CLIENT:[" << color::boldwhite << lines[i] << color::green << "]" << color::reset << "\n" ;
 			handleInput((sd::clientIt)index, lines[i]);
 		}
 	}

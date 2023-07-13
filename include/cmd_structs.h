@@ -1,11 +1,12 @@
 #ifndef CMD_STRUCTS_H
 #define CMD_STRUCTS_H
 
-#include "config.h"
+#include "Config.h"
 #include "defines.hpp"
 #include <vector>
 #include "ServerDataStructs.h"
 #include "ServerData.hpp"
+#include <map>
 
 
 START_CMD_NAMESPACE
@@ -30,6 +31,7 @@ enum eReply{
 	eRPL_PART		=  11,
 	eRPL_KICK		=  12,
 	eRPL_PRIVMSG	=  13,
+	eRPL_KILL		=  14,
 
 	eRPL_LUSERCLIENT = 251,
 	eRPL_LUSERME	= 255,
@@ -70,7 +72,7 @@ START_ANONYMOUS_NAMESPACE
 typedef void (*pCmdFunction)(CmdInput& input);
 typedef std::string (*pRplFunction)(CmdInput& input);
 typedef std::unordered_map<std::string, pCmdFunction> CmdMap;
-typedef std::unordered_map<eReply, pRplFunction> RplMap;
+typedef std::map<eReply, pRplFunction> RplMap;
 
 END_ANONYMOUS_NAMESPACE
 

@@ -24,7 +24,7 @@ namespace utils{
 	std::vector<std::string> split(const std::string &string, char c);
 	std::vector<std::string> splitIrcPrameters(const std::string &string, const char c);
 	
-	void sendMsgUser(int fd, const std::string &str);
+	void sendMsgUser(int fd, std::string str);
 	
 	std::string readFile(const char *filepath);
 

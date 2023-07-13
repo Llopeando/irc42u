@@ -1,10 +1,9 @@
 #ifndef FUNCTION_H
 #define FUNCTION_H
 
-#include "config.h"
+#include "Config.h"
 #include "commands.h"
 #include "cmd_structs.h"
-#include "cmd_reply.h"
 
 /*
 *	Public:
@@ -44,19 +43,6 @@ eFlags callFunction(const std::string& key, CmdInput& input)
 	}
 }
 
-std::string reply(eReply key, CmdInput &input)
-{
-	RplMap::const_iterator it = getReplyMap().find(key);
-	if (it != getReplyMap().find(key)) {
-		return it->second(input);
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-
 START_ANONYMOUS_NAMESPACE
 //anonymous namespace, similar to private in a class. Obscures access to types and cmdMap from outside.
 
@@ -90,47 +76,6 @@ const CmdMap& getFunctionMap()
 		cmdMap["LUSERS"]	= &lusers;
 	}
 	return cmdMap;
-}
-
-
-const RplMap& getReplyMap()
-{
-	static RplMap rplMap;
-	if (rplMap.empty())
-	{
-		rplMap[eRPL_WELCOME]		= &rpl_welcome; //001
-		rplMap[eRPL_YOURHOST]		= &rpl_yourhost; //002
-		rplMap[eRPL_CREATED]		= &rpl_created; //003
-		rplMap[eRPL_MYINFO]			= &rpl_myinfo;  //004
-		rplMap[eRPL_ISUPPORT]		= &rpl_isupport; //005
-		rplMap[eRPL_PONG]			= &rpl_pong; //006
-		rplMap[eRPL_NICK]			= &rpl_nick;//007
-		rplMap[eRPL_QUIT]			= &rpl_quit;//008
-		rplMap[eRPL_JOIN]			= &rpl_join;//009
-		rplMap[eRPL_JOINMODE]		= &rpl_joinmode;//010
-		rplMap[eRPL_PART]			= &rpl_part;//011
-		rplMap[eRPL_KICK]			= &rpl_kick;//012
-		rplMap[eRPL_PRIVMSG]		= &rpl_privmsg;//013
-		rplMap[eRPL_LISTSTART]		= &rpl_liststart;//321
-		rplMap[eRPL_LIST]			= &rpl_list ;//322
-		rplMap[eRPL_LUSERCLIENT]	= &rpl_luserclient;// 251
-		rplMap[eRPL_LUSERME]		= &rpl_luserme;//255
-		rplMap[eRPL_AWAY]			= &rpl_away;//301
-		rplMap[eRPL_UNAWAY]			= &rpl_unaway;//305
-		rplMap[eRPL_NOWAWAY]		= &rpl_nowaway;//306
-		rplMap[eRPL_NOTOPIC]		= &rpl_notopic;//331
-		rplMap[eRPL_TOPIC]			= &rpl_topic;//332
-		rplMap[eRPL_TOPICWHOTIME]	= &rpl_topicwhotime;//333
-		rplMap[eRPL_INVITING]		= &rpl_inviting;//341
-		rplMap[eRPL_VERSION]		= &rpl_version;//351
-		rplMap[eRPL_NAMREPLY]		= &rpl_namreply;// 353
-		rplMap[eRPL_MOTD]			= &rpl_motd;//375
-		rplMap[eRPL_YOUREOPER]		= &rpl_youreoper;//381
-
-
-
-	}
-	return rplMap;
 }
 
 END_ANONYMOUS_NAMESPACE

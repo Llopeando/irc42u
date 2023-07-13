@@ -19,7 +19,7 @@ Channel Operations
     * JOIN 
     * PART 
     * TOPIC
-    * NAMES
+    * NAMESC
     * LIST 
     * INVITE 
         Invite list	// opcional del servidor
@@ -59,8 +59,5 @@ Optional Messages
     LINKS 
     USERHOST
     WALLOPS 
-
-
-
 
 

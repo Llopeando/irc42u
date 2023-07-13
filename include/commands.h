@@ -95,8 +95,9 @@ void	mode(CmdInput& input)
 }
 
 void	version(CmdInput& input)  {
-	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_ISUPPORT, input));
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_VERSION, input));
+	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_ISUPPORT, input));
+
 }
 
 void	lusers(CmdInput& input){
@@ -303,9 +304,7 @@ void	user(CmdInput& input)
 		/*	
 		Send RPL_UMODEIS (221) reply or a MODE message with the client as target, preferably the former. The server MAY send other numerics and messages. 
 		*/
-
 		motd(input);
-
 	}
 	else
 	{
@@ -344,10 +343,25 @@ void	oper(CmdInput& input)
 
 void	quit(CmdInput& input) 
 {	
+	std::string reason = "";
+	if (input.arguments.size() == 2)
+		reason = input.arguments[1];
+
+	CmdInputVar var;
+	var.data = &reason;
+	var.pnext = nullptr;
+	input.var = &var;
+
+	CmdInputVar var2;
+	var2.data = &input.index;
+	var2.pnext = nullptr;
+	var.pnext = &var2;
+
 	input.serverData[(sd::channIt)0].broadcast(0, reply(eRPL_QUIT, input));
 	input.serverData.backClient(input.index);
 	input.serverData.removeClientChannels(input.index);
-	
+
+	input.var = nullptr;	
 }
 
 
@@ -370,7 +384,7 @@ void	join(CmdInput& input)
 	{
 		if (input.arguments[1][0] != '#' || input.arguments[1].size() < 2 || !std::isprint(input.arguments[1][1]))
 		{
-			error::error(input, error::ERR_BADCHANMASK, input.arguments[1]); 
+			error::error(input, error::ERR_BADCHANMASK, input.arguments[1]);
 			continue ;
 		}
 		sd::channIt channel = input.serverData.findChannel(channelNames[i].substr(1));
@@ -387,6 +401,7 @@ void	join(CmdInput& input)
 			var.pnext = nullptr;
 			input.var = &var;
 
+			
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_JOIN, input));
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_JOINMODE, input));
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_NAMREPLY, input));
@@ -411,7 +426,12 @@ void	join(CmdInput& input)
 
 			input.var = nullptr;
 		}
+		CmdInputVar var;
+		var.data = &channel;
+		var.pnext = nullptr;
+		input.var = &var;
 		input.serverData[channel].broadcast(input.index, reply(eRPL_JOIN, input));
+		input.var = nullptr;
 	}
 }
 
@@ -817,11 +837,6 @@ void	kill(CmdInput& input)
 		error::error(input, error::ERR_NOPRIVILEGES);
 		return;
 	}
-	std::string reason = "";
-	if (input.arguments.size() > 2)
-	{
-		reason += utils::joinStr(input.arguments, 2);
-	}
 	sd::clientIt target_user = input.serverData.findNickname(input.arguments[1]);
 	if (!target_user)
 	{
@@ -829,19 +844,38 @@ void	kill(CmdInput& input)
 		return;
 	}
 
+	std::string reason = "";
+	if (input.arguments.size() > 2)
+	{
+		reason += utils::joinStr(input.arguments, 2);
+	}
+	
+	CmdInputVar var;
+	var.data = &target_user;
+	var.pnext = nullptr;
+	input.var = &var;
 
-	std::string reason1 = "Killed (" + input.serverData[input.index].getNickname() + ")";
-	std::string message_u = ':' + input.serverData[target_user].getUserMask() + " QUIT :Quit:" + input.serverData[input.index].getNickname() + "\r\n";
-	//std::string message = data[index].getUserMask() + " has forced " + data[target_user].getNickname() + " to leave " + serverName + reason1 + "\r\n";
-	std::string message_user = "ERROR :Closing Link: (~" + input.serverData[target_user].getUserMask() +  ") [Killed (" + input.serverData[input.index].getNickname() + " (" + reason + "))]\r\n";
-	input.serverData[(sd::channIt)0].broadcast(0, message_u);
-	//sendMsgUser(data[(pollfdIt)target_user].fd, message_u);
-	utils::sendMsgUser(input.serverData[(sd::pollfdIt)target_user].fd, message_user);
+	CmdInputVar var2;
+	var2.data = &reason;
+	var2.pnext = nullptr;
+	var.pnext = &var2;
+	
+	utils::sendMsgUser(input.serverData[(sd::pollfdIt)target_user].fd, reply(eRPL_KILL, input));
+
+
+	std::string message = input.serverData[input.index].getUserMask() + " has forced " + input.serverData[target_user].getNickname() + " to leave " + input.serverData.getName();
+	var.data = &message;
+	var2.data = &target_user;
+
+	input.serverData[(sd::channIt)0].broadcast(0,reply(eRPL_QUIT, input));
+
+	input.var = nullptr;
+	var.pnext = nullptr;
+
 	close(input.serverData[(sd::pollfdIt)target_user].fd);
 	input.serverData.backClient(target_user);
 	input.serverData.removeClientChannels(target_user);
 
-// OTRA OPCION ----> this->quit(target_user, arguments);
 //casos en los que server hace quit EL SERVER : "Ping timeout: 120 seconds", "Excess Flood", and "Too many connections from this IP" 
 
 }
@@ -860,7 +894,6 @@ void	away(CmdInput& input)
 	input.serverData[input.index].setAwayStatus(true);
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_NOWAWAY, input));
 }
-
 
 END_ANONYMOUS_NAMESPACE
 END_CMD_NAMESPACE
