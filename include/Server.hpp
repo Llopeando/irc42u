@@ -24,7 +24,7 @@
 #include "color.h"
 #include "ServerData.hpp"
 
-//___________SERVER DEFAULT CONFIG ___________
+//___________SERVER DEFAULT CONFIG & RPL_ISUPPORT parameters___________
 //
 //CHANTYPES=# 
 //PREFIX=(o)@ 
@@ -36,7 +36,9 @@
 //TOPICLEN=390 
 //KICKLEN=307 
 //CHANNELLEN=32
-//
+
+//VERSION="1.0"
+//VERSION_COMMENTS= "No comments"
 //____________________________________________
 
 #define MOTD "\n " \

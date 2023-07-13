@@ -69,5 +69,6 @@
 		"__undef_macros": "cpp",
 		"span": "cpp",
 		"filesystem": "cpp"
-	}
+	},
+	"C_Cpp.dimInactiveRegions": false
 }

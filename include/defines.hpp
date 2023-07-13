@@ -20,6 +20,9 @@
 #define CL_OPER 2
 
 #define RCVBUFSIZE 1024
+
+
+
 #define VERSION 1.0
 
 

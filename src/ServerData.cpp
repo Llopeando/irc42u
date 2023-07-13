@@ -45,6 +45,11 @@ uint32_t	ServerData::getNumOfChannels() const{
 	return (channels.size());
 }
 
+uint32_t	ServerData::getNumOfClients() const{
+
+	return (pollfds.size());
+}
+
 
 std::string ServerData::getName() const
 {

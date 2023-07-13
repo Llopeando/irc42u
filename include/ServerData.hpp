@@ -48,6 +48,7 @@ class ServerData{
 
 		void		addChannel(std::string name, std::string username, ServerData &serverData);
 		uint32_t	getNumOfChannels() const;
+		uint32_t	getNumOfClients() const;
 		void 		removeClientChannels(sd::clientIt index);
 		void		deleteChannel(uint32_t channel);
 		uint32_t	findChannel(const std::string &name) const;
@@ -64,7 +65,7 @@ class ServerData{
 	private:
 		std::vector<struct pollfd> pollfds;
 		std::vector<Client> clients;
-		std::vector<Client> back;//no se puede acceder con operators
+		std::vector<Client> back; //no se puede acceder con operators
 		std::deque<Channel> channels;
 		std::unordered_map<std::string, std::string> operblock;
 		std::string serverName;
