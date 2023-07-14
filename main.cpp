@@ -13,6 +13,8 @@ void	serverCreateInfo(char **argv, int argc, sd::t_serverInput *serverInfo)
 	serverInfo->address.sin_family = AF_INET;
 	serverInfo->address.sin_addr.s_addr = INADDR_ANY;
 	serverInfo->address.sin_port = htons( port ); //mirar htons
+
+	Server::serverConfig(serverInfo);
 }
 
 int	main(int argc, char *argv[])
@@ -28,7 +30,7 @@ int	main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	Server	*server = new Server(serverInfo);
-	server->run();
+	server->run2();
 	delete server;
 	return (0);
 }

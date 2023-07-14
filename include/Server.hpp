@@ -18,28 +18,13 @@
 
 #include <cerrno>
 #include <system_error>
+#include <pthread.h>
+
 
 #include "Utils.hpp"
 #include "defines.hpp"
 #include "color.h"
 #include "ServerData.hpp"
-
-//___________SERVER DEFAULT CONFIG & RPL_ISUPPORT parameters___________
-//
-//CHANTYPES=# 
-//PREFIX=(o)@ 
-//MODES=4 
-//CHANLIMIT=#:20 
-//NICKLEN=16 
-//USERLEN=10 
-//HOSTLEN=63 
-//TOPICLEN=390 
-//KICKLEN=307 
-//CHANNELLEN=32
-
-//VERSION="1.0"
-//VERSION_COMMENTS= "No comments"
-//____________________________________________
 
 class Server
 {
@@ -50,12 +35,15 @@ class Server
 		void	run();
 		void	printServerStatus() const;
 		std::string	getName()const;
-		
+		static void serverConfig(sd::t_serverInput *serverInput);
+
+		void	run2();
 	private:
 
 		int	status;
 		sd::t_serverInput serverInfo;
 		sd::ServerData serverData;
+		pthread_t serverThread;
 
 		void	acceptConnection();
 		void	listenConnection();
@@ -73,7 +61,12 @@ class Server
 		std::string	readTCPInput(int client_fd);
 		void	setCommands();
 
-
+		static void *lauchWrapper(void *data);
+		void lauch();
+		void minishell();
+		void	printAllChannNames() const;
+		void	printAllUsers() const ;
+		void	printChannelInfo(const std::string& chName) const;
 };
 
 #endif

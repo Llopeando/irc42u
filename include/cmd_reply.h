@@ -24,6 +24,18 @@
 			"        \\::/____/                         \\/____/                         \\/____/                           \\|___|                          \\/____/          \n"
 
 
+/*
+*	Public:
+*		reply() -> handles the key to call &rpl_command
+*
+*	Private:
+*		//all the rpl_command() that return the string 
+*		getReplyMap()						-> to access the map 
+*		static RplMap rplMap;			 	-> map to find the key of the command
+*/
+
+
+
 START_CMD_NAMESPACE
 
 
@@ -64,7 +76,16 @@ std::string	rpl_myinfo(CmdInput& input){
 	return ("004 " + input.serverData[input.index].getNickname() + " " + input.serverData.getName() + " " + std::string(VERSION) + "\r\n");
 }
 std::string	rpl_isupport(CmdInput& input){
-	return ("005 " + input.serverData[input.index].getNickname() + " CHANTYPES=# PREFIX=(o)@ MODES=4 CHANLIMIT=#:20 NICKLEN=16 USERLEN=10 HOSTLEN=63 TOPICLEN=390 KICKLEN=307 CHANNELLEN=32" + " :are supported by this server\r\n");
+	return ("005 " + input.serverData[input.index].getNickname() + " CHANTYPES=" + input.serverData.getConfig().chantypes
+																+ " PREFIX=" + input.serverData.getConfig().prefix
+																+ " MODES=" + std::to_string(input.serverData.getConfig().modes)
+																+ " CHANLIMIT=" + std::to_string(input.serverData.getConfig().chanlimit)
+																+ " NICKLEN=" + std::to_string(input.serverData.getConfig().nicklen)
+																+ " USERLEN=" + std::to_string(input.serverData.getConfig().userlen)
+																+ " HOSTLEN=" + std::to_string(input.serverData.getConfig().hostlen)
+																+ " TOPICLEN=" + std::to_string(input.serverData.getConfig().topiclen)
+																+ " KICKLEN=" + std::to_string(input.serverData.getConfig().kicklen)
+																+ " CHANNELLEN=" + std::to_string(input.serverData.getConfig().channellen) + " :are supported by this server\r\n");
 }
 
 //std::string rpl_motdstart(CmdInput& input){

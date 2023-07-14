@@ -56,7 +56,7 @@ const CmdMap& getFunctionMap()
 		cmdMap["USER"]		= &user;
 		cmdMap["JOIN"]		= &join;
 		cmdMap["PRIVMSG"]	= &privmsg;
-		//cmdMap["NOTICE"]	= &notice;
+		cmdMap["NOTICE"]	= &notice;
 		cmdMap["QUIT"]		= &quit;
 		cmdMap["MODE"]		= &mode;
 		cmdMap["NAMES"]		= &names;
@@ -74,6 +74,15 @@ const CmdMap& getFunctionMap()
 		cmdMap["KILL"]		= &kill;
 		cmdMap["VERSION"]	= &version;
 		cmdMap["LUSERS"]	= &lusers;
+
+		/*
+			cmdMap["CAP_REQ"]	= &Server::cap_req;
+		 	cmdMap["CAP_LS"]	= &Server::cap_ls;
+		 	cmdMap["CAP_END"]	= &Server::cap_end;
+		 	cmdMap["CAP_ACK"]	= &Server::cap_ack;
+		 	cmdMap["CAP_NAK"]	= &Server::cap_nak;
+
+		*/
 	}
 	return cmdMap;
 }

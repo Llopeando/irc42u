@@ -11,6 +11,13 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
+
+/*
+*	Public:
+*		class ServerData
+*/
+
+
 START_SERVER_DATA_NAMESPACE
 
 class ServerData{
@@ -21,8 +28,9 @@ class ServerData{
 		pollfd		*getPollfdData();
 		std::string getName() const;
 		std::string getPassword() const {return password;}
+		const t_serverInput& getConfig() const{return config;}
 
-		uint32_t	pollfdSize() const {return pollfds.size();}
+ 		uint32_t	pollfdSize() const {return pollfds.size();}
 
 
 		char		*getCreationDate()const;
@@ -33,8 +41,8 @@ class ServerData{
 
 		void	addClient(pollfd clientPollfd, Client newClient);
 		void	transferIndex(clientIt index, const std::string& nickname);
-		void	backClient(clientIt index); // fom client to back
-		void	forwardClient(const std::string& nickname); //from back to client
+		void	backClient(clientIt index); 
+		void	forwardClient(const std::string& nickname); 
 		void	removeClient(clientIt index);
 
 		//OPERATOR BLOCK
@@ -65,12 +73,14 @@ class ServerData{
 	private:
 		std::vector<struct pollfd> pollfds;
 		std::vector<Client> clients;
-		std::vector<Client> back; //no se puede acceder con operators
+		std::vector<Client> back; //only operators
 		std::deque<Channel> channels;
 		std::unordered_map<std::string, std::string> operblock;
 		std::string serverName;
 		std::string password;
 		std::time_t creationDate;
+
+		t_serverInput &config;
 
 		void	setSocket(pollfd &server, t_serverInput &serverInfo);
 };

@@ -134,6 +134,48 @@ void	Server::acceptConnection() {
 	serverData.addClient(new_client, Client(hostName));
 }
 
+void Server::serverConfig(sd::t_serverInput *serverInput)
+{
+	std::string file = utils::readFile("server.conf");
+	std::vector<std::string>params = utils::split(file, '\n');
+	try{
+		for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); it++)
+		{
+			std::vector<std::string> conf = utils::split(*it, '=');
+			if (conf[0] == "CHANTYPES")
+				serverInput->chantypes = conf[1];
+			else if (conf[0] == "PREFIX")
+				serverInput->prefix = conf[1];
+			else if (conf[0] == "CHANLIMIT")
+				serverInput->modes = std::stoi(conf[1].substr(2));
+			else if (conf[0] == "NICKLEN")
+				serverInput->nicklen = std::stoi(conf[1]);
+			else if (conf[0] == "USERLEN")
+				serverInput->userlen = std::stoi(conf[1]);
+			else if (conf[0] == "HOSTLEN")
+				serverInput->hostlen = std::stoi(conf[1]);
+			else if (conf[0] == "TOPICLEN")
+				serverInput->topiclen = std::stoi(conf[1]);
+			else if (conf[0] == "KICKLEN")
+				serverInput->kicklen = std::stoi(conf[1]);
+			else if (conf[0] == "CHANNELLEN")
+				serverInput->channellen = std::stoi(conf[1]);
+			else if (conf[0] == "MAXUSERS")
+				serverInput->maxusers = std::stoi(conf[1]);
+			else if (conf[0] == "MAXUSERSCHAN")
+				serverInput->maxuserschan = std::stoi(conf[1]);
+			else if (conf[0] == "VERSION")
+				serverInput->version = conf[1];
+			else if (conf[0] == "VERSION_COMMENTS")
+				serverInput->versionComments = conf[1];
+		}
+	}
+	catch(...)
+	{
+		throw std::runtime_error("failed to fill server conf");
+	}
+}
+
 /* ---------------------------------------------------------------------------------------- */
 /*						POLL() AND HANDLE EVENTS	 (incoming requests and inputs)	    //La nueva minishell		*/
 /* ---------------------------------------------------------------------------------------- */
@@ -226,72 +268,9 @@ std::string Server::readTCPInput(int client_fd) {
 	write(0, echoBuffer, index);
 	return std::string(echoBuffer, recvMsgSize);
 }
-/*
-uint32_t	Server::findUsername(const std::string &username) const
-{
-	for (uint32_t i =0;i < data->sizeReg();i++)
-	{
-		if ((data->Registered()[i].getUsername()) == username)
-		{	
-			return i;
-		}
-	}
-	return (0);
-}
-
-bool	Server::assertClientPassword(uint32_t indexAct, const std::string &password) const
-{
-	uint32_t indexReg;
-
-	indexReg = findUsername((*data)[indexAct].getUsername());
-	if(indexReg == 0)
-	{
-		std::cout << "server crash\n";
-	}
-	else
-	{
-		if ((*data)[indexAct].checkPassword(password))
-		{
-			return(true);
-			
-		}
-		else
-		{
-			return (false);
-		}
-	}
-	return (false);
-}
-*/
-
-/*
-bool checkAdmin(Client *client) {
-	if (client->getRole() == CL_ROOT)
-		return true;
-	else
-		return false;
-}
-*/
-
 
 /* ---------------------------------------------------------------------------------------- */
-/*						INIT SETTINGS													*/
-/* ---------------------------------------------------------------------------------------- */
-
-
-
-//void Server::setCommands()
-//{
-//	commands.cap_funcmap["CAP_REQ"]	= &Server::cap_req;
-//	commands.cap_funcmap["CAP_LS"]	= &Server::cap_ls;
-//	commands.cap_funcmap["CAP_END"]	= &Server::cap_end;
-//	commands.cap_funcmap["CAP_ACK"]	= &Server::cap_ack;
-//	commands.cap_funcmap["CAP_NAK"]	= &Server::cap_nak;
-//}
-
-
-/* ---------------------------------------------------------------------------------------- */
-/*						DEBUG PRINT													*/
+/*										DEBUG PRINT											*/
 /* ---------------------------------------------------------------------------------------- */
 
 
@@ -327,3 +306,108 @@ void	Server::printServerStatus() const
 	}
 }
 
+/* ---------------------------------------------------------------------------------------- */
+/*										SERVER FROM ITERM									*/
+/* ---------------------------------------------------------------------------------------- */
+
+
+void Server::lauch()
+{
+	int events;
+
+	listenConnection();
+	while(1)
+	{
+		//printServerStatus();
+		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), 200);//200 mirar mas tarde
+		if (events < 0)
+		{
+			perror("error-event detected");
+			return;
+		}
+		if (events != 0)
+			checkFds(events);
+	}
+}
+
+void *Server::lauchWrapper(void *data)
+{
+	Server *server = reinterpret_cast<Server *>(data);
+	server->lauch();
+	return nullptr;
+}
+
+void	Server::run2(){
+	
+
+	if(pthread_create(&serverThread, NULL, lauchWrapper, this))
+	{
+		std::cerr << "Error creating thread" << std::endl;
+		return ;
+	}
+	minishell();
+	if(pthread_join(serverThread, NULL))
+	{
+		std::cerr << "Error joining thread" << std::endl;
+		return ;
+	}
+}
+
+void Server::minishell()
+{
+	while (1)
+	{
+		std::string line;
+		std::cout << "\t> ";
+		std::getline(std::cin, line);
+		if (line == "quit")
+			return ;
+		else if (line == "ls ch")
+			printAllChannNames();
+		else if (line == "ls users")
+			printAllUsers();
+		else if (line == "info ch")
+		{
+			std::cout << "ch name: ";
+			std::getline(std::cin, line);
+			printChannelInfo(line);
+		}
+	}
+}
+
+void Server::printAllChannNames() const
+{
+	for (sd::channIt ch = 0; ch < serverData.getNumOfChannels(); ch++)
+	{
+		std::cout << color::boldwhite << "\t[" << std::to_string(ch) << "]\t" << serverData[ch].getName() << "\n" << color::reset;
+	}
+}
+
+void Server::printAllUsers()const
+{
+	for (sd::clientIt user = 0; user < serverData.getNumOfClients(); user++)
+	{
+		std::cout << color::boldwhite << "\t[" << std::to_string(user) << "] " << serverData[user].getNickname() << color::reset << '\n';
+	}
+}
+
+void Server::printChannelInfo(const std::string& chName)const
+{
+	sd::channIt channel = serverData.findChannel(chName);
+	if (channel == 0)
+	{
+		std::cout << color::red << "Channel " << chName << " does not exist\n" << color::reset;
+		return ;
+	}
+	std::cout << color::boldwhite << "\tName: " << color::reset << chName << '\n';
+	std::cout << color::boldwhite << "\tTopic: " << color::reset << serverData[channel].getTopic() << '\n';
+	std::cout << color::boldwhite << "\tCreator: " << color::reset << serverData[channel].getCreator() << '\n';
+	std::cout << color::boldwhite << "\tCreation Date: " << color::reset << serverData[channel].getCreationDate() << '\n';
+	std::cout << color::boldwhite << "\tNum of users: " << color::reset << serverData[channel].getNumUser() << '\n';
+	std::cout << color::boldwhite << "\tUsers:\n" << color::reset;
+	std::vector<std::string> names = utils::split(serverData[channel].getUserList(), '\n');
+	for (std::vector<std::string>::const_iterator name = names.begin(); name != names.end(); name++)
+	{
+		std::cout << color::cyan << "\t\t" << *name << '\n' << color::reset;
+	}
+}

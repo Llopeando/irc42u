@@ -4,6 +4,7 @@
 #include <iostream>
 #include <netinet/in.h>
 
+
 START_SERVER_DATA_NAMESPACE
 struct clientIt{
 	uint32_t index;
@@ -73,6 +74,20 @@ typedef struct s_serverInput{
 	std::string password;
 	std::string IP;
 	std::string serverName;
+	std::string version;
+	std::string versionComments;
+	std::string chantypes;
+	std::string prefix;
+	uint32_t modes;
+	uint32_t chanlimit;
+	uint32_t nicklen;
+	uint32_t userlen;
+	uint32_t hostlen;
+	uint32_t topiclen;
+	uint32_t kicklen;
+	uint32_t channellen;
+	uint32_t maxusers;
+	uint32_t maxuserschan;
 }t_serverInput;
 
 END_SERVER_DATA_NAMESPACE

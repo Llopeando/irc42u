@@ -9,7 +9,7 @@
 
 START_SERVER_DATA_NAMESPACE
 
-ServerData::ServerData(t_serverInput &serverInfo)
+ServerData::ServerData(t_serverInput &serverInfo):config(serverInfo)
 {
 	creationDate = utils::t_chrono::to_time_t(utils::t_chrono::now());
 	pollfd server;

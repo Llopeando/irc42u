@@ -19,8 +19,11 @@ START_CMD_NAMESPACE
 START_ANONYMOUS_NAMESPACE
 
 /*
-*	All functions  reside inside the <namespace cmd namespace anonymous> so that they cannot be accessed from outside
+*	// All functions reside inside the <namespace cmd namespace anonymous> so that they cannot be accessed from outside
+*	Private: 
+*		//all the command() functions
 */
+
 
 	/*	----------------------      COMMAND INDEX    --------------------------
 
@@ -85,13 +88,12 @@ START_ANONYMOUS_NAMESPACE
 
 void	motd(CmdInput& input)  
 {
-	(void)input;
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_MOTD, input));
 }
 
 void	mode(CmdInput& input)  
 {
-	(void)input;
+	error::error(input, error::ERR_NOMODEOPTION);
 }
 
 void	version(CmdInput& input)  {
@@ -411,6 +413,11 @@ void	join(CmdInput& input)
 		}
 		else // EXISTE CHANNEL -> se une
 		{
+			if (input.serverData[channel].getNumUser() == input.serverData.getConfig().maxuserschan)
+			{
+				error::error(input, error::ERR_CHANNELISFULL);
+				return;
+			}
 			input.serverData[channel].addClient(input.index);
 
 			CmdInputVar var1;
@@ -730,7 +737,6 @@ void	privmsg(CmdInput& input)
 				error::error(input, error::ERR_CANNOTSENDTOCHAN);  //NO CHANNEL 
 				continue;
 			}
-			////CHECK BANNED??? MOD??? ->>>>>> ERR_CANNOTSENDTOCHAN (404)  
 			input.serverData[channel].broadcast(input.index, reply(eRPL_PRIVMSG, input));
 		}
 		else  //ES UN USER 
@@ -760,7 +766,6 @@ void	privmsg(CmdInput& input)
 			}
 			else
 			{
-				//std::cout << color::red << "ERROR NO NICK" << color::reset << std::endl;
 				error::error(input, error::ERR_NOSUCHNICK);
 			}
 		}
@@ -769,56 +774,81 @@ void	privmsg(CmdInput& input)
 	}
 }
 
-//void	notice(CmdInput& input) 
-//{
-//	if (input.arguments.size() < 2 || input.arguments[1].empty()) 
-//	{
-//
-//		error::error(input, error::ERR_NORECIPIENT); //NO ARGS
-//		return ;
-//	}
-//	std::vector<std::string> targets = utils::split(input.arguments[1], ',');
-//	std::set<std::string> uniqueNames;
-//	for (std::vector<std::string>::iterator target = targets.begin(); target != targets.end(); target++)
-//	{
-//		if (!uniqueNames.insert(*target).second) {
-//			error::error(input, error::ERR_TOOMANYTARGETS, *target);
-//			continue ;
-//		}
-//		std::string message = ":" + input.serverData.getName() + " NOTICE " + " :-" + input.serverData[input.index].getNickname() + "- " + input.arguments[2] + "\r\n";
-//		
-//		if ((*target)[0] == '#' /*&& usuarioEsOperador()*/) //a un CHANNEL ---- OJO!!!!! El NOTICE para los CHANNELS solo lo pueden usar los OPERADORES
-//		{
-//			sd::channIt channel = input.serverData.findChannel(target->substr(1));
-//			if (channel == 0) {
-//				error::error(input, error::ERR_CANNOTSENDTOCHAN);
-//				continue ;
-//			}
-//			input.serverData[channel].broadcast(input.index, message);
-//		}
-//		else 
-//		{
-//			sd::clientIt user = input.serverData.findNickname(*target);
-//			if (user != 0)
-//			{
-//				if (input.arguments[2].empty()) {
-//					error::error(input, error::ERR_NOTEXTTOSEND); 
-//				}
-//				utils::sendMsgUser(input.serverData[(sd::pollfdIt)user].fd, message);
-//			}
-//			else {
-//				error::error(input, error::ERR_NOSUCHNICK);
-//			}
-//		}
-//	}
-//}
+void	notice(CmdInput& input) 
+{
+	if (input.arguments.size() < 2 || input.arguments[1].empty()) 
+		return ;
+	std::vector<std::string> targets = utils::split(input.arguments[1], ',');
+	std::set<std::string> uniqueNames;
+	for (std::vector<std::string>::iterator target = targets.begin(); target != targets.end(); target++)
+	{
+		if (!uniqueNames.insert(*target).second)
+			continue ;
+
+		CmdInputVar var1;
+		var1.data = &(*target);
+		var1.pnext = nullptr;
+		input.var = &var1;
+		
+		if ((*target)[0] == '#') //ES UN CANAL - solo OPs 
+		{
+			sd::channIt channel = input.serverData.findChannel(target->substr(1));
+			if(channel != 0 && input.serverData[input.index].getRole() == CL_OP)
+				input.serverData[channel].broadcast(input.index, reply(eRPL_PRIVMSG, input));
+		}
+		else  //ES UN USER 
+		{
+			sd::clientIt user = input.serverData.findNickname(*target);
+			if (user != 0)
+			{
+				if (input.serverData[user].getAwayStatus() == true) 
+					continue;
+				else 
+				{	
+					if(!input.arguments[2].empty())  
+						utils::sendMsgUser(input.serverData[(sd::pollfdIt)user].fd, reply(eRPL_PRIVMSG, input));
+				}
+			
+			}
+		}
+		input.var = nullptr;
+	}
+}
 
 
 /* --------------------------------User-Based Queries----------------------------------- */
 
-void	whois(CmdInput& input) 
+void	whois(CmdInput& input)
 {
-	(void)input;
+	// Arguments checker
+	if (input.arguments.size() < 1) {
+		error::error(input, error::ERR_NEEDMOREPARAMS , "WHOIS"); // ARGUMENTS ERROR
+		return;
+	}
+	else if (input.arguments[1].empty() || (input.arguments.size() == 2 && input.arguments[2].empty())) {
+		error::error(input, error::ERR_NONICKNAMEGIVEN , "WHOIS");
+		return;
+	}
+	// We check here if there are 2 arguments; server and client
+	if (input.arguments.size() == 2) {
+		if (input.arguments[1] != input.serverData.getName()) {
+			error::error(input, error::ERR_NOSUCHSERVER, input.arguments[1]);
+			return;
+		}
+		sd::clientIt target_user = input.serverData.findNickname(input.arguments[2]);
+		if (!target_user) {
+			error::error(input, error::ERR_NOSUCHNICK, input.arguments[2]);
+			return;
+		}
+	}
+	// If only one argument; user
+	else {
+		sd::clientIt target_user = input.serverData.findNickname(input.arguments[1]);
+		if (!target_user) {
+			error::error(input, error::ERR_NOSUCHNICK, input.arguments[1]);
+			return;
+		}
+	}
 }
 
 /* --------------------------------Operator Messages------------------------------------ */
