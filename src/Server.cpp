@@ -436,7 +436,7 @@ void Server::printServerInfo()const
 	std::cout << color::boldwhite << "║ " << color::yellow << "TOPICLEN: " << color::reset << serverInfo.topiclen << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "CHANNELLEN: " << color::reset << serverInfo.channellen << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERS: " << color::reset << serverInfo.maxusers << '\n';
-	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERSCHAN: " << color::reset << serverInfo.maxuserschan << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERSCHAN: " << color::reset << serverInfo.maxuseraaschan << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "VERSION: " << color::reset << serverInfo.version << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "USERLEN: " << color::reset << serverInfo.userlen << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "VERSION_COMMENTS: " << color::reset << serverInfo.versionComments << '\n';
