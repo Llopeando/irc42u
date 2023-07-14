@@ -35,6 +35,10 @@ eFlags callFunction(const std::string& key, CmdInput& input)
 	CmdMap::const_iterator it = getFunctionMap().find(key);
 	if (it != getFunctionMap().end()) {
 		it->second(input);
+		//es una ñapa para arreglar el eExited que devuelve QUIT n 
+		////////RECOGER eflags para saber si es eSucesss o eExited o eFailure de callFunction() para hacer ahi un bucle logico bien
+		if (key == "QUIT")
+			return eExited;
 		return eSuccess;
 	}
 	else
@@ -65,7 +69,6 @@ const CmdMap& getFunctionMap()
 		cmdMap["AWAY"]		= &away;
 		cmdMap["INVITE"]	= &invite;
 		cmdMap["PING"]		= &ping;
-		//cmdMap["CAP"]		= &cap;
 		cmdMap["TOPIC"]		= &topic;
 		cmdMap["LIST"]		= &list;
 		cmdMap["PART"]		= &part;
@@ -74,8 +77,11 @@ const CmdMap& getFunctionMap()
 		cmdMap["KILL"]		= &kill;
 		cmdMap["VERSION"]	= &version;
 		cmdMap["LUSERS"]	= &lusers;
-
+		//cmdMap["TIME"]		= &time;
+		cmdMap["CAP"]		= &cap;
+		
 		/*
+		
 			cmdMap["CAP_REQ"]	= &Server::cap_req;
 		 	cmdMap["CAP_LS"]	= &Server::cap_ls;
 		 	cmdMap["CAP_END"]	= &Server::cap_end;

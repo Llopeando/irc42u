@@ -20,6 +20,7 @@ START_ANONYMOUS_NAMESPACE
 
 /*
 *	// All functions reside inside the <namespace cmd namespace anonymous> so that they cannot be accessed from outside
+*
 *	Private: 
 *		//all the command() functions
 */
@@ -33,18 +34,11 @@ START_ANONYMOUS_NAMESPACE
 		mode
 		version
 		lusers
+		time
 
 		/-----/Connection messages//
 
 		ping
-		cap
-
-			cap_req
-			cap_ls
-			cap_end
-			cap_ack
-			cap_nak
-
 		pass
 		nick
 		user
@@ -79,6 +73,17 @@ START_ANONYMOUS_NAMESPACE
 		/----/Optional Messages//
 
 		away
+
+		/----/Capabilities Negotiation (For now the server does not support capability negotiation) ///
+
+		cap
+
+			cap_req
+			cap_ls
+			cap_end
+			cap_ack
+			cap_nak
+
 	
 	--------------------------------------------------------------------------------
 */
@@ -93,7 +98,8 @@ void	motd(CmdInput& input)
 
 void	mode(CmdInput& input)  
 {
-	error::error(input, error::ERR_NOMODEOPTION);
+	(void)input;
+	//error::error(input, error::ERR_NOMODEOPTION);
 }
 
 void	version(CmdInput& input)  {
@@ -107,6 +113,11 @@ void	lusers(CmdInput& input){
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_LUSERME, input));
 }
 
+//void time(CmdInput& input)  
+//{
+//	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_TIME, input));
+//}
+
 /* --------------------------------Connection Messages---------------------------------- */
 
 void	ping(CmdInput& input)
@@ -119,92 +130,6 @@ void	ping(CmdInput& input)
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_PONG, input));
 }
 
-//void	cap(CmdInput& input)
-//{
-//	void (Server::*cap_func)(sd::clientIt index, std::vector<std::string>& arguments) = commands.cap_funcmap[input.arguments[0]];
-//	if (cap_func != nullptr)
-//	{
-//		(this->*cap_func)(index, input.arguments);
-//		return;
-//	}
-//}
-
-//	// CAP FUNCTIONS
-//
-//	void	Server::cap_req(clientIt index, std::vector<std::string> &arguments)
-//	{
-//		std::string ack = "CAP * ACK";
-//		std::string nack = "CAP * NACK";
-//	
-//		//en vez de esto podemos usar una funcion generica  Server::cap_available() que devuelva las capabilities disponibles, osea las que coinciden en un vector 
-//	
-//		for (uint32_t i = 3; i < arguments.size(); i++)
-//		{
-//			bool found = false;
-//			//for (uint32_t j = 0; j < COMMANDS;j++)
-//			//{
-//			//0	std::cout << "	[" << j << "]"<<commands.cmd[j] << "\n" << color::reset;
-//				if (arguments[i] == "multi-prefix")
-//				{
-//					ack +=  " multi-prefix";
-//					found = true;
-//				}
-//				else
-//					nack += " " + arguments[i];
-//			/*}
-//			if (!found)
-//			{
-//			}*/
-//		}
-//		sendMsgUser(data[(pollfdIt)index].fd, ack);
-//		std::cout << "SENDED CAP [" << ack << "]\n";
-//		std::cout << "SENDED NACK [" << nack << "]\n";
-//		sendMsgUser(data[(pollfdIt)index].fd, nack);
-//		//sendMssgUser(data[(pollfdIt)index].fd, "CAP END")
-//	}
-//	
-//	void	Server::cap_ls(clientIt index, std::vector<std::string> &arguments)
-//	{
-//		(void)arguments;
-//		//std::cout << "CAP LS REACHED\n"; 	//mostrar las capabilities que ofrecemos, 	
-//		std::string message = "CAP * LS :multi-prefix sasl ";//sasl account-notify extended-join away-notify chghost userhost-in-names cap-notify server-time message-tags invite-notify batch echo-message account-tag";
-//		sendMsgUser(data[(pollfdIt)index].fd, message);
-//	}
-//	
-//	void	Server::cap_end(clientIt index, std::vector<std::string> &arguments)
-//	{
-//		(void)arguments;	
-//		std::cout << "CAP END!!!! \n";
-//		std::string message = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; ///PARA MI NO TIENE QUE IR AQUI , FUERA EN EL BUCLE DE COMANDOS COMO METER???
-//		sendMsgUser(data[(pollfdIt)index].fd, message);
-//	
-//	}
-//	
-//	void	Server::cap_ack(clientIt index, std::vector<std::string> &arguments)
-//	{
-//		(void)arguments;
-//		std::string message = "CAP * ACK : multi-prefix sasl account-notify extended-join away-notify chghost userhost-in-names cap-notify server-time message-tags invite-notify batch echo-message account-tag";
-//		sendMsgUser(data[(pollfdIt)index].fd, message);
-//		//sendMsgUser(index, "CAP * END");
-//	}
-//		
-//		
-//	void	Server::cap_nak(clientIt index, std::vector<std::string> &arguments)
-//	{
-//	
-//		(void)index;
-//		(void)arguments;
-//	}
-//	
-//	
-//	/*void	Server::cap_available(std::vector<std::string> &arguments)
-//	{
-//			//va a devolver las capabilities disponibles, osea las que coinciden 
-//	
-//		std::vector<std::string> availables;
-//	
-//	
-//	}*/
 
 void	pass(CmdInput& input)
 {
@@ -298,14 +223,11 @@ void	user(CmdInput& input)
 		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_ISUPPORT, input));
 
 	
-		if (input.serverData[(sd::clientIt)input.index].getNickname().size() > 16) //	NICKLEN=16 
+		if (input.serverData[(sd::clientIt)input.index].getNickname().size() > input.serverData.getConfig().nicklen) 
 			input.serverData[(sd::clientIt)input.index].setNickname(input.serverData[(sd::clientIt)input.index].getNickname().substr(0, 16));
-		if (input.serverData[(sd::clientIt)input.index].getUsername().size() > 10) // USERLEN=10
+		if (input.serverData[(sd::clientIt)input.index].getUsername().size() > input.serverData.getConfig().userlen) 
 			input.serverData[(sd::clientIt)input.index].setNickname(input.serverData[(sd::clientIt)input.index].getUsername().substr(0, 10));
 
-		/*	
-		Send RPL_UMODEIS (221) reply or a MODE message with the client as target, preferably the former. The server MAY send other numerics and messages. 
-		*/
 		motd(input);
 	}
 	else
@@ -358,12 +280,13 @@ void	quit(CmdInput& input)
 	var2.data = &input.index;
 	var2.pnext = nullptr;
 	var.pnext = &var2;
-
+	
+	input.serverData.removeClientChannels(input.index);
 	input.serverData[(sd::channIt)0].broadcast(0, reply(eRPL_QUIT, input));
+	close(input.serverData[(sd::pollfdIt)input.index].fd);
 	input.serverData.backClient(input.index);
 	input.serverData.removeClientChannels(input.index);
-
-	input.var = nullptr;	
+	input.var = nullptr;
 }
 
 
@@ -413,6 +336,7 @@ void	join(CmdInput& input)
 		}
 		else // EXISTE CHANNEL -> se une
 		{
+			//std::cout << color::blue << input.serverData.getConfig().maxuserschan << color::reset << "\n";
 			if (input.serverData[channel].getNumUser() == input.serverData.getConfig().maxuserschan)
 			{
 				error::error(input, error::ERR_CHANNELISFULL);
@@ -821,34 +745,25 @@ void	notice(CmdInput& input)
 void	whois(CmdInput& input)
 {
 	// Arguments checker
-	if (input.arguments.size() < 1) {
+	if (input.arguments.size() < 2) {
 		error::error(input, error::ERR_NEEDMOREPARAMS , "WHOIS"); // ARGUMENTS ERROR
 		return;
 	}
-	else if (input.arguments[1].empty() || (input.arguments.size() == 2 && input.arguments[2].empty())) {
+	else if (input.arguments[1].empty()) {
 		error::error(input, error::ERR_NONICKNAMEGIVEN , "WHOIS");
 		return;
 	}
-	// We check here if there are 2 arguments; server and client
-	if (input.arguments.size() == 2) {
-		if (input.arguments[1] != input.serverData.getName()) {
-			error::error(input, error::ERR_NOSUCHSERVER, input.arguments[1]);
-			return;
-		}
-		sd::clientIt target_user = input.serverData.findNickname(input.arguments[2]);
-		if (!target_user) {
-			error::error(input, error::ERR_NOSUCHNICK, input.arguments[2]);
-			return;
-		}
+	sd::clientIt target_user = input.serverData.findNickname(input.arguments[1]);
+	if (!target_user) {
+		error::error(input, error::ERR_NOSUCHNICK, input.arguments[1]);
+		return;
 	}
-	// If only one argument; user
-	else {
-		sd::clientIt target_user = input.serverData.findNickname(input.arguments[1]);
-		if (!target_user) {
-			error::error(input, error::ERR_NOSUCHNICK, input.arguments[1]);
-			return;
-		}
-	}
+	CmdInputVar var;
+	var.data = &target_user;
+	var.pnext = nullptr;
+	input.var = &var;
+	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_WHOIS, input));
+	input.var = nullptr;
 }
 
 /* --------------------------------Operator Messages------------------------------------ */
@@ -924,6 +839,105 @@ void	away(CmdInput& input)
 	input.serverData[input.index].setAwayStatus(true);
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_NOWAWAY, input));
 }
+
+/* --------------------- CAPABILITIES NEGOTIATION (For now the server does not support capability negotiation ) ----------------------- */
+
+
+void	cap(CmdInput& input)
+{
+	(void)input;
+	////
+	//void (Server::*cap_func)(sd::clientIt index, std::vector<std::string>& arguments) = commands.cap_funcmap[input.arguments[0]];
+	////
+	//if (cap_func != nullptr)
+	////
+	//{
+	////
+	//	(this->*cap_func)(index, input.arguments);
+	//
+	//	return;
+	//}
+}
+
+//	// CAP FUNCTIONS
+//
+//	void	Server::cap_req(clientIt index, std::vector<std::string> &arguments)
+//	{
+//		std::string ack = "CAP * ACK";
+//		std::string nack = "CAP * NACK";
+//	
+//		//en vez de esto podemos usar una funcion generica  Server::cap_available() que devuelva las capabilities disponibles, osea las que coinciden en un vector 
+//	
+//		for (uint32_t i = 3; i < arguments.size(); i++)
+//		{
+//			bool found = false;
+//			//for (uint32_t j = 0; j < COMMANDS;j++)
+//			//{
+//			//0	std::cout << "	[" << j << "]"<<commands.cmd[j] << "\n" << color::reset;
+//				if (arguments[i] == "multi-prefix")
+//				{
+//					ack +=  " multi-prefix";
+//					found = true;
+//				}
+//				else
+//					nack += " " + arguments[i];
+//			/*}
+//			if (!found)
+//			{
+//			}*/
+//		}
+//		sendMsgUser(data[(pollfdIt)index].fd, ack);
+//		std::cout << "SENDED CAP [" << ack << "]\n";
+//		std::cout << "SENDED NACK [" << nack << "]\n";
+//		sendMsgUser(data[(pollfdIt)index].fd, nack);
+//		//sendMssgUser(data[(pollfdIt)index].fd, "CAP END")
+//	}
+//	
+//	void	Server::cap_ls(clientIt index, std::vector<std::string> &arguments)
+//	{
+//		(void)arguments;
+//		//std::cout << "CAP LS REACHED\n"; 	//mostrar las capabilities que ofrecemos, 	
+//		std::string message = "CAP * LS :multi-prefix sasl ";//sasl account-notify extended-join away-notify chghost userhost-in-names cap-notify server-time message-tags invite-notify batch echo-message account-tag";
+//		sendMsgUser(data[(pollfdIt)index].fd, message);
+//	}
+//	
+//	void	Server::cap_end(clientIt index, std::vector<std::string> &arguments)
+//	{
+//		(void)arguments;	
+//		std::cout << "CAP END!!!! \n";
+//		std::string message = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; ///PARA MI NO TIENE QUE IR AQUI , FUERA EN EL BUCLE DE COMANDOS COMO METER???
+//		sendMsgUser(data[(pollfdIt)index].fd, message);
+//	
+//	}
+//	
+//	void	Server::cap_ack(clientIt index, std::vector<std::string> &arguments)
+//	{
+//		(void)arguments;
+//		std::string message = "CAP * ACK : multi-prefix sasl account-notify extended-join away-notify chghost userhost-in-names cap-notify server-time message-tags invite-notify batch echo-message account-tag";
+//		sendMsgUser(data[(pollfdIt)index].fd, message);
+//		//sendMsgUser(index, "CAP * END");
+//	}
+//		
+//		
+//	void	Server::cap_nak(clientIt index, std::vector<std::string> &arguments)
+//	{
+//	
+//		(void)index;
+//		(void)arguments;
+//	}
+//	
+//	
+//	/*void	Server::cap_available(std::vector<std::string> &arguments)
+//	{
+//			//va a devolver las capabilities disponibles, osea las que coinciden 
+//	
+//		std::vector<std::string> availables;
+//	
+//	
+//	}*/
+
+
+
 
 END_ANONYMOUS_NAMESPACE
 END_CMD_NAMESPACE

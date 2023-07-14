@@ -4,6 +4,10 @@
 #include "../include/cmd_structs.h"
 #include "../include/function.h"
 #include "../include/ServerDataStructs.h"
+#include "../include/ErrorHandler.hpp"
+
+
+
 
 /* ------------------------------------------------------------ */
 /* 			CONSTRUCTOR DESTRUCTOR INITIALIZATION 				*/
@@ -53,7 +57,6 @@ void	Server::checkFds(int events)
 	sd::pollfdIt i = 0;
 	if (serverData[i].revents & POLLIN) //CONEXION REQUEST
 	{
-		//printf("-------- INCOMING REQUEST RECEIVED --------\n");
 		acceptConnection();
 		events--;
 	}
@@ -74,7 +77,7 @@ void	Server::listenConnection() {
 	std::cout << "Server started, im listening" << std::endl;
 	if (listen(serverData[(sd::pollfdIt)0].fd, 3) == SERVER_FAILURE)
 	{
-		perror("listening process failure");
+		std::cerr << color::red << "ERROR: listening process failure\n" << color::reset; 
 		exit(EXIT_FAILURE);
 	}
 }
@@ -86,36 +89,16 @@ std::string getHostName(int fd)
 	struct sockaddr_in clientAddr;
 	socklen_t clientAddrLen = sizeof(clientAddr);
 	if (getpeername(fd, (struct sockaddr *)&clientAddr, &clientAddrLen) == -1) {
-		perror("getpeername error");
+		std::cerr << color::red << "ERROR: getpeername() failed\n" << color::reset; 
 		exit(1);
 	}
-
 	// Convert the IP address from binary to string representation
 	char ipStr[INET_ADDRSTRLEN];
 	if (inet_ntop(AF_INET, &(clientAddr.sin_addr), ipStr, INET_ADDRSTRLEN) == nullptr) {
-		perror("inet_ntop error");
+		std::cerr << color::red << "ERROR: inet process failure\n" << color::reset; 
 		exit(1);
 	}
 	return std::string(ipStr);
-
-	/*
-	struct addrinfo {
-	               int              ai_flags;
-	               int              ai_family;
-	               int              ai_socktype;
-	               int              ai_protocol;
-	               socklen_t        ai_addrlen;
-	               struct sockaddr *ai_addr;
-	               char            *ai_canonname;
-	               struct addrinfo *ai_next;
-	           };
-	
-	struct sockaddr {
-	        ushort  sa_family;
-	        char    sa_data[14];
-	};
-	*/
-
 }
 
 void	Server::acceptConnection() {
@@ -123,10 +106,9 @@ void	Server::acceptConnection() {
 	unsigned int size = static_cast<unsigned int>(sizeof(serverInfo.address));
 	struct pollfd new_client;
 
-	std::cout << "The connection has been accepted, continuing" << std::endl;
 	if ((new_client.fd = accept(serverData[(sd::pollfdIt)0].fd, (struct sockaddr *)&serverInfo.address, &size)) == SERVER_FAILURE)
 	{
-		perror("connection refused");
+		std::cerr << color::red << "ERROR: Connection refused\n" << color::reset; 
 		return;
 	}
 	new_client.events = POLLOUT | POLLIN;
@@ -146,8 +128,10 @@ void Server::serverConfig(sd::t_serverInput *serverInput)
 				serverInput->chantypes = conf[1];
 			else if (conf[0] == "PREFIX")
 				serverInput->prefix = conf[1];
+			else if (conf[0] == "MODES")
+				serverInput->modes = std::stoi(conf[1]);
 			else if (conf[0] == "CHANLIMIT")
-				serverInput->modes = std::stoi(conf[1].substr(2));
+				serverInput->chanlimit = std::stoi(conf[1].substr(2));
 			else if (conf[0] == "NICKLEN")
 				serverInput->nicklen = std::stoi(conf[1]);
 			else if (conf[0] == "USERLEN")
@@ -180,26 +164,28 @@ void Server::serverConfig(sd::t_serverInput *serverInput)
 /*						POLL() AND HANDLE EVENTS	 (incoming requests and inputs)	    //La nueva minishell		*/
 /* ---------------------------------------------------------------------------------------- */
 
-void Server::handleInput(sd::clientIt index, std::string input) 
+cmd::eFlags Server::handleInput(sd::clientIt index, std::string input) 
 {
-	
-	/////////////SIGHANDLER o ////////////////
-	
+
 	std::vector<std::string> arguments = utils::splitIrcPrameters(input, ' ');
 
-	cmd::CmdInput package(arguments, serverData, index);
-	if (cmd::callFunction(arguments[0], package) != cmd::eSuccess)
+	cmd::CmdInput package(arguments, serverData, index); 
+	cmd::eFlags output = cmd::callFunction(arguments[0], package);
+	if (output == cmd::eNoSuchFunction)
 	{
-		std::cout << color::red << "[ERROR DE COMANDO [" <<  input << "]\n" << color::reset;
-		//send error message client;
+		std::cerr << color::red << "ERR_UNKNOWNCOMMAND: " <<  arguments[0] << "\n" << color::reset; 
+		error::error(package, error::ERR_UNKNOWNCOMMAND, arguments[0]);
 	}
+	return output;
 }
 
 void Server::handleEvents(sd::pollfdIt index)
 {
 	if (serverData[index].revents & POLLIN)
 	{
-		std::string input = readTCPInput(serverData[index].fd);
+		std::string input = readTCPInput(serverData[index].fd, (sd::clientIt)index);
+		if ("QUIT" == input)
+			return;
 		serverData[(sd::clientIt)index].addBuffer(input);
 		if (input[input.size() - 1] != '\n')
 			return;
@@ -207,14 +193,15 @@ void Server::handleEvents(sd::pollfdIt index)
 		{
 			input = serverData[(sd::clientIt)index].getBuffer();
 			std::vector<std::string> lines = utils::split(input, '\n');
+			bool exited = false;
 			for (uint32_t i = 0; i < lines.size(); i++)
 			{
-				std::cout << color::boldyellow << serverData[(sd::clientIt)index].getUsername() << color::green << " >> CLIENT:[" << color::boldwhite << lines[i] << color::green << "]" << color::reset << "\n" ;
-				handleInput((sd::clientIt)index, lines[i]);
+				if (handleInput((sd::clientIt)index, lines[i]) == cmd::eExited)
+					exited = true;
 			}
-			serverData[(sd::clientIt)index].emptyBuffer();
+			if (!exited)
+				serverData[(sd::clientIt)index].emptyBuffer();
 		}
-		
 	}
 }
 
@@ -231,41 +218,35 @@ std::string Server::getName()const
 
 
 
-std::string Server::readTCPInput(int client_fd) {
+std::string Server::readTCPInput(int client_fd, sd::clientIt index) {
 	char echoBuffer[RCVBUFSIZE];
 	int	recvMsgSize;
+	
 
 	memset(echoBuffer, 0, RCVBUFSIZE);
 	recvMsgSize = recv(client_fd, echoBuffer, sizeof(echoBuffer) - 1, 0);
 	if (recvMsgSize == SERVER_FAILURE)
 	{
-		perror("recv failed, debug here: ");
+		std::cerr << color::red << "ERROR: recv failed\n" << color::reset; 
 		return (std::string(nullptr));
 	}
 	else if (recvMsgSize == 0) {
-		std::vector<std::string> quit_arguments;
-
-		//QUIIIIIIIIIIIIIIIIIIIIIIIITTTTTTTT
-
-		//errorHandler (severfailure)
-
-		//cmd::CmdInput input(quit_arguments, serverData, );  
-		//cmd::callfunction("QUIT", input);
-		//quit(client_fd, quit_arguments);
-		
-		return std::string("A client was disconnected from the server");
+		std::vector<std::string>arguments;
+		arguments.push_back("QUIT");
+		cmd::CmdInput package(arguments, serverData, index);
+		cmd::callFunction("QUIT", package);
+		return("QUIT");
 	}
 	///////////////LIMPIACARRO///////////
-	ssize_t index = 0;
+	ssize_t j = 0;
 	for(ssize_t i = 0; i < recvMsgSize; i++)
 	{
 		if (echoBuffer[i] != '\r')
 		{
-			echoBuffer[index] = echoBuffer[i];
-			index++;
+			echoBuffer[j] = echoBuffer[i];
+			j++;
 		}
 	}
-	write(0, echoBuffer, index);
 	return std::string(echoBuffer, recvMsgSize);
 }
 
@@ -310,7 +291,6 @@ void	Server::printServerStatus() const
 /*										SERVER FROM ITERM									*/
 /* ---------------------------------------------------------------------------------------- */
 
-
 void Server::lauch()
 {
 	int events;
@@ -322,7 +302,7 @@ void Server::lauch()
 		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), 200);//200 mirar mas tarde
 		if (events < 0)
 		{
-			perror("error-event detected");
+			std::cerr << color::red << "ERROR: poll() - error-event detected\n" << color::reset; 
 			return;
 		}
 		if (events != 0)
@@ -337,28 +317,28 @@ void *Server::lauchWrapper(void *data)
 	return nullptr;
 }
 
-void	Server::run2(){
-	
-
+void	Server::run2()
+{
 	if(pthread_create(&serverThread, NULL, lauchWrapper, this))
 	{
-		std::cerr << "Error creating thread" << std::endl;
+		std::cerr << color::red << "ERROR: Error creating thread\n" << color::reset; 
 		return ;
 	}
 	minishell();
 	if(pthread_join(serverThread, NULL))
 	{
-		std::cerr << "Error joining thread" << std::endl;
+		std::cerr << color::red << "ERROR: Error joining thread\n" << color::reset; 
 		return ;
 	}
 }
 
 void Server::minishell()
 {
+	std::cout << std::endl;
 	while (1)
 	{
 		std::string line;
-		std::cout << "\t> ";
+		std::cout << color::boldwhite << "> " << color::reset;
 		std::getline(std::cin, line);
 		if (line == "quit")
 			return ;
@@ -372,6 +352,19 @@ void Server::minishell()
 			std::getline(std::cin, line);
 			printChannelInfo(line);
 		}
+		else if (line == "info user")
+		{
+			std::cout << "user name: ";
+			std::getline(std::cin, line);
+			printUserInfo(line);
+		}
+		else if (line == "info server")
+			printServerInfo();
+		else if (line == "info")
+			printInfo();
+		else {
+			std::cout << color::red << "║ Unknown command!\n" << color::reset;
+		}
 	}
 }
 
@@ -379,7 +372,7 @@ void Server::printAllChannNames() const
 {
 	for (sd::channIt ch = 0; ch < serverData.getNumOfChannels(); ch++)
 	{
-		std::cout << color::boldwhite << "\t[" << std::to_string(ch) << "]\t" << serverData[ch].getName() << "\n" << color::reset;
+		std::cout << color::boldwhite << "║ [" << std::to_string(ch) << "]\t" << serverData[ch].getName() << "\n" << color::reset;
 	}
 }
 
@@ -387,7 +380,7 @@ void Server::printAllUsers()const
 {
 	for (sd::clientIt user = 0; user < serverData.getNumOfClients(); user++)
 	{
-		std::cout << color::boldwhite << "\t[" << std::to_string(user) << "] " << serverData[user].getNickname() << color::reset << '\n';
+		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << serverData[user].getNickname() << color::reset << '\n';
 	}
 }
 
@@ -396,18 +389,64 @@ void Server::printChannelInfo(const std::string& chName)const
 	sd::channIt channel = serverData.findChannel(chName);
 	if (channel == 0)
 	{
-		std::cout << color::red << "Channel " << chName << " does not exist\n" << color::reset;
+		std::cout << color::red << "║ Channel '" << chName << "' does not exist\n" << color::reset;
 		return ;
 	}
-	std::cout << color::boldwhite << "\tName: " << color::reset << chName << '\n';
-	std::cout << color::boldwhite << "\tTopic: " << color::reset << serverData[channel].getTopic() << '\n';
-	std::cout << color::boldwhite << "\tCreator: " << color::reset << serverData[channel].getCreator() << '\n';
-	std::cout << color::boldwhite << "\tCreation Date: " << color::reset << serverData[channel].getCreationDate() << '\n';
-	std::cout << color::boldwhite << "\tNum of users: " << color::reset << serverData[channel].getNumUser() << '\n';
-	std::cout << color::boldwhite << "\tUsers:\n" << color::reset;
+	std::cout << color::boldwhite << "║ " << color::yellow << "Name: " << color::reset << chName << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Topic: " << color::reset << serverData[channel].getTopic() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Creator: " << color::reset << serverData[channel].getCreator() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Creation Date: " << color::reset << serverData[channel].getCreationDate() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Num of users: " << color::reset << serverData[channel].getNumUser() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Users:\n" << color::reset;
 	std::vector<std::string> names = utils::split(serverData[channel].getUserList(), '\n');
 	for (std::vector<std::string>::const_iterator name = names.begin(); name != names.end(); name++)
 	{
-		std::cout << color::cyan << "\t\t" << *name << '\n' << color::reset;
+		std::cout << color::cyan << "\t" << *name << '\n' << color::reset;
 	}
+}
+
+void Server::printUserInfo(const std::string& nickname)const
+{
+	sd::clientIt user = serverData.findNickname(nickname);
+	if (user == 0)
+	{
+		std::cout << color::red << "║ Channel " << nickname << " does not exist\n" << color::reset;
+		return ;
+	}
+	std::cout << color::boldwhite << "║ " << color::yellow << "Nickname: " << color::reset << nickname << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Username: " << color::reset << serverData[user].getUsername() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Hostname: " << color::reset << serverData[user].getHostname() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Role: " << color::reset << serverData[user].getRole() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Away: " << color::reset << (bool)serverData[user].getAwayStatus();
+	if (serverData[user].getAwayStatus())
+		std::cout << color::boldwhite << "║ Message: " << color::reset << serverData[user].getAwayMsg();
+	std::cout << '\n';
+}
+
+void Server::printServerInfo()const
+{
+	std::cout << color::boldwhite << "║ " << color::yellow << "CHANTYPES: " << color::reset << serverInfo.chantypes << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "PREFIX: " << color::reset << serverInfo.prefix << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "MODES: " << color::reset << serverInfo.modes << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "CHANLIMIT: " << color::reset << serverInfo.chanlimit << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "NICKLEN: " << color::reset << serverInfo.nicklen << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "USERLEN: " << color::reset << serverInfo.userlen << '\n';
+
+	std::cout << color::boldwhite << "║ " << color::yellow << "HOSTLEN: " << color::reset << serverInfo.hostlen << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "TOPICLEN: " << color::reset << serverInfo.topiclen << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "CHANNELLEN: " << color::reset << serverInfo.channellen << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERS: " << color::reset << serverInfo.maxusers << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERSCHAN: " << color::reset << serverInfo.maxuserschan << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "VERSION: " << color::reset << serverInfo.version << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "USERLEN: " << color::reset << serverInfo.userlen << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "VERSION_COMMENTS: " << color::reset << serverInfo.versionComments << '\n';
+}
+
+void Server::printInfo()const
+{
+	std::cout << color::boldwhite << "║ " << color::yellow << "ls ch: " << color::reset << "list all channels" << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "ls users: " << color::reset << "list all users" << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "info user: " << color::reset << "print user info" << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "info ch: " << color::reset << "print channel info" << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "info server: " << color::reset << "print server info" << '\n';
 }

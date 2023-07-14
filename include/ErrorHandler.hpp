@@ -88,12 +88,13 @@ enum Type{
 	RPL_NAMREPLY = 353,
 	RPL_ENDOFNAMES = 366,
 	RPL_AWAY =  301,
-	RPL_UNAWAY =  305, //When the user is no longer away
-	RPL_NOWAWAY =  306,//When the user is away
-	RPL_MOTDSTART = 375, //Start of the MOTD
-	RPL_MOTD = 372, //Server reply with each line of the MOTD
-	RPL_ENDOFMOTD = 376, //Indicates the end of MOTD to the client.
+	RPL_UNAWAY =  305, 		
+	RPL_NOWAWAY =  306,		
+	RPL_MOTDSTART = 375, 	
+	RPL_MOTD = 372, 		
+	RPL_ENDOFMOTD = 376, 	
 	ERR_NOMODEOPTION = 666,
+	
 };
 
 START_ANONYMOUS_NAMESPACE
@@ -136,7 +137,8 @@ static const ErrMap& getErrorMap()
 	errMap[ERR_TOOMANYTARGETS]		= "Duplicate recipients. No message delivered"; 			//407
 	errMap[ERR_BADPASSWORD]			= "Closing Link: localhost (Bad Password)";
 	errMap[ERR_CHANNELISFULL]		= ":Cannot join channel (+l)";
-	errMap[ERR_NOMODEOPTION]		= "No MODE option in A O I R C Server"
+	errMap[ERR_NOMODEOPTION]		= "No MODE option in A O I R C Server";
+	errMap[ERR_UNKNOWNCOMMAND]		= ":Unknown command";										//421
 	}
 	return errMap;
 }

@@ -14,6 +14,7 @@ START_CMD_NAMESPACE
 enum eFlags{
 	eSuccess,
 	eNoSuchFunction,
+	eExited,
 };
 
 enum eReply{
@@ -32,7 +33,6 @@ enum eReply{
 	eRPL_KICK		=  12,
 	eRPL_PRIVMSG	=  13,
 	eRPL_KILL		=  14,
-
 	eRPL_LUSERCLIENT = 251,
 	eRPL_LUSERME	= 255,
 	eRPL_AWAY		= 301,
@@ -47,8 +47,10 @@ enum eReply{
 	eRPL_VERSION	= 351,
 	eRPL_NAMREPLY	= 353,
 	eRPL_ENDOFNAMES	= 366,
+	eRPL_WHOIS		= 318,
 	eRPL_MOTD		= 375,
 	eRPL_YOUREOPER	= 385,
+	eRPL_TIME		= 391,
 };
 
 struct CmdInputVar{

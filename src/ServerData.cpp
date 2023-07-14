@@ -14,7 +14,8 @@ ServerData::ServerData(t_serverInput &serverInfo):config(serverInfo)
 	creationDate = utils::t_chrono::to_time_t(utils::t_chrono::now());
 	pollfd server;
 	Client root(serverInfo.serverName);
-
+	root.setNickname("Root");
+	
 	server.events = POLLOUT | POLLIN;
 	setSocket(server, serverInfo);
 
@@ -67,8 +68,7 @@ void	ServerData::addClient(pollfd userPollfd,Client newClient)
 	clients.push_back(newClient); //CLIENTE VACIO
 }
 
-void	ServerData::setSocket(pollfd &server, t_serverInput &serverInfo){
-
+void	ServerData::setSocket(pollfd &server, t_serverInput &serverInfo) {
 	if ((server.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SERVER_FAILURE)
 	{
 		perror("socket failed");
@@ -79,9 +79,7 @@ void	ServerData::setSocket(pollfd &server, t_serverInput &serverInfo){
 		perror("socket bind failed");
 		exit(EXIT_FAILURE);
 	}
-	
 	fcntl(server.fd, F_SETFL, O_NONBLOCK);
-
 }
 
 void	ServerData::backClient(clientIt index)

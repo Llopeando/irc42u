@@ -1,3 +1,4 @@
+
 #include "../include/UsersData.hpp"
 
 UsersData::UsersData()
@@ -30,7 +31,6 @@ void	UsersData::addClient(pollfd userPollfd,Client newClient)
 }
 
 void	UsersData::setSocket(pollfd &server, t_serverInput &serverInfo){
-
 	if ((server.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SERVER_FAILURE)
 	{
 		perror("socket failed");
@@ -41,9 +41,7 @@ void	UsersData::setSocket(pollfd &server, t_serverInput &serverInfo){
 		perror("socket bind failed");
 		exit(EXIT_FAILURE);
 	}
-	
 	fcntl(server.fd, F_SETFL, O_NONBLOCK);
-
 }
 
 void	UsersData::backClient(clientIt index)

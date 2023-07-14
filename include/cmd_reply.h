@@ -88,10 +88,6 @@ std::string	rpl_isupport(CmdInput& input){
 																+ " CHANNELLEN=" + std::to_string(input.serverData.getConfig().channellen) + " :are supported by this server\r\n");
 }
 
-//std::string rpl_motdstart(CmdInput& input){
-//	return (":" + input.serverData[input.index].getUserMask() + " 375 " + input.serverData[input.index].getNickname() + " :- " + input.serverData.getName() + " Message of the day - \r\n");
-//}
-
 std::string	rpl_motd(CmdInput& input) //375//372//376
 {
 	std::string message = ":" + input.serverData[input.index].getUserMask() + " 375 " + input.serverData[input.index].getNickname() + " :- " + input.serverData.getName() + " Message of the day - \r\n";
@@ -156,8 +152,9 @@ std::string rpl_join(CmdInput& input)
 std::string rpl_joinmode(CmdInput& input)
 {
 	sd::channIt *channel = static_cast<sd::channIt *>(input.var->data);
-	return (':' + input.serverData.getName() + " MODE #" + input.serverData[*channel].getName() + " " + " +nt\r\n"); 
+	return (':' + input.serverData.getName() + " MODE #" + input.serverData[*channel].getName() + " " + " +nt\r\n"); //RPL_UMODEIS 221
 }
+
 
 std::string rpl_namreply(CmdInput& input)
 {
@@ -256,8 +253,21 @@ std::string rpl_kill(CmdInput& input)
 	sd::clientIt *user = static_cast<sd::clientIt *>(input.var->data);
 	std::string *reason = static_cast<std::string *>(input.var->pnext->data);
 
-	return (':' + input.serverData[input.index].getUserMask() + " KILL " + input.serverData[*user].getNickname() + " : " + *reason + "\r\n"); // :NikServ!NickServ@services.int KILL nick :Kill reason;
+	return (':' + input.serverData[input.index].getUserMask() + " KILL " + input.serverData[*user].getNickname() + " : " + *reason + "\r\n");
 }
+
+std::string rpl_whois(CmdInput &input)
+{
+	sd::clientIt *user = static_cast<sd::clientIt*>(input.var->data);
+	return ("311 " + input.serverData[*user].getNickname() + " " + input.serverData[*user].getNickname() + " " + input.serverData[*user].getUsername() + " " + input.serverData[*user].getHostname() + " * \r\n");
+}
+
+//std::string rpl_time(CmdInput &input)
+//{
+//	time_t now = utils::t_chrono::to_time_t(utils::t_chrono::now());
+//	return(": " + input.serverData.getName() + " 391 " + input.serverData[input.index].getNickname() + "[] :Local time is :" + std::ctime(&now) + "\r\n");
+//	//<client> <server> [<timestamp> [<TS offset>]] :<human-readable time>"
+//}
 
 const RplMap& getReplyMap()
 {
@@ -285,6 +295,7 @@ const RplMap& getReplyMap()
 		rplMap[eRPL_AWAY]			= &rpl_away;//301
 		rplMap[eRPL_UNAWAY]			= &rpl_unaway;//305
 		rplMap[eRPL_NOWAWAY]		= &rpl_nowaway;//306
+		rplMap[eRPL_WHOIS]			= &rpl_whois;//318
 		rplMap[eRPL_NOTOPIC]		= &rpl_notopic;//331
 		rplMap[eRPL_TOPIC]			= &rpl_topic;//332
 		rplMap[eRPL_TOPICWHOTIME]	= &rpl_topicwhotime;//333
@@ -294,6 +305,7 @@ const RplMap& getReplyMap()
 		rplMap[eRPL_ENDOFNAMES]		= &rpl_endofnames;//366
 		rplMap[eRPL_MOTD]			= &rpl_motd;//375
 		rplMap[eRPL_YOUREOPER]		= &rpl_youreoper;//381
+		//rplMap[eRPL_TIME]			= &rpl_time; //391
 	}
 	return rplMap;
 }
