@@ -13,7 +13,10 @@ class Client
 		Client(const Client &client);
 		~Client();
 		
-		
+		void addBuffer(const std::string& str);
+		std::string getBuffer() const;
+		void emptyBuffer();
+
 		Client& operator=(const Client& client);
 		std::string	getUserMask()const;
 		std::string	getUsername()const;
@@ -46,6 +49,8 @@ class Client
 		std::string password;
 		std::string away_msg;
 		std::string hostname;
+
+		std::string buffer;
 	//	uint32_t lastMsgIndex; //ultimo mensaje leido
 	// en todo caso seria un vector porue puede estar en varios
 		uint8_t role;

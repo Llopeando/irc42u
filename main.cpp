@@ -28,7 +28,6 @@ int	main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	Server	*server = new Server(serverInfo);
-	//server->setSocket(serverInfo);
 	server->run();
 	delete server;
 	return (0);

@@ -140,6 +140,9 @@ void	Server::acceptConnection() {
 
 void Server::handleInput(sd::clientIt index, std::string input) 
 {
+	
+	/////////////SIGHANDLER o ////////////////
+	
 	std::vector<std::string> arguments = utils::splitIrcPrameters(input, ' ');
 
 	cmd::CmdInput package(arguments, serverData, index);
@@ -155,12 +158,21 @@ void Server::handleEvents(sd::pollfdIt index)
 	if (serverData[index].revents & POLLIN)
 	{
 		std::string input = readTCPInput(serverData[index].fd);
-		std::vector<std::string> lines = utils::split(input, '\n');
-		for (uint32_t i = 0; i < lines.size(); i++)
+		serverData[(sd::clientIt)index].addBuffer(input);
+		if (input[input.size() - 1] != '\n')
+			return;
+		else
 		{
-			std::cout << color::boldyellow << serverData[(sd::clientIt)index].getUsername() << color::green << " >> CLIENT:[" << color::boldwhite << lines[i] << color::green << "]" << color::reset << "\n" ;
-			handleInput((sd::clientIt)index, lines[i]);
+			input = serverData[(sd::clientIt)index].getBuffer();
+			std::vector<std::string> lines = utils::split(input, '\n');
+			for (uint32_t i = 0; i < lines.size(); i++)
+			{
+				std::cout << color::boldyellow << serverData[(sd::clientIt)index].getUsername() << color::green << " >> CLIENT:[" << color::boldwhite << lines[i] << color::green << "]" << color::reset << "\n" ;
+				handleInput((sd::clientIt)index, lines[i]);
+			}
+			serverData[(sd::clientIt)index].emptyBuffer();
 		}
+		
 	}
 }
 
@@ -192,6 +204,9 @@ std::string Server::readTCPInput(int client_fd) {
 		std::vector<std::string> quit_arguments;
 
 		//QUIIIIIIIIIIIIIIIIIIIIIIIITTTTTTTT
+
+		//errorHandler (severfailure)
+
 		//cmd::CmdInput input(quit_arguments, serverData, );  
 		//cmd::callfunction("QUIT", input);
 		//quit(client_fd, quit_arguments);

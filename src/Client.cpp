@@ -29,13 +29,24 @@ Client& Client::operator=(const Client& client) {
 	this->state = client.state;
 	this->isAway = client.isAway;
 	this->hostname = client.getHostname();
+	this->buffer = client.getBuffer();
 	}
 	return *this;
 }
 
+void	Client::emptyBuffer()
+{
+	buffer.clear();
+}
 
 
 /* --- DATA SETTERS --- */
+
+void Client::addBuffer(const std::string &str)
+{
+	buffer += str; 
+}
+
 void Client::setAuthentificied(bool status)
 {
 	authentificied = status;
@@ -66,6 +77,11 @@ void Client::setPassword(std::string password) { //ya veremos, esto no es muy se
 }
 
 /* --- DATA GETTERS --- */
+
+std::string Client::getBuffer() const {
+	return buffer;
+}
+
 bool	Client::getAuthentificied()const
 {
 	return authentificied;
@@ -104,6 +120,7 @@ std::string Client::getUserMask()const{
 }
 
 /* --- CHECKER FUNCTIONS --- */
+
 bool Client::checkPassword(std::string pass)const {
 
 	if (this->password == pass)
