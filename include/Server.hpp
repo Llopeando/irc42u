@@ -45,6 +45,7 @@ class Server
 		sd::t_serverInput serverInfo;
 		sd::ServerData serverData;
 		pthread_t serverThread;
+		pthread_t minishellThread;
 
 		void		acceptConnection();
 		void		listenConnection();
@@ -63,8 +64,10 @@ class Server
 		void		setCommands();
 
 		static void *lauchWrapper(void *data);
-		void lauch();
-		void minishell();
+		static void *minishellWrapper(void *data);
+		void	lauch();
+		void	minishell();
+		void	minilib();
 		void	printAllChannNames() const;
 		void	printAllUsers() const ;
 		void	printChannelInfo(const std::string& chName) const;

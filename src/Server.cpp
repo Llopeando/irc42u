@@ -5,7 +5,11 @@
 #include "../include/function.h"
 #include "../include/ServerDataStructs.h"
 #include "../include/ErrorHandler.hpp"
+#include "../include/Renderer.hpp"
 
+extern "C" {
+	#include "../libraries/mlx/betterMlx.h"
+}
 
 
 
@@ -317,6 +321,14 @@ void *Server::lauchWrapper(void *data)
 	return nullptr;
 }
 
+void *Server::minishellWrapper(void *data)
+{
+	Server *server = reinterpret_cast<Server *>(data);
+	server->minishell();
+	return nullptr;
+}
+
+
 void	Server::run2()
 {
 	if(pthread_create(&serverThread, NULL, lauchWrapper, this))
@@ -324,12 +336,28 @@ void	Server::run2()
 		std::cerr << color::red << "ERROR: Error creating thread\n" << color::reset; 
 		return ;
 	}
-	minishell();
+	if(pthread_create(&minishellThread, NULL, minishellWrapper, this))
+	{
+		std::cerr << color::red << "ERROR: Error creating thread\n" << color::reset; 
+		return ;
+	}
+	minilib();
+	if(pthread_join(minishellThread, NULL))
+	{
+		std::cerr << color::red << "ERROR: Error joining thread\n" << color::reset; 
+		return ;
+	}
 	if(pthread_join(serverThread, NULL))
 	{
 		std::cerr << color::red << "ERROR: Error joining thread\n" << color::reset; 
 		return ;
 	}
+}
+
+void Server::minilib()
+{
+	RenderEngine *engine = new RenderEngine(&serverData);
+	engine->render();
 }
 
 void Server::minishell()
@@ -436,7 +464,7 @@ void Server::printServerInfo()const
 	std::cout << color::boldwhite << "║ " << color::yellow << "TOPICLEN: " << color::reset << serverInfo.topiclen << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "CHANNELLEN: " << color::reset << serverInfo.channellen << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERS: " << color::reset << serverInfo.maxusers << '\n';
-	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERSCHAN: " << color::reset << serverInfo.maxuseraaschan << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERSCHAN: " << color::reset << serverInfo.maxuserschan << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "VERSION: " << color::reset << serverInfo.version << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "USERLEN: " << color::reset << serverInfo.userlen << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "VERSION_COMMENTS: " << color::reset << serverInfo.versionComments << '\n';
