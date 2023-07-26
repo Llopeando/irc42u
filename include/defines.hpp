@@ -16,14 +16,14 @@
 #define CL_STATE_INACTIVE 0
 
 #define CL_USER 0
-#define CL_OP 1
+//#define CL_OP 1
 #define CL_OPER 2
 
 #define RCVBUFSIZE 1024
 
 
 
-#define VERSION "1.0"
+#define VERSION "AOIRC Version: 1.0"
 
 
 namespace color {

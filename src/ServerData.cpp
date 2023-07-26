@@ -148,11 +148,24 @@ void ServerData::removeClientChannels(clientIt index)
 	}
 }
 
- void	ServerData::deleteChannel(uint32_t channel)
+void	ServerData::deleteChannel(uint32_t channel)
 {
+	for (uint32_t i = 1; i < channels.size(); i++) //se recolocan los index de channel y por lo tannto los index de findChannelOps de cada cliente 
+	{
+		std::string creatorName = channels[i].getCreator();
+		clientIt creator = findUsername(creatorName);
+		if (creator == 0)
+		{
+			creator = findUsernameBack(creatorName);
+			if (creator == 0)
+				continue ;
+			back[creator].updateOps(channel);
+		}
+		else
+			clients[creator].updateOps(channel);
+	}
 	channels.erase(channels.begin() + channel);
 }
-
 
 uint32_t	ServerData::findChannel(const std::string &name) const
 {
@@ -205,15 +218,22 @@ pollfd *ServerData::getPollfdData()
 
 clientIt ServerData::findUsername(const std::string& argument) const
 {
-	for(clientIt i = 0  ; i < clients.size(); i++)
+	for (clientIt i = 0  ; i < clients.size(); i++)
 		if (clients[i].getUsername() == argument )
 			return(i);
 	return (0);
 }
 
+uint32_t ServerData::findUsernameBack(const std::string &argument) const {
+	for (uint32_t i = 0; i < back.size(); i++)
+		if (back[i].getUsername() == argument)
+			return (i);
+	return (0);
+}
+
 clientIt ServerData::findNickname(const std::string& argument) const
 {
-	for(clientIt i = 0  ; i < clients.size(); i++)
+	for (clientIt i = 0  ; i < clients.size(); i++)
 		if (clients[i].getNickname() == argument )
 			return(i);
 	return (0);
@@ -221,7 +241,7 @@ clientIt ServerData::findNickname(const std::string& argument) const
 
 clientIt ServerData::findNicknameBack(const std::string& argument) const
  {
-	for(clientIt i = 0  ; i < back.size(); i++)
+	for (clientIt i = 0  ; i < back.size(); i++)
 		if (back[i].getNickname() == argument)
 			return(i);
 	return (0);

@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/11 14:00:32 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/11 17:32:11 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/26 19:46:25 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ Channel::Channel(std::string name, std::string username, ServerData *data)
 }
 
 Channel::~Channel() {
-	
+	std::cout << "CHANNEL DESTROYED\n";
 }
 
 /* --- GETTER AND SETTERS --- */
@@ -74,7 +74,6 @@ void	Channel::setCreationDate(std::time_t now){
 
 void Channel::removeClient(clientIt indexAct){
 	
-	//quitarlo del array
 	uint32_t	user_pos = findUser(indexAct);
 	if (user_pos == 0)
 	{
@@ -83,7 +82,11 @@ void Channel::removeClient(clientIt indexAct){
 	numOfUsers--;
 	users[user_pos] = users[numOfUsers];
 	users.pop_back();
+	if (numOfUsers == 0 && data->findChannel(name))
+	{
+		data->deleteChannel(data->findChannel(name));
 	}
+}
 
 
 uint32_t	Channel::findUser(clientIt indexAct)const {

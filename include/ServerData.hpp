@@ -36,6 +36,7 @@ class ServerData{
 		char		*getCreationDate()const;
 
 		clientIt	findUsername(const std::string& argument) const;
+		uint32_t	findUsernameBack(const std::string& argument) const;
 		clientIt	findNickname(const std::string& argument) const;
 		clientIt	findNicknameBack(const std::string& argument) const;
 

@@ -20,7 +20,6 @@
 #include <system_error>
 #include <pthread.h>
 
-
 #include "Utils.hpp"
 #include "defines.hpp"
 #include "color.h"
@@ -63,8 +62,8 @@ class Server
 		void		setCommands();
 
 		static void *lauchWrapper(void *data);
-		void lauch();
-		void minishell();
+		void	lauch();
+		void	minishell();
 		void	printAllChannNames() const;
 		void	printAllUsers() const ;
 		void	printChannelInfo(const std::string& chName) const;

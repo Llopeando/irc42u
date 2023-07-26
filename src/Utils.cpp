@@ -149,4 +149,14 @@ namespace utils{
 		return source;
 		
 	}
+
+	void printBinary(uint32_t value)
+	{
+		int size = 31;
+		while (size >= 0)
+		{
+			std::cout << (int)(bool)(value & (1 << size));
+			size--;
+		}
+	}
 }

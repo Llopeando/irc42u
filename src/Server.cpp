@@ -6,9 +6,6 @@
 #include "../include/ServerDataStructs.h"
 #include "../include/ErrorHandler.hpp"
 
-
-
-
 /* ------------------------------------------------------------ */
 /* 			CONSTRUCTOR DESTRUCTOR INITIALIZATION 				*/
 /* ------------------------------------------------------------ */
@@ -164,6 +161,19 @@ void Server::serverConfig(sd::t_serverInput *serverInput)
 /*						POLL() AND HANDLE EVENTS	 (incoming requests and inputs)	    //La nueva minishell		*/
 /* ---------------------------------------------------------------------------------------- */
 
+bool  salto(const std::vector<std::string>& arguments)
+{
+	for(uint32_t i = 0; i < arguments.size(); i++)
+	{
+		for (uint32_t j = 0; j < arguments[i].size();j++)
+		{
+			if (arguments[i][j] == '\r')
+				return true;
+		}
+	}
+	return false;
+}
+
 cmd::eFlags Server::handleInput(sd::clientIt index, std::string input) 
 {
 
@@ -171,9 +181,11 @@ cmd::eFlags Server::handleInput(sd::clientIt index, std::string input)
 
 	cmd::CmdInput package(arguments, serverData, index); 
 	cmd::eFlags output = cmd::callFunction(arguments[0], package);
-	if (output == cmd::eNoSuchFunction)
+	if (output == cmd::eNoSuchFunction && arguments.size() &&!arguments[0].empty())
 	{
-		std::cerr << color::red << "ERR_UNKNOWNCOMMAND: " <<  arguments[0] << "\n" << color::reset; 
+		if (salto(arguments))
+			std::cout << "nice\n";
+		std::cerr << color::red << "ERR_UNKNOWNCOMMAND: [" <<  arguments[0] << "]\n" << color::reset; 
 		error::error(package, error::ERR_UNKNOWNCOMMAND, arguments[0]);
 	}
 	return output;
@@ -184,6 +196,7 @@ void Server::handleEvents(sd::pollfdIt index)
 	if (serverData[index].revents & POLLIN)
 	{
 		std::string input = readTCPInput(serverData[index].fd, (sd::clientIt)index);
+		//std::cout << color::blue << "input: [" << input << "]\n" << color::reset;
 		if ("QUIT" == input)
 			return;
 		serverData[(sd::clientIt)index].addBuffer(input);
@@ -247,7 +260,7 @@ std::string Server::readTCPInput(int client_fd, sd::clientIt index) {
 			j++;
 		}
 	}
-	return std::string(echoBuffer, recvMsgSize);
+	return std::string(echoBuffer, j);
 }
 
 /* ---------------------------------------------------------------------------------------- */
@@ -405,6 +418,7 @@ void Server::printChannelInfo(const std::string& chName)const
 	}
 }
 
+
 void Server::printUserInfo(const std::string& nickname)const
 {
 	sd::clientIt user = serverData.findNickname(nickname);
@@ -417,6 +431,9 @@ void Server::printUserInfo(const std::string& nickname)const
 	std::cout << color::boldwhite << "║ " << color::yellow << "Username: " << color::reset << serverData[user].getUsername() << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "Hostname: " << color::reset << serverData[user].getHostname() << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "Role: " << color::reset << serverData[user].getRole() << '\n';
+		std::cout << color::boldwhite << "║ " << color::yellow << "ChannelOps: " << color::reset;
+		utils::printBinary(serverData[user].getChannelToOps());
+		std::cout << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "Away: " << color::reset << (bool)serverData[user].getAwayStatus();
 	if (serverData[user].getAwayStatus())
 		std::cout << color::boldwhite << "║ Message: " << color::reset << serverData[user].getAwayMsg();
@@ -436,7 +453,7 @@ void Server::printServerInfo()const
 	std::cout << color::boldwhite << "║ " << color::yellow << "TOPICLEN: " << color::reset << serverInfo.topiclen << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "CHANNELLEN: " << color::reset << serverInfo.channellen << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERS: " << color::reset << serverInfo.maxusers << '\n';
-	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERSCHAN: " << color::reset << serverInfo.maxuseraaschan << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERSCHAN: " << color::reset << serverInfo.maxuserschan << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "VERSION: " << color::reset << serverInfo.version << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "USERLEN: " << color::reset << serverInfo.userlen << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "VERSION_COMMENTS: " << color::reset << serverInfo.versionComments << '\n';

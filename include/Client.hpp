@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "defines.hpp"
+#include "ServerDataStructs.h"
 
 class Client
 {
@@ -16,6 +17,11 @@ class Client
 		void addBuffer(const std::string& str);
 		std::string getBuffer() const;
 		void emptyBuffer();
+
+		void		addChannelToOps(sd::channIt index);
+		uint32_t	getChannelToOps()const;
+		bool		findChannelInOps(sd::channIt index)const;
+		void		updateOps(uint32_t client);
 
 		Client& operator=(const Client& client);
 		std::string	getUserMask()const;
@@ -36,11 +42,6 @@ class Client
 		void		setNickname(std::string nickname);
 		void		setPassword(std::string password);
 		
-		
-		//void		setLastMsgIdx(uint32_t msgIdx);
-		//uint32_t	getLastMsgIdx()const;
-		//void		addLastMsgIdx(uint32_t num);
-		//void		resetLastMsgIdx();
 		bool		checkPassword(std::string pass) const;
 		
 	private:
@@ -51,14 +52,12 @@ class Client
 		std::string hostname;
 
 		std::string buffer;
-	//	uint32_t lastMsgIndex; //ultimo mensaje leido
-	// en todo caso seria un vector porue puede estar en varios
+		uint32_t channelOps;
 		uint8_t role;
 		uint8_t state;
 		bool	isAway;
 		bool	authentificied;
-		//bool	inputBlock;
-		//bool	newClient;
+		//bool	inputBlock
 };
 
 #endif

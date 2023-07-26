@@ -28,6 +28,7 @@ namespace utils{
 	
 	std::string readFile(const char *filepath);
 
+	void printBinary(uint32_t value);
 }
 
 #endif

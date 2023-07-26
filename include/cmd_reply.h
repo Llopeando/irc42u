@@ -1,6 +1,7 @@
 #include "Config.h"
 #include "cmd_structs.h"
 #include <unordered_map>
+#include "../info.h"
 #define MOTD "\n " \
 			"         _____                           _______                           _____                            _____                            _____          \n" \
 			"         /\\    \\                         /::\\    \\                         /\\    \\                          /\\    \\                          /\\    \\         \n" \
@@ -22,7 +23,6 @@
 			"         /:::/    /                     \\::::/    /                     \\:::\\____\\                        |::|   |                        \\:::\\____\\         \n" \
 			"        /:::/    /                       \\::/    /                       \\::/    /                         \\:|   |                         \\::/    /         \n" \
 			"        \\::/____/                         \\/____/                         \\/____/                           \\|___|                          \\/____/          \n"
-
 
 /*
 *	Public:
@@ -189,6 +189,7 @@ std::string rpl_part(CmdInput& input)
 		return(":" + input.serverData[input.index].getUserMask() + " PART #" + input.serverData[*channel].getName() + " :" + *reason + "\r\n");
 	else
 		return(":" + input.serverData[input.index].getUserMask() + " PART #" + input.serverData[*channel].getName() + "\r\n");
+
 }
 
 std::string rpl_notopic(CmdInput& input)
@@ -206,6 +207,11 @@ std::string rpl_list(CmdInput& input)
 {
 	sd::channIt *channel = static_cast<sd::channIt *>(input.var->data);
 	return (":" + input.serverData.getName() + " 322 " + input.serverData[input.index].getNickname() + " #" + input.serverData[*channel].getName() + " " +  std::to_string(input.serverData[*channel].getNumUser()) + " :" + input.serverData[*channel].getTopic() + "\r\n");
+}
+
+std::string rpl_listend(CmdInput& input)
+{
+	return( ":" + input.serverData[input.index].getUserMask() + " 323 " + "\r\n");
 }
 
 std::string rpl_inviting(CmdInput& input)
@@ -269,6 +275,30 @@ std::string rpl_whois(CmdInput &input)
 //	//<client> <server> [<timestamp> [<TS offset>]] :<human-readable time>"
 //}
 
+std::string rpl_helpstart(CmdInput &input)
+{
+	return (":" + input.serverData.getName() + " 704 " + input.serverData[input.index].getUserMask() + " * : ** HELP mode ** \r\n");
+}
+
+std::string rpl_helptxt(CmdInput &input)
+{
+
+	std::vector<std::string> lines = utils::split(std::string(INFO), '\n');
+	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); it++) 
+	{
+		std::string motd_message = ":" + input.serverData[input.index].getUserMask() + " 705 " + input.serverData[input.index].getNickname() + " : " + *it + "\r\n";
+		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, motd_message);
+	}
+	return(NULL);
+
+}
+
+std::string rpl_endofhelp(CmdInput &input)
+{
+	return (":" + input.serverData.getName() + " 706 " + input.serverData[input.index].getUserMask() + " * : ** End of HELP mode ** \r\n");
+}
+
+
 const RplMap& getReplyMap()
 {
 	static RplMap rplMap;
@@ -290,6 +320,7 @@ const RplMap& getReplyMap()
 		rplMap[eRPL_KILL]			= &rpl_kill;//014
 		rplMap[eRPL_LISTSTART]		= &rpl_liststart;//321
 		rplMap[eRPL_LIST]			= &rpl_list ;//322
+		rplMap[eRPL_LISTEND]		= &rpl_listend ;//323
 		rplMap[eRPL_LUSERCLIENT]	= &rpl_luserclient;// 251
 		rplMap[eRPL_LUSERME]		= &rpl_luserme;//255
 		rplMap[eRPL_AWAY]			= &rpl_away;//301
@@ -306,6 +337,9 @@ const RplMap& getReplyMap()
 		rplMap[eRPL_MOTD]			= &rpl_motd;//375
 		rplMap[eRPL_YOUREOPER]		= &rpl_youreoper;//381
 		//rplMap[eRPL_TIME]			= &rpl_time; //391
+		rplMap[eRPL_HELPSTART] 		= &rpl_helpstart; //704
+ 		rplMap[eRPL_HELPTXT]		= &rpl_helptxt; //705
+ 		rplMap[eRPL_ENDOFHELP]		= &rpl_endofhelp; //706
 	}
 	return rplMap;
 }

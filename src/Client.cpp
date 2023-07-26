@@ -8,6 +8,7 @@ Client::Client(std::string hostName):hostname(hostName), role(CL_USER), authenti
 	state = CL_STATE_INPUT;
 	this->isAway = false;
 	this->away_msg = "";
+	channelOps = 0;
 
 }
 
@@ -30,6 +31,7 @@ Client& Client::operator=(const Client& client) {
 	this->isAway = client.isAway;
 	this->hostname = client.getHostname();
 	this->buffer = client.getBuffer();
+	this->channelOps = client.getChannelToOps();
 	}
 	return *this;
 }
@@ -76,15 +78,26 @@ void Client::setPassword(std::string password) { //ya veremos, esto no es muy se
 	this->password = password;
 }
 
+void	Client::addChannelToOps(sd::channIt index)
+{
+	std::cout << "INDEX: " << index << '\n';
+	channelOps |= (1 << index);
+}
+
+
+
 /* --- DATA GETTERS --- */
 
 std::string Client::getBuffer() const {
 	return buffer;
 }
 
-bool	Client::getAuthentificied()const
-{
+bool	Client::getAuthentificied() const {
 	return authentificied;
+}
+
+uint32_t	Client::getChannelToOps() const {
+	return (channelOps);
 }
 
 std::string	Client::getUsername() const {
@@ -127,4 +140,24 @@ bool Client::checkPassword(std::string pass)const {
 		return (true);
 	else
 		return (false);
+}
+
+/* --- FINDERS --- */
+
+bool	Client::findChannelInOps(sd::channIt index) const //con operadores de bits porque a eneko se le ha encaprichado 
+{
+	return (1 << index) & channelOps;
+}
+
+/* UPDATE */
+#include "../include/Utils.hpp"
+
+void Client::updateOps(uint32_t channel) {
+	uint32_t mask = (1 << channel) - 2; // -1 to get all 1 and - 2 to set the least fignificant bit to 0
+	uint32_t preserved = channelOps & mask;
+	uint32_t max = -1;
+	uint32_t shifted = (channelOps & (max & ~mask)) >> 1;
+	channelOps = shifted | preserved;
+	if (channelOps & 1)
+		channelOps -= 1;
 }

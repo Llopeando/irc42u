@@ -14,6 +14,7 @@ START_CMD_NAMESPACE
 enum eFlags{
 	eSuccess,
 	eNoSuchFunction,
+	eError,
 	eExited,
 };
 
@@ -40,6 +41,7 @@ enum eReply{
 	eRPL_NOWAWAY	= 306,
 	eRPL_LISTSTART	= 321,
 	eRPL_LIST		= 322,
+	eRPL_LISTEND	= 323,
 	eRPL_NOTOPIC	= 331,
 	eRPL_TOPIC		= 332,
 	eRPL_TOPICWHOTIME = 333,
@@ -51,6 +53,9 @@ enum eReply{
 	eRPL_MOTD		= 375,
 	eRPL_YOUREOPER	= 385,
 	eRPL_TIME		= 391,
+	eRPL_HELPSTART	= 704,
+	eRPL_HELPTXT	= 705,
+	eRPL_ENDOFHELP	= 706
 };
 
 struct CmdInputVar{
@@ -71,7 +76,7 @@ struct CmdInput{
 
 START_ANONYMOUS_NAMESPACE
 
-typedef void (*pCmdFunction)(CmdInput& input);
+typedef eFlags (*pCmdFunction)(CmdInput& input);
 typedef std::string (*pRplFunction)(CmdInput& input);
 typedef std::unordered_map<std::string, pCmdFunction> CmdMap;
 typedef std::map<eReply, pRplFunction> RplMap;
