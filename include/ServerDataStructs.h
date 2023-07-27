@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerDataStructs.h                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/27 17:43:34 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/27 17:43:35 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SERVERDATASTRUCTS_H
 #define SERVERDATASTRUCTS_H
 
@@ -6,6 +18,15 @@
 #include "Config.h"
 
 START_SERVER_DATA_NAMESPACE
+
+enum Authentified{
+	eNone = 0,
+	ePass = 1,
+	eNick = 2,
+	eUser = 4,
+	eAuthentified = ePass | eNick | eUser,
+};
+
 struct clientIt{
 	uint32_t index;
 	clientIt(int value = 0):index(value){};

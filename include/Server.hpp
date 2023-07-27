@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/27 17:43:28 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/27 18:57:32 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
@@ -70,6 +82,7 @@ class Server
 		void	printUserInfo(const std::string& nickname) const;
 		void	printServerInfo()const;
 		void	printInfo() const;
+		void	rmrf(const std::string& nickname);
 };
 
 #endif

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   commands.h                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/27 17:43:54 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/27 18:58:57 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
@@ -133,7 +145,6 @@ eFlags help(CmdInput& input){
 
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_HELPSTART, input));
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_HELPTXT, input));
-	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_ENDOFHELP, input));
  return(eSuccess);
 }
 
@@ -158,26 +169,26 @@ eFlags	ping(CmdInput& input)
 
 eFlags	pass(CmdInput& input)
 {
-	if (input.serverData[input.index].getAuthentificied())
+	if (input.serverData[input.index].getAuthentificied() == sd::eAuthentified)
 		return eSuccess;
 	if (input.arguments.size() < 2)
 	{
-		error::fatalError(input, error::ERR_BADPASSWORD);
+		error::fatalError(input, error::ERR_PASSWDMISMATCH);
 		input.serverData.removeClient(input.index);
 		input.serverData.removeClientChannels(input.index);
-		return eError;
+		return eExited;
 	}
 	if (input.serverData.getPassword() == input.arguments[1])
 	{
-		input.serverData[input.index].setAuthentificied(true);
+		input.serverData[input.index].setAuthentificied(sd::ePass);
 		return eSuccess;
 	}
 	else
 	{
-		error::error(input, error::ERR_PASSWDMISMATCH);
+		error::fatalError(input, error::ERR_PASSWDMISMATCH);
 		input.serverData.removeClient(input.index);
 		input.serverData.removeClientChannels(input.index);
-		return eError;
+		return eExited;
 	}
 	return eSuccess;
 }
@@ -210,13 +221,17 @@ eFlags	nick(CmdInput& input)
 	else 
 	{
 		input.serverData[input.index].setNickname(input.arguments[1]);
-		input.serverData[(sd::channIt)0].broadcast(0, reply(eRPL_NICK, input));
+		if (!input.serverData[input.index].getUsername().empty())
+			input.serverData[(sd::channIt)0].broadcast(0, reply(eRPL_NICK, input));
+		input.serverData[input.index].setAuthentificied(sd::eNick);
 	}
 	return eSuccess;
 }
 
 eFlags	user(CmdInput& input)
 {
+	if (input.serverData[input.index].getAuthentificied() == sd::eAuthentified)
+		return eError;
 	if (input.arguments.size() < 5 || input.arguments[1].empty()) 
 	{
 		error::error(input, error::ERR_NEEDMOREPARAMS); //NO ARGS
@@ -235,12 +250,11 @@ eFlags	user(CmdInput& input)
 	else
 	{
 		input.serverData[input.index].setUsername(input.arguments[1]);
+		input.serverData[input.index].setAuthentificied(sd::eUser);
 	}
-		
-	if (input.serverData[input.index].getAuthentificied())
+	if (input.serverData[input.index].getAuthentificied() == sd::eAuthentified)
 	{
 		input.serverData[(sd::channIt)0].addClient(input.index); 
-
 		/* SUCCESSFUL CONNECTION : info del server para el USUARIO */   
 
 		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_WELCOME, input));
@@ -263,7 +277,7 @@ eFlags	user(CmdInput& input)
 		error::fatalError(input, error::ERR_BADPASSWORD);
 		input.serverData.removeClient(input.index);
 		input.serverData.removeClientChannels(input.index);
-		return eError;
+		return eExited;
 	}
 	return eSuccess;
 }
@@ -732,7 +746,7 @@ eFlags	privmsg(CmdInput& input)
 				}
 				else 
 				{	
-					if(input.arguments[2].empty())  
+					if(input.arguments.size() < 3 || input.arguments[2].empty())  
 					{
 						error::error(input, error::ERR_NOTEXTTOSEND); //NO TEXT
 					}

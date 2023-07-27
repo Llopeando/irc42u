@@ -4,7 +4,7 @@
 
 Client::Client(){};
 
-Client::Client(std::string hostName):hostname(hostName), role(CL_USER), authentificied(false) {
+Client::Client(std::string hostName):hostname(hostName), role(CL_USER), authentificied(sd::eNone) {
 	state = CL_STATE_INPUT;
 	this->isAway = false;
 	this->away_msg = "";
@@ -32,6 +32,7 @@ Client& Client::operator=(const Client& client) {
 	this->hostname = client.getHostname();
 	this->buffer = client.getBuffer();
 	this->channelOps = client.getChannelToOps();
+	this->authentificied = client.getAuthentificied();
 	}
 	return *this;
 }
@@ -49,9 +50,9 @@ void Client::addBuffer(const std::string &str)
 	buffer += str; 
 }
 
-void Client::setAuthentificied(bool status)
+void Client::setAuthentificied(int status)
 {
-	authentificied = status;
+	authentificied |= status;
 }
 
 void Client::setRole(uint8_t role) {
@@ -92,7 +93,7 @@ std::string Client::getBuffer() const {
 	return buffer;
 }
 
-bool	Client::getAuthentificied() const {
+int	Client::getAuthentificied() const {
 	return authentificied;
 }
 

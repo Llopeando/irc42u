@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Channel.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/27 17:44:08 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/27 17:44:11 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
@@ -5,7 +17,6 @@
 #include "defines.hpp"
 #include "Utils.hpp"
 #include "ServerDataStructs.h"
-
 
 #include <iostream>
 #include <unistd.h>

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Client.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/27 17:44:06 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/27 17:45:38 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
@@ -30,11 +42,11 @@ class Client
 		std::string	getAwayMsg()const;
 		std::string	getNickname()const;
 		bool		getAwayStatus() const;
-		bool		getAuthentificied()const;
+		int		getAuthentificied()const;
 		uint8_t		getState() const;
 		uint32_t	getRole()const;
 
-		void		setAuthentificied(bool status);
+		void		setAuthentificied(int status);
 		void		setRole(uint8_t role);
 		void		setAwayStatus(bool isAway);
 		void		setAwayMsg(std::string away_msg);
@@ -56,7 +68,7 @@ class Client
 		uint8_t role;
 		uint8_t state;
 		bool	isAway;
-		bool	authentificied;
+		int	authentificied;
 		//bool	inputBlock
 };
 

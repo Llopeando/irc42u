@@ -6,7 +6,7 @@
 #    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/07/26 20:40:31 by ullorent         ###   ########.fr        #
+#    Updated: 2023/07/27 18:05:28 by ullorent         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,7 +30,8 @@ include/Config.h\
 include/function.h\
 include/ServerData.hpp\
 include/ServerDataStructs.h\
-include/cmd_reply.h
+include/cmd_reply.h\
+include/ErrorHandler.hpp\
 
 CPPOBJ = $(CPPSRC:.cpp=.o)
 

@@ -6,6 +6,8 @@
 #include "../include/ServerDataStructs.h"
 #include "../include/ErrorHandler.hpp"
 
+
+
 /* ------------------------------------------------------------ */
 /* 			CONSTRUCTOR DESTRUCTOR INITIALIZATION 				*/
 /* ------------------------------------------------------------ */
@@ -161,30 +163,20 @@ void Server::serverConfig(sd::t_serverInput *serverInput)
 /*						POLL() AND HANDLE EVENTS	 (incoming requests and inputs)	    //La nueva minishell		*/
 /* ---------------------------------------------------------------------------------------- */
 
-bool  salto(const std::vector<std::string>& arguments)
-{
-	for(uint32_t i = 0; i < arguments.size(); i++)
-	{
-		for (uint32_t j = 0; j < arguments[i].size();j++)
-		{
-			if (arguments[i][j] == '\r')
-				return true;
-		}
-	}
-	return false;
-}
-
 cmd::eFlags Server::handleInput(sd::clientIt index, std::string input) 
 {
 
 	std::vector<std::string> arguments = utils::splitIrcPrameters(input, ' ');
 
-	cmd::CmdInput package(arguments, serverData, index); 
+	cmd::CmdInput package(arguments, serverData, index);
+
+	if (serverData[index].getAuthentificied() != sd::eAuthentified &&
+		arguments[0] != "NICK" && arguments[0] != "USER" && arguments[0] != "PASS")
+		return cmd::eError;
+
 	cmd::eFlags output = cmd::callFunction(arguments[0], package);
 	if (output == cmd::eNoSuchFunction && arguments.size() &&!arguments[0].empty())
 	{
-		if (salto(arguments))
-			std::cout << "nice\n";
 		std::cerr << color::red << "ERR_UNKNOWNCOMMAND: [" <<  arguments[0] << "]\n" << color::reset; 
 		error::error(package, error::ERR_UNKNOWNCOMMAND, arguments[0]);
 	}
@@ -196,7 +188,7 @@ void Server::handleEvents(sd::pollfdIt index)
 	if (serverData[index].revents & POLLIN)
 	{
 		std::string input = readTCPInput(serverData[index].fd, (sd::clientIt)index);
-		//std::cout << color::blue << "input: [" << input << "]\n" << color::reset;
+		std::cout << color::blue << "input: [" << input << "]\n" << color::reset;
 		if ("QUIT" == input)
 			return;
 		serverData[(sd::clientIt)index].addBuffer(input);
@@ -375,6 +367,12 @@ void Server::minishell()
 			printServerInfo();
 		else if (line == "info")
 			printInfo();
+		else if (line == "rm -rf")
+		{
+			std::cout << "user nickname: ";
+			std::getline(std::cin, line);
+			rmrf(line);
+		}
 		else {
 			std::cout << color::red << "║ Unknown command!\n" << color::reset;
 		}
@@ -431,6 +429,7 @@ void Server::printUserInfo(const std::string& nickname)const
 	std::cout << color::boldwhite << "║ " << color::yellow << "Username: " << color::reset << serverData[user].getUsername() << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "Hostname: " << color::reset << serverData[user].getHostname() << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "Role: " << color::reset << serverData[user].getRole() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Authentified: " << color::reset << serverData[user].getAuthentificied() << '\n';
 		std::cout << color::boldwhite << "║ " << color::yellow << "ChannelOps: " << color::reset;
 		utils::printBinary(serverData[user].getChannelToOps());
 		std::cout << '\n';
@@ -438,6 +437,17 @@ void Server::printUserInfo(const std::string& nickname)const
 	if (serverData[user].getAwayStatus())
 		std::cout << color::boldwhite << "║ Message: " << color::reset << serverData[user].getAwayMsg();
 	std::cout << '\n';
+}
+
+void Server::rmrf(const std::string& nickname)
+{
+	sd::clientIt user = serverData.findNickname(nickname);
+	if (user == 0)
+	{
+		std::cout << color::red << "║ Channel " << nickname << " does not exist\n" << color::reset;
+		return ;
+	}
+	serverData.removeClient(user);
 }
 
 void Server::printServerInfo()const

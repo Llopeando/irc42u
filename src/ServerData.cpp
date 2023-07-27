@@ -97,6 +97,7 @@ void	ServerData::backClient(clientIt index)
 
 void	ServerData::removeClient(clientIt index)
 {
+	close(pollfds[index].fd);
 	if (index != clients.size() - 1)
 	{
 		clients[index] = clients[clients.size() - 1];

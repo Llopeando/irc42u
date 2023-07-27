@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ErrorHandler.hpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/27 17:43:41 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/27 18:20:10 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef ERRORS_HPP
 #define ERRORS_HPP
 
@@ -11,13 +23,13 @@
 #include "ServerData.hpp"
 #include "ServerDataStructs.h"
 
-
 /*
 *	Public:
 *		Enum Type:	enum of all the error values;
 *		error(): (2 arguments): sends error(code) message to specified client;
 *		error(): (3 arguments): sends error(code) message to specified client with argument;
-*		fatalError(): sends fatal error type(code) message to specified client;
+*		fatalError(): sends fatal error type(code) message to specified client
+
 *		
 */
 
@@ -82,7 +94,7 @@ enum Type{
 	ERR_SASLABORTED = 906,
 	ERR_SASLALREADY = 907,
 	ERR_TOOMANYTARGETS = 407,
-	ERR_BADPASSWORD = 1000,
+	ERR_BADPASSWORD = 464,
 	RPL_TOPIC = 332,
 	RPL_TOPICWHOTIME = 333,
 	RPL_NAMREPLY = 353,
@@ -145,21 +157,25 @@ static const ErrMap& getErrorMap()
 
 END_ANONYMOUS_NAMESPACE
 
-
 void	fatalError(cmd::CmdInput &bundle, Type errorCode)
 {
 	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
-	if (it != getErrorMap().end()) 
+	if (it != getErrorMap().end())
 	{
 		std::string errorMsg = "ERROR : " + it->second + "\r\n";
 		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, errorMsg);
-	}	
+	}
 }
 
 void	error(cmd::CmdInput &bundle, Type errorCode)
 {
 	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
-	if (it != getErrorMap().end()) 
+	if (bundle.serverData[(sd::clientIt)bundle.index].getNickname().empty())
+	{
+		std::string err_msg = ":" + bundle.serverData.getName() + " " + std::to_string(errorCode) + " " + "(unasigned)" + " :" + it->second + "\r\n";
+		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, err_msg);
+	}
+	else if (it != getErrorMap().end())
 	{
 		std::string err_msg = ":" + bundle.serverData.getName() + " " + std::to_string(errorCode) + " " + bundle.serverData[(sd::clientIt)bundle.index].getNickname() + " :" + it->second + "\r\n";
 		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, err_msg);
@@ -169,13 +185,13 @@ void	error(cmd::CmdInput &bundle, Type errorCode)
 		std::string err_msg = ":" + bundle.serverData.getName() + " " + std::to_string(errorCode) + " " + bundle.serverData[(sd::clientIt)bundle.index].getNickname() + " :" + getErrorMap().begin()->second + "\r\n";
 		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, err_msg);
 	}
-	//std::cout << color::red << "ERROR: [" << err_msg.substr(0, err_msg << "]\n" << color::reset;	
+	//std::cout << color::red << "ERROR: [" << err_msg.substr(0, err_msg << "]\n" << color::reset;
 }
 
 void	error(cmd::CmdInput &bundle, Type errorCode, std::string param)
 {
 	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
-	if (it != getErrorMap().end()) 
+	if (it != getErrorMap().end())
 	{
 		std::string err_msg = ":" + bundle.serverData.getName() + " " + std::to_string(errorCode) + " " + bundle.serverData[(sd::clientIt)bundle.index].getNickname() + " " + param + " :" + it->second + "\r\n";
 		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, err_msg);
@@ -186,7 +202,6 @@ void	error(cmd::CmdInput &bundle, Type errorCode, std::string param)
 		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, err_msg);
 	}
 	//std::cout << color::red << "ERROR: [" << err_msg.substr(0, err_msg << "]\n" << color::reset;
-	
 }
 
 END_ERROR_NAMESPACE

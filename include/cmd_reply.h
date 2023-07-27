@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   cmd_reply.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/27 17:44:03 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/27 19:08:40 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Config.h"
 #include "cmd_structs.h"
 #include <unordered_map>
@@ -34,10 +46,7 @@
 *		static RplMap rplMap;			 	-> map to find the key of the command
 */
 
-
-
 START_CMD_NAMESPACE
-
 
 START_ANONYMOUS_NAMESPACE
 
@@ -117,16 +126,15 @@ std::string rpl_luserme(CmdInput& input)
 	return ("255 " + input.serverData[input.index].getNickname() + " :I have " + std::to_string(input.serverData. getNumOfClients()) + " clients and 0 servers\r\n"); //we will never have any server connected 
 }
 
-
 std::string rpl_pong(CmdInput& input)
 {
 	std::string mask = input.serverData[input.index].getUserMask();
-	return(":" + mask + input.arguments[0] + " PONG " + utils::joinStr(input.arguments, 2) + "\r\n");
+	return(":" + mask + " PONG " + input.serverData.getName() + " :" + utils::joinStr(input.arguments, 1) + "\r\n");
 }
 
 std::string rpl_nick(CmdInput& input)
 {
-	return (":" + input.serverData[input.index].getUserMask() + " NICK :" + input.arguments[1] + "\r\n");
+	return (":" + input.serverData[input.index].getUsername() + " NICK :" + input.arguments[1] + "\r\n");
 }
 
 std::string rpl_youreoper(CmdInput& input)
@@ -139,7 +147,6 @@ std::string rpl_quit(CmdInput& input)
 	std::string *reason = static_cast<std::string *>(input.var->data);
 	sd::clientIt *user = static_cast<sd::clientIt *>(input.var->pnext->data);
 	return (':' + input.serverData[*user].getUserMask() + " QUIT :Quit:" + *reason + "\r\n");
-	//return(':' + input.serverData[target_user].getUserMask() + " QUIT :Quit:" + input.serverData[input.index].getNickname() + "\r\n")
 }
 
 std::string rpl_join(CmdInput& input)
@@ -154,7 +161,6 @@ std::string rpl_joinmode(CmdInput& input)
 	sd::channIt *channel = static_cast<sd::channIt *>(input.var->data);
 	return (':' + input.serverData.getName() + " MODE #" + input.serverData[*channel].getName() + " " + " +nt\r\n"); //RPL_UMODEIS 221
 }
-
 
 std::string rpl_namreply(CmdInput& input)
 {
@@ -277,27 +283,20 @@ std::string rpl_whois(CmdInput &input)
 
 std::string rpl_helpstart(CmdInput &input)
 {
-	return (":" + input.serverData.getName() + " 704 " + input.serverData[input.index].getUserMask() + " * : ** HELP mode ** \r\n");
+	return (":" + input.serverData[input.index].getUserMask() + " 704 " + input.serverData[input.index].getNickname() + " :Start of /HELP command \r\n");
 }
 
 std::string rpl_helptxt(CmdInput &input)
 {
-
 	std::vector<std::string> lines = utils::split(std::string(INFO), '\n');
 	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); it++) 
 	{
 		std::string motd_message = ":" + input.serverData[input.index].getUserMask() + " 705 " + input.serverData[input.index].getNickname() + " : " + *it + "\r\n";
 		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, motd_message);
 	}
-	return(NULL);
-
+	std::string end = ":" + input.serverData[input.index].getUserMask() + " 706 " + input.serverData[input.index].getNickname() + " :End of /HELP command.\r\n";
+	return(end);
 }
-
-std::string rpl_endofhelp(CmdInput &input)
-{
-	return (":" + input.serverData.getName() + " 706 " + input.serverData[input.index].getUserMask() + " * : ** End of HELP mode ** \r\n");
-}
-
 
 const RplMap& getReplyMap()
 {
@@ -339,12 +338,10 @@ const RplMap& getReplyMap()
 		//rplMap[eRPL_TIME]			= &rpl_time; //391
 		rplMap[eRPL_HELPSTART] 		= &rpl_helpstart; //704
  		rplMap[eRPL_HELPTXT]		= &rpl_helptxt; //705
- 		rplMap[eRPL_ENDOFHELP]		= &rpl_endofhelp; //706
 	}
 	return rplMap;
 }
 
 END_ANONYMOUS_NAMESPACE
-
 
 END_CMD_NAMESPACE

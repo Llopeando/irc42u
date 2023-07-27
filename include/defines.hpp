@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   defines.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/27 17:43:44 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/27 17:45:44 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef DEFINES_H
 #define DEFINES_H
 
@@ -21,10 +33,7 @@
 
 #define RCVBUFSIZE 1024
 
-
-
 #define VERSION "AOIRC Version: 1.0"
-
 
 namespace color {
 	const std::string reset		= "\033[0m";
@@ -45,7 +54,7 @@ namespace color {
 	const std::string boldmagenta	=  "\033[1m\033[35m";
 	const std::string boldcyan		=  "\033[1m\033[36m";
 	const std::string boldwhite		=  "\033[1m\033[37m";
-	
+
 	const std::string boldgreenback =  "\033[1m\033[42m";
 }
 

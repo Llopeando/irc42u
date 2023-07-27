@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   cmd_structs.h                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/27 17:44:01 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/27 18:00:40 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CMD_STRUCTS_H
 #define CMD_STRUCTS_H
 
@@ -7,7 +19,6 @@
 #include "ServerDataStructs.h"
 #include "ServerData.hpp"
 #include <map>
-
 
 START_CMD_NAMESPACE
 
@@ -54,8 +65,7 @@ enum eReply{
 	eRPL_YOUREOPER	= 385,
 	eRPL_TIME		= 391,
 	eRPL_HELPSTART	= 704,
-	eRPL_HELPTXT	= 705,
-	eRPL_ENDOFHELP	= 706
+	eRPL_HELPTXT	= 705
 };
 
 struct CmdInputVar{
@@ -84,6 +94,5 @@ typedef std::map<eReply, pRplFunction> RplMap;
 END_ANONYMOUS_NAMESPACE
 
 END_CMD_NAMESPACE
-
 
 #endif
