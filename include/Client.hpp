@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:44:06 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/27 17:45:38 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/28 18:42:10 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#include "defines.hpp"
+#include "defines.h"
 #include "ServerDataStructs.h"
 
 class Client
@@ -42,7 +42,7 @@ class Client
 		std::string	getAwayMsg()const;
 		std::string	getNickname()const;
 		bool		getAwayStatus() const;
-		int		getAuthentificied()const;
+		int			getAuthentificied()const;
 		uint8_t		getState() const;
 		uint32_t	getRole()const;
 

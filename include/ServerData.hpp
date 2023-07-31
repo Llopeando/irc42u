@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:32 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/27 17:43:33 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/31 12:51:16 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,8 @@
 
 #include <iostream>
 #include <vector>
-#include <unordered_map>
-
-#include "Config.h"
+#include <map>
+#include "defines.h"
 #include "ServerDataStructs.h"
 
 #include "Client.hpp"
@@ -58,6 +57,16 @@ class ServerData{
 		void	forwardClient(const std::string& nickname); 
 		void	removeClient(clientIt index);
 
+
+		std::deque<sd::Channel>::iterator getChannelBegin() {return channels.begin();}
+		std::deque<sd::Channel>::const_iterator getChannelBeginConst() {return channels.begin();}
+		std::deque<sd::Channel>::iterator getChannelEnd() {return channels.end();}
+		std::deque<sd::Channel>::const_iterator getChannelEndConst() {return channels.end();}
+		std::deque<sd::Channel> &getChannel(){return channels;}
+
+		bool nicknameExists(const std::string& nickname) const {return findNickname(nickname) || findNicknameBack(nickname);}
+		bool usernameExists(const std::string& username) const {return findUsername(username) || findUsernameBack(username);}
+		
 		//OPERATOR BLOCK
 
 		std::string getOperList();
@@ -70,14 +79,18 @@ class ServerData{
 		void		addChannel(std::string name, std::string username, ServerData &serverData);
 		uint32_t	getNumOfChannels() const;
 		uint32_t	getNumOfClients() const;
-		void 		removeClientChannels(sd::clientIt index);
+		//void 		removeClientChannels(sd::clientIt index);
 		void		deleteChannel(uint32_t channel);
 		uint32_t	findChannel(const std::string &name) const;
+		void		broadcastChannel(channIt channel, clientIt sender, std::string const &msg);
+		std::string getUserList(channIt channel)const;
 
 		// OPERATOR OVERRIDES
 
 		Client& operator[](clientIt idx){return clients[idx];}
 		const Client& operator[](clientIt idx)const {return clients[idx];}
+		Client& operator[](backIt idx){return back[idx];}
+		const Client& operator[](backIt idx)const {return back[idx];}
 		pollfd &operator[](pollfdIt idx){return pollfds[idx];}
 		const pollfd &operator[](pollfdIt idx) const{return pollfds[idx];}
 		Channel &operator[](channIt idx){return channels[idx];}
@@ -88,7 +101,7 @@ class ServerData{
 		std::vector<Client> clients;
 		std::vector<Client> back; //only operators
 		std::deque<Channel> channels;
-		std::unordered_map<std::string, std::string> operblock;
+		std::map<std::string, std::string> operblock;
 		std::string serverName;
 		std::string password;
 		std::time_t creationDate;

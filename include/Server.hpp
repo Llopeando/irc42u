@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:28 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/27 18:57:32 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/31 12:38:28 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,16 +27,17 @@
 #include <fcntl.h>
 #include <vector>
 #include <set>
-
 #include <cerrno>
 #include <system_error>
 #include <pthread.h>
 
+#include "defines.h"
 #include "Utils.hpp"
-#include "defines.hpp"
-#include "color.h"
-#include "ServerData.hpp"
-#include "cmd_structs.h"
+#include "ServerDataStructs.h"
+
+#include "function.h"
+
+//#include "cmd_structs.h"
 
 class Server
 {
@@ -60,9 +61,10 @@ class Server
 		void		acceptConnection();
 		void		listenConnection();
 		void		handleNewUser(std::string &input, sd::clientIt);
-		cmd::eFlags	handleInput(sd::clientIt index, std::string input);
+		eFlags		handleInput(sd::clientIt index, std::string input);
 		void		sendCapabilities(sd::pollfdIt index);
 		void		acknowledgeCapabilities(sd::pollfdIt index, std::string input);
+		//void		removeClientChannels(serverData &serverdata,sd::clientIt index);
 
 		void		saveNick(std::vector<std::string> &arguments, Client &newUser);
 		void		saveUser(std::vector<std::string> &arguments, Client &newUser);

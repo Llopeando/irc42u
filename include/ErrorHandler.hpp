@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:41 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/27 18:20:10 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/31 13:28:38 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,13 @@
 #define ERRORS_HPP
 
 #include <iostream>
-#include <unordered_map>
 
-#include "Config.h"
-#include "defines.hpp"
+#include "defines.h"
 #include "Utils.hpp"
-#include "cmd_structs.h"
-#include "ServerData.hpp"
 #include "ServerDataStructs.h"
+
+
+#include "cmd_reply.h"
 
 /*
 *	Public:
@@ -35,7 +34,7 @@
 
 START_ERROR_NAMESPACE
 
-typedef std::unordered_map<int, std::string> ErrMap;
+typedef std::map<int, std::string> ErrMap;
 
 enum Type{
 	ERR_UNKNOWNERROR = 400,
@@ -121,10 +120,9 @@ static const ErrMap& getErrorMap()
 	errMap[ERR_NOSUCHSERVER]		= "No such server";
 	errMap[ERR_NOSUCHCHANNEL]		= "No such channel";
 	errMap[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";
-	errMap[ERR_TOOMANYCHANNELS]		= "You have joined too many channels";
+	errMap[ERR_TOOMANYCHANNELS]		= "Server channel limit reached";
 	errMap[ERR_WASNOSUCHNICK]		= "There was no such nickname";
 	errMap[ERR_NOORIGIN]			= "No origin specified";
-	errMap[ERR_NORECIPIENT]			= "";
 	errMap[ERR_NOTEXTTOSEND]		= "No text to send";
 	errMap[ERR_INPUTTOOLONG]		= "Input line was too long";
 	errMap[ERR_UNKNOWNCOMMAND]		= "Unknown command";
@@ -148,7 +146,7 @@ static const ErrMap& getErrorMap()
 	errMap[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";									//404
 	errMap[ERR_TOOMANYTARGETS]		= "Duplicate recipients. No message delivered"; 			//407
 	errMap[ERR_BADPASSWORD]			= "Closing Link: localhost (Bad Password)";
-	errMap[ERR_CHANNELISFULL]		= ":Cannot join channel (+l)";
+	errMap[ERR_CHANNELISFULL]		= "Cannot join channel (+l): (Channel is full)";
 	errMap[ERR_NOMODEOPTION]		= "No MODE option in A O I R C Server";
 	errMap[ERR_UNKNOWNCOMMAND]		= ":Unknown command";										//421
 	}
@@ -157,7 +155,7 @@ static const ErrMap& getErrorMap()
 
 END_ANONYMOUS_NAMESPACE
 
-void	fatalError(cmd::CmdInput &bundle, Type errorCode)
+inline void	fatalError(cmd::CmdInput &bundle, Type errorCode)
 {
 	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
 	if (it != getErrorMap().end())
@@ -167,7 +165,7 @@ void	fatalError(cmd::CmdInput &bundle, Type errorCode)
 	}
 }
 
-void	error(cmd::CmdInput &bundle, Type errorCode)
+inline void	error(cmd::CmdInput &bundle, Type errorCode)
 {
 	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
 	if (bundle.serverData[(sd::clientIt)bundle.index].getNickname().empty())
@@ -188,7 +186,7 @@ void	error(cmd::CmdInput &bundle, Type errorCode)
 	//std::cout << color::red << "ERROR: [" << err_msg.substr(0, err_msg << "]\n" << color::reset;
 }
 
-void	error(cmd::CmdInput &bundle, Type errorCode, std::string param)
+inline void	error(cmd::CmdInput &bundle, Type errorCode, std::string param)
 {
 	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
 	if (it != getErrorMap().end())

@@ -6,7 +6,7 @@
 #    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/07/27 18:05:28 by ullorent         ###   ########.fr        #
+#    Updated: 2023/07/31 13:10:48 by ullorent         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,16 +17,15 @@ src/Client.cpp \
 src/Channel.cpp \
 main.cpp \
 src/Utils.cpp\
-src/ServerData.cpp
+src/ServerData.cpp\
+src/Commands.cpp
 
 CPPINCLUDE = include/Server.hpp \
 include/Channel.hpp \
 include/Client.hpp \
-include/defines.hpp	\
+include/defines.h	\
 include/Utils.hpp\
-include/cmd_structs.h\
-include/commands.h\
-include/Config.h\
+include/commands.hpp\
 include/function.h\
 include/ServerData.hpp\
 include/ServerDataStructs.h\

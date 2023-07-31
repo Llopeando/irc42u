@@ -6,15 +6,16 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:44:08 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/27 17:44:11 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/31 13:02:02 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include "Config.h"
-#include "defines.hpp"
+#include "defines.h"
+
+
 #include "Utils.hpp"
 #include "ServerDataStructs.h"
 
@@ -36,14 +37,17 @@ class Channel
 		Channel(std::string name, std::string username, ServerData *data);
 		~Channel();
 
+		uint32_t operator[](uint32_t idx)const{return users[idx];}
+		uint32_t operator[](uint32_t idx){return users[idx];}
+
 		std::string			getCreator() const;
-		char				*getCreationDate()const;
+		std::string			getCreationDate()const;
 		void				setCreationDate(std::time_t);
 		std::string			getName()const;
-		std::string			getUserList()const;
+		//std::string			getUserList()const;
 		void				addClient(clientIt index);
-		void				removeClient(clientIt indexAct);
-		void 				broadcast(clientIt sender, std::string const &msg);
+		eFlags				removeClient(clientIt indexAct);
+	//	void 				broadcast(clientIt sender, std::string const &msg);
 		//void				refresh(uint32_t indexAct);
 		//void				flushLog(Client &user, uint32_t user_pos);
 		void				setTopic(std::string topic);
@@ -65,6 +69,6 @@ class Channel
 
 END_SERVER_DATA_NAMESPACE
 
-#include "ServerData.hpp"
+//#include "ServerData.hpp"
 
 #endif

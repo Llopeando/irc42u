@@ -1,5 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerData.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/28 18:14:18 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/31 12:56:49 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../include/ServerData.hpp"
-#include "../include/Utils.hpp"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -90,8 +101,9 @@ void	ServerData::backClient(clientIt index)
 		clients[index] = clients[clients.size() - 1];
 		pollfds[index] = pollfds[pollfds.size() - 1];
 	}
-	clients.resize(clients.size() - 1);
-	pollfds.resize(pollfds.size() - 1);
+	close(pollfds[index].fd);
+	clients.pop_back();
+	pollfds.pop_back();
 }
 
 
@@ -103,8 +115,8 @@ void	ServerData::removeClient(clientIt index)
 		clients[index] = clients[clients.size() - 1];
 		pollfds[index] = pollfds[pollfds.size() - 1];
 	}
-	clients.resize(clients.size() - 1);
-	pollfds.resize(pollfds.size() - 1);
+	clients.pop_back();
+	pollfds.pop_back();
 }
 
 //--------------------------------------/ OPERATOR BLOCK /-----------------------------------//
@@ -113,7 +125,7 @@ void	ServerData::removeClient(clientIt index)
 std::string ServerData::getOperList()
 {
 	std::string list;
-	for (std::unordered_map<std::string, std::string>::iterator i = operblock.begin(); i != operblock.end(); i++)
+	for (std::map<std::string, std::string>::iterator i = operblock.begin(); i != operblock.end(); i++)
 	{
 		list += i->first;
 		list += ", "; //si es el ultimo ????
@@ -123,7 +135,7 @@ std::string ServerData::getOperList()
 
 bool ServerData::checkOperPass(const std::string &user, const std::string& pass) const
 {
-	std::unordered_map<std::string, std::string>::const_iterator it = operblock.find(user);
+	std::map<std::string, std::string>::const_iterator it = operblock.find(user);
 	if (it != operblock.end())
 		return it->second == pass;
 	
@@ -136,37 +148,6 @@ bool ServerData::findOper(const std::string &user)const
 }
 
 //--------------------------------------/ CHANNEL OPERATIONS /-----------------------------------//
-
-
-void ServerData::removeClientChannels(clientIt index)
-{
-	for(std::deque<Channel>::iterator channel = channels.begin(); channel != channels.end(); channel++)
-	{
-		if(channel->findUser(index))
-		{
-			channel->removeClient(index);
-		}
-	}
-}
-
-void	ServerData::deleteChannel(uint32_t channel)
-{
-	for (uint32_t i = 1; i < channels.size(); i++) //se recolocan los index de channel y por lo tannto los index de findChannelOps de cada cliente 
-	{
-		std::string creatorName = channels[i].getCreator();
-		clientIt creator = findUsername(creatorName);
-		if (creator == 0)
-		{
-			creator = findUsernameBack(creatorName);
-			if (creator == 0)
-				continue ;
-			back[creator].updateOps(channel);
-		}
-		else
-			clients[creator].updateOps(channel);
-	}
-	channels.erase(channels.begin() + channel);
-}
 
 uint32_t	ServerData::findChannel(const std::string &name) const
 {
@@ -183,6 +164,26 @@ void	ServerData::addChannel(std::string name, std::string username, ServerData &
 	channels.push_back(Channel(name, username, &serverData));
 }
 
+void	ServerData::broadcastChannel(channIt channel, clientIt sender, std::string const &msg) {
+	for(clientIt i = 1; i < channels[channel].getNumUser();i++)
+	{
+		if (channels[channel][i] != sender)
+		{
+			//std::cout << color::green << "SENDED TO: [" << i << "]" << (*data)[(clientIt)users[i]].getUsername() << "\n" << color::reset;
+			utils::sendMsgUser(pollfds[channels[channel][i]].fd, msg);
+		}
+	}
+}
+
+std::string ServerData::getUserList(channIt channel)const
+{
+	std::string result;
+	for (uint32_t i = 1; i < channels[channel].getNumUser();i++)
+	{
+		result += clients[channels[channel][i]].getNickname() + " ";
+	}
+	return result;
+}
 
 //------------------------------------------------------------------------------------------------//
 
@@ -247,5 +248,8 @@ clientIt ServerData::findNicknameBack(const std::string& argument) const
 			return(i);
 	return (0);
 }
+
+
+
 
 END_SERVER_DATA_NAMESPACE

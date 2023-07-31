@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Client.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/28 18:14:11 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/28 18:14:13 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../include/Client.hpp"
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
@@ -154,6 +166,8 @@ bool	Client::findChannelInOps(sd::channIt index) const //con operadores de bits 
 #include "../include/Utils.hpp"
 
 void Client::updateOps(uint32_t channel) {
+
+	channelOps &= ~(1 << channelOps);
 	uint32_t mask = (1 << channel) - 2; // -1 to get all 1 and - 2 to set the least fignificant bit to 0
 	uint32_t preserved = channelOps & mask;
 	uint32_t max = -1;

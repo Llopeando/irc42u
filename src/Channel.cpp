@@ -6,12 +6,11 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/11 14:00:32 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/26 19:46:25 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/31 12:53:00 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Channel.hpp"
-#include "../include/Client.hpp"
 
 START_SERVER_DATA_NAMESPACE
 
@@ -25,10 +24,11 @@ Channel::Channel(std::string name, std::string username, ServerData *data)
 	users.resize(1);
 	numOfUsers = 0;
 	creationDate = utils::t_chrono::to_time_t(utils::t_chrono::now());
+	//std::cout << "CH NAME: "<< name << " DATE: " << std::ctime(&creationDate) << "]\n";
 }
 
 Channel::~Channel() {
-	std::cout << "CHANNEL DESTROYED\n";
+	//std::cout << "CHANNEL DESTROYED\n";
 }
 
 /* --- GETTER AND SETTERS --- */
@@ -38,9 +38,10 @@ std::string Channel::getCreator()const
 	return creator;
 }
 
-char	*Channel::getCreationDate()const
+std::string Channel::getCreationDate()const
 {
-	return std::ctime(&creationDate);
+	//return std::ctime(&creationDate);
+	return std::to_string(creationDate);
 }
 
 std::string Channel::getName() const{
@@ -70,53 +71,40 @@ void	Channel::setCreationDate(std::time_t now){
 	creationDate = now;
 }
 
-
-
-void Channel::removeClient(clientIt indexAct){
-	
+eFlags Channel::removeClient(clientIt indexAct){
+	if (users.size() == 1)
+	{
+		return eRemoveChannel;
+	}
 	uint32_t	user_pos = findUser(indexAct);
 	if (user_pos == 0)
 	{
-		return;
+		return eSuccess;
 	}
 	numOfUsers--;
+	if (numOfUsers == 0)
+	{
+		users.pop_back();
+		//data->deleteChannel(data->findChannel(name));
+		return eRemoveChannel;
+	}
 	users[user_pos] = users[numOfUsers];
 	users.pop_back();
-	if (numOfUsers == 0 && data->findChannel(name))
-	{
-		data->deleteChannel(data->findChannel(name));
-	}
+	return eSuccess;
 }
 
-
-uint32_t	Channel::findUser(clientIt indexAct)const {
-	for (uint32_t i = 1; i < users.size();i++)
+uint32_t	Channel::findUser(clientIt indexAct) const {
+	uint32_t i = 1;
+	for (std::deque<uint32_t>::const_iterator it = users.begin() + 1; it != users.end(); it++)
 	{
-		if (users[i] == indexAct)
+		std::cout << "i[" << i << "]size[" << users.size() << "]\n";
+		if (*it == indexAct)
 			return i;
+		i++;
 	}
 	return (0);
 }
 
-void	Channel::broadcast(clientIt sender, std::string const &msg) {
-	for(clientIt i = 1; i < users.size();i++)
-	{
-		if (users[i] != sender)
-		{
-			//std::cout << color::green << "SENDED TO: [" << i << "]" << (*data)[(clientIt)users[i]].getUsername() << "\n" << color::reset;
-			utils::sendMsgUser((*data)[(pollfdIt)users[i]].fd, msg);
-		}
-	}
-}
 
-std::string Channel::getUserList()const
-{
-	std::string result;
-	for (std::deque<uint32_t>::const_iterator it = users.begin() + 1; it != users.end(); it++)
-	{
-		result += (*data)[(clientIt)(*it)].getNickname() + " ";
-	}
-	return result;
-}
 
 END_SERVER_DATA_NAMESPACE

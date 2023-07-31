@@ -1,19 +1,31 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/28 18:14:04 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/31 13:22:14 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <chrono>
 #include "../include/Server.hpp"
-#include "../include/commands.h"
-#include "../include/cmd_structs.h"
-#include "../include/function.h"
-#include "../include/ServerDataStructs.h"
-#include "../include/ErrorHandler.hpp"
 
+
+//#include "../include/commands.h"
+//#include "../include/function.h"
 
 
 /* ------------------------------------------------------------ */
 /* 			CONSTRUCTOR DESTRUCTOR INITIALIZATION 				*/
 /* ------------------------------------------------------------ */
 
-Server::Server(sd::t_serverInput &serverInput)
-			:serverInfo(serverInput),serverData(serverInfo){
+Server::Server(sd::t_serverInput &serverInput) :
+	serverInfo(serverInput),serverData(serverInfo)
+{
+	
 }
 
 Server::~Server()
@@ -31,7 +43,6 @@ Server::~Server()
 
 
 void	Server::run(){
-	
 	int events;
 	
 	listenConnection();
@@ -49,8 +60,6 @@ void	Server::run(){
 	}
 }
 
-
-
 void	Server::checkFds(int events)
 {
 	sd::pollfdIt i = 0;
@@ -66,11 +75,9 @@ void	Server::checkFds(int events)
 	}
 }
 
-
 /* ------------------------------------------------------------ */
 /*				LISTEN AND ACCEPT CONNECTION					*/
 /* ------------------------------------------------------------ */
-
 
 void	Server::listenConnection() {
 	std::cout << "Server started, im listening" << std::endl;
@@ -163,19 +170,34 @@ void Server::serverConfig(sd::t_serverInput *serverInput)
 /*						POLL() AND HANDLE EVENTS	 (incoming requests and inputs)	    //La nueva minishell		*/
 /* ---------------------------------------------------------------------------------------- */
 
-cmd::eFlags Server::handleInput(sd::clientIt index, std::string input) 
+eFlags Server::handleInput(sd::clientIt index, std::string input)
 {
-
 	std::vector<std::string> arguments = utils::splitIrcPrameters(input, ' ');
 
 	cmd::CmdInput package(arguments, serverData, index);
-
+	
 	if (serverData[index].getAuthentificied() != sd::eAuthentified &&
 		arguments[0] != "NICK" && arguments[0] != "USER" && arguments[0] != "PASS")
-		return cmd::eError;
+		return eError;
 
-	cmd::eFlags output = cmd::callFunction(arguments[0], package);
-	if (output == cmd::eNoSuchFunction && arguments.size() &&!arguments[0].empty())
+	eFlags output = cmd::callFunction(arguments[0], package);
+	
+	// Recoger eFLAG y gestionar el cliente segun eFlag
+	if (output & eBack)
+	{
+		cmd::removeClientChannels(serverData, index);
+		serverData.backClient(index);
+	}
+	else if (output & eExited)
+	{
+		cmd::removeClientChannels(serverData, index);
+		serverData.removeClient(index);
+	}
+	else if (output & eRemoveClientChannel) //probablemente falle por devolver el casteo
+	{
+		cmd::removeClientChannels(serverData, index);
+	}
+	else if (output == eNoSuchFunction && arguments.size() &&!arguments[0].empty())
 	{
 		std::cerr << color::red << "ERR_UNKNOWNCOMMAND: [" <<  arguments[0] << "]\n" << color::reset; 
 		error::error(package, error::ERR_UNKNOWNCOMMAND, arguments[0]);
@@ -201,7 +223,7 @@ void Server::handleEvents(sd::pollfdIt index)
 			bool exited = false;
 			for (uint32_t i = 0; i < lines.size(); i++)
 			{
-				if (handleInput((sd::clientIt)index, lines[i]) == cmd::eExited)
+				if (handleInput((sd::clientIt)index, lines[i]) == eExited)
 					exited = true;
 			}
 			if (!exited)
@@ -255,6 +277,53 @@ std::string Server::readTCPInput(int client_fd, sd::clientIt index) {
 	return std::string(echoBuffer, j);
 }
 
+//
+//
+//
+//
+//void Server::removeClientChannels(sd::clientIt index)
+//{
+//	uint32_t i = 1;
+//	std::vector<uint32_t> deleteChannels;
+//	for(std::deque<sd::Channel>::iterator channel = serverData.getChannelBegin() + 1; channel != serverData.getChannelEnd(); channel++)
+//	{
+//		if(channel->findUser(index))
+//		{
+//			if (channel->removeClient(index) == eRemoveChannel)
+//				deleteChannels.push_back(i);
+//		}
+//		i++;
+//	}
+//	i = 0;
+//	for (std::vector<uint32_t>::iterator deleteChannel = deleteChannels.begin();
+//			deleteChannel != deleteChannels.end(); deleteChannel++)
+//	{
+//		std::string creatorName = serverData[(sd::channIt)(*deleteChannel - i)].getCreator();
+//		sd::clientIt creator = serverData.findUsername(creatorName);
+//		if (creator == 0)
+//		{
+//			creator = serverData.findUsernameBack(creatorName);
+//			if (creator == 0)
+//				continue ;
+//			serverData[(sd::backIt)creator].updateOps(*deleteChannel - i);
+//		}
+//		else
+//			serverData[creator].updateOps(*deleteChannel - i);
+//		//input.serverData[channel].broadcast(0, reply(eRPL_PART, input));
+//
+//		/* MOVE TO SERVER */
+//		std::vector<std::string> arguments;
+//		arguments.push_back("PART");
+//		arguments.push_back(serverData[(sd::channIt)(*deleteChannel - i)].getName());
+//		cmd::CmdInput input(arguments, serverData, index);
+//		
+//		cmd::callFunction("PART", input);
+//		serverData.getChannel().erase(serverData.getChannelBegin() + *deleteChannel - i);
+//		i++;
+//	}
+//}
+//
+
 /* ---------------------------------------------------------------------------------------- */
 /*										DEBUG PRINT											*/
 /* ---------------------------------------------------------------------------------------- */
@@ -304,7 +373,7 @@ void Server::lauch()
 	while(1)
 	{
 		//printServerStatus();
-		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), 200);//200 mirar mas tarde
+		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), 200);//200 mirar mas tarde MAXUSERS
 		if (events < 0)
 		{
 			std::cerr << color::red << "ERROR: poll() - error-event detected\n" << color::reset; 
@@ -409,7 +478,7 @@ void Server::printChannelInfo(const std::string& chName)const
 	std::cout << color::boldwhite << "║ " << color::yellow << "Creation Date: " << color::reset << serverData[channel].getCreationDate() << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "Num of users: " << color::reset << serverData[channel].getNumUser() << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "Users:\n" << color::reset;
-	std::vector<std::string> names = utils::split(serverData[channel].getUserList(), '\n');
+	std::vector<std::string> names = utils::split(serverData.getUserList(channel), '\n');
 	for (std::vector<std::string>::const_iterator name = names.begin(); name != names.end(); name++)
 	{
 		std::cout << color::cyan << "\t" << *name << '\n' << color::reset;

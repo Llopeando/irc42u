@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:36 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/27 17:43:37 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/31 12:27:20 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 #include <iostream>
 #include <string>
 #include <sys/socket.h>
-#include "defines.hpp"
 #include <vector>
 #include <string>
 #include <sstream>
@@ -26,6 +25,8 @@
 #include <netdb.h>
 #include <fstream>
 #include <span>
+
+#include "defines.h"
 
 namespace utils{
 
@@ -41,6 +42,8 @@ namespace utils{
 	std::string readFile(const char *filepath);
 
 	void printBinary(uint32_t value);
+
+	void tolower(std::string &string);
 }
 
 #endif

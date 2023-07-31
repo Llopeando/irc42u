@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Utils.cpp                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/28 18:14:24 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/28 18:14:25 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../include/Utils.hpp"
 
 namespace utils{
@@ -157,6 +169,14 @@ namespace utils{
 		{
 			std::cout << (int)(bool)(value & (1 << size));
 			size--;
+		}
+	}
+
+	void tolower(std::string &string)
+	{
+		for (std::string::iterator it = string.begin(); it != string.end(); it++)
+		{
+			*it = std::tolower(*it);
 		}
 	}
 }

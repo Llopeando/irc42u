@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   defines.hpp                                        :+:      :+:    :+:   */
+/*   defines.h                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:44 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/27 17:45:44 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/31 13:39:10 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "Utils.hpp"
 
 #define SERVER_FAILURE -1
 
@@ -28,7 +29,6 @@
 #define CL_STATE_INACTIVE 0
 
 #define CL_USER 0
-//#define CL_OP 1
 #define CL_OPER 2
 
 #define RCVBUFSIZE 1024
@@ -58,10 +58,33 @@ namespace color {
 	const std::string boldgreenback =  "\033[1m\033[42m";
 }
 
-typedef struct activeIndex
-{
+
+#define START_CMD_NAMESPACE namespace cmd {
+#define END_CMD_NAMESPACE }
+
+#define START_ERROR_NAMESPACE namespace error{
+#define END_ERROR_NAMESPACE }
+
+#define START_SERVER_DATA_NAMESPACE namespace sd{
+#define END_SERVER_DATA_NAMESPACE }
+
+#define START_ANONYMOUS_NAMESPACE namespace {
+#define END_ANONYMOUS_NAMESPACE }
+
+
+typedef struct activeIndex {
 	bool		registered;
 	uint32_t	index;
 }t_activeIndex;
+
+enum eFlags{
+	eSuccess = 0,
+	eError = 1,
+	eNoSuchFunction = 4,
+	eExited = 8,
+	eBack = 16,
+	eRemoveChannel = 32,
+	eRemoveClientChannel = 64,
+};
 
 #endif

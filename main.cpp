@@ -1,18 +1,29 @@
-#include "irc.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/31 12:36:06 by ullorent          #+#    #+#             */
+/*   Updated: 2023/07/31 13:06:19 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "include/Server.hpp"
 
 void	serverCreateInfo(char **argv, int argc, sd::t_serverInput *serverInfo)
 {
-	//check ( argumentos = 2 , puerto y password, puerto valido,...)
 	if (argc != 3)
-		throw std::runtime_error("bad arguments!"); //ya veremos si hacer excepciones definidas
+		throw std::runtime_error("bad arguments!"); 
 	
 	//RELLENAR STRUCT
-	int port = std::atoi(argv[0]); //y de paso chequea si es un int valido
+	int port = std::atoi(argv[0]); 
 	serverInfo->password = std::string(argv[1]);
-	serverInfo->serverName = SERVER_NAME;
+	serverInfo->serverName = "A O I R C";
 	serverInfo->address.sin_family = AF_INET;
 	serverInfo->address.sin_addr.s_addr = INADDR_ANY;
-	serverInfo->address.sin_port = htons( port ); //mirar htons
+	serverInfo->address.sin_port = htons( port );
 
 	Server::serverConfig(serverInfo);
 }

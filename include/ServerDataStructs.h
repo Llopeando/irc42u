@@ -6,16 +6,18 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:34 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/27 17:43:35 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/07/31 11:18:57 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVERDATASTRUCTS_H
 #define SERVERDATASTRUCTS_H
 
+#include "defines.h"
+
 #include <iostream>
 #include <netinet/in.h>
-#include "Config.h"
+#include "defines.h"
 
 START_SERVER_DATA_NAMESPACE
 
@@ -43,6 +45,27 @@ struct clientIt{
 	}
 	clientIt operator++(int) {
 		clientIt tmp(*this);
+		++index;
+		return tmp;
+	}
+};
+
+struct backIt{
+	uint32_t index;
+	backIt(int value = 0):index(value){};
+	operator uint32_t() const {
+		return index;
+	}
+	backIt& operator=(uint32_t value){
+		index = value;
+		return *this;
+	}
+	backIt& operator++() {
+		++index;
+		return *this;
+	}
+	backIt operator++(int) {
+		backIt tmp(*this);
 		++index;
 		return tmp;
 	}
