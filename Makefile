@@ -26,7 +26,6 @@ include/Client.hpp \
 include/defines.h	\
 include/Utils.hpp\
 include/commands.hpp\
-include/function.h\
 include/ServerData.hpp\
 include/ServerDataStructs.h\
 include/cmd_reply.h\

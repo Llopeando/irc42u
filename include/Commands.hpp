@@ -25,16 +25,17 @@
 #include "ErrorHandler.hpp"
 
 //repasar si son public o private (cmd o cmd anonimous)
+//START_ANONYMOUS_NAMESPACE-> All functions reside inside the <namespace cmd namespace anonymous> so that they cannot be accessed from outside
 
-/* COMMAND functions : 
+/* CMD namespace  : 
 
-	Command functions : declarations
-	
 	Util functions : removeClientChannels(), getFunctionMap(),getReplyMap();
 
 	Access function : callFunction() -> Will call any function that matches the key passed as a parameter. Receives a key and a CmdInput. Returns a CmdReturn.
+	
+	Command functions [...]
 
-	Map of functions : getFunctionMap() 
+	Map of functions : getFunctionMap() , getReplyMap()
 
 */
 
@@ -43,14 +44,28 @@
 
 START_CMD_NAMESPACE
 
+/* --------------------------------			UTILS 		-------------------------- */
+
 void removeClientChannels(sd::ServerData &serverData, sd::clientIt index);
 bool checkChannelName(const std::string &channel);
+const CmdMap& getFunctionMap();
 
-//START_ANONYMOUS_NAMESPACE
+/* --------------------------------			ACCESS TO FUNCTION 		-------------------------- */
 
-/*
-*	// All functions reside inside the <namespace cmd namespace anonymous> so that they cannot be accessed from outside
-*/
+inline eFlags callFunction(const std::string& key, CmdInput& input)
+{
+	CmdMap::const_iterator it = getFunctionMap().find(key);
+	if (it != getFunctionMap().end()) {
+		return it->second(input);
+	}
+	else
+	{
+		return eNoSuchFunction;
+	}
+}
+
+
+/* --------------------------------			COMMANDS		-------------------------- */
 
 /* --------------------------------Server Queries and Commands-------------------------- */
 
@@ -80,50 +95,27 @@ eFlags	list(CmdInput& input);
 eFlags	kick(CmdInput& input);
 eFlags	invite(CmdInput& input);
 
-/* --------------------------------Sending Messages------------------------------------- */
+/* -------------------------------- Sending Messages ------------------------------------- */
 
 eFlags	privmsg(CmdInput& input);
 eFlags	notice(CmdInput& input);
 
-/* --------------------------------User-Based Queries----------------------------------- */
+/* -------------------------------- User-Based Queries ----------------------------------- */
 
 eFlags	whois(CmdInput& input);
 
-/* --------------------------------Operator Messages------------------------------------ */
+/* -------------------------------- Operator Messages ------------------------------------ */
 
 eFlags	kill(CmdInput& input);
 
-/* --------------------------------Optional Messages------------------------------------ */
+/* -------------------------------- Optional Message ------------------------------------ */
 
 eFlags	away(CmdInput& input);
 
-/* --------------------- CAPABILITIES NEGOTIATION (For now the server does not support capability negotiation ) ----------------------- */
+/* ------------------------------- Capability negotiation ------------------------------- */
 
-eFlags	cap(CmdInput& input);
+eFlags	cap(CmdInput& input); //(For now the server does not support capability negotiation )
 
-//END_ANONYMOUS_NAMESPACE
-
-void removeClientChannels(sd::ServerData &serverData, sd::clientIt index);
-
-
-START_ANONYMOUS_NAMESPACE
-
-const CmdMap& getFunctionMap();
-const RplMap& getReplyMap();
-
-END_ANONYMOUS_NAMESPACE
-
-inline eFlags callFunction(const std::string& key, CmdInput& input)
-{
-	CmdMap::const_iterator it = getFunctionMap().find(key);
-	if (it != getFunctionMap().end()) {
-		return it->second(input);
-	}
-	else
-	{
-		return eNoSuchFunction;
-	}
-}
 
 START_ANONYMOUS_NAMESPACE
 
@@ -169,7 +161,9 @@ const CmdMap& getFunctionMap()
 		*/
 	}
 	return cmdMap;
-}
+};
+
+//const RplMap& getReplyMap(); //POR QUE ESTA ESTA DECCLARACION AQUI 
 
 END_ANONYMOUS_NAMESPACE
 
