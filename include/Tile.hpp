@@ -7,25 +7,25 @@ enum TileType{
 	eUsers,
 	eChannels,
 	eInfo,
+	eServer,
 };
-
-
 
 class Tile{
 	public:
 		Tile(const Tile& tile);
-		Tile(glm::uvec2 pos, glm::uvec2 size, std::string text, int col, TileType type);
+		Tile(glm::ivec2 pos, glm::ivec2 size, std::string text, int col, TileType type);
 		~Tile(){}
 
-		glm::uvec2 getPos() const;
-		glm::uvec2 getSize() const;
+		glm::ivec2 getPos() const;
+		glm::ivec2 getSize() const;
 		std::string getText() const;
 		int getCol() const;
 		TileType getType() const;
+		bool	isTouching(glm::ivec2 point);
 
 	private:
-		glm::uvec2 pos;
-		glm::uvec2 size;
+		glm::ivec2 pos;
+		glm::ivec2 size;
 		std::string text;
 		int col;
 		TileType type;

@@ -6,6 +6,9 @@
 #define MAINBODY_COL 0x9BA4B4
 #define BODY_COL 0x526D82
 
+#define HEIGHT 20
+#define HEADER 30
+
 RenderEngine::RenderEngine(sd::ServerData *serverData)
 {
 	this->serverData = serverData;
@@ -17,6 +20,8 @@ RenderEngine::RenderEngine(sd::ServerData *serverData)
 	winSize.x = 1920;
 	winSize.y = 1080;
 	indexs = {};
+	currentInfo = mlx::eServer;
+	infoIndex = 0;
 
 	bmlx_create_img(mlx.mlx, &image, winSize.x, winSize.y);
 
@@ -102,49 +107,120 @@ void RenderEngine::renderText(const mlx::Tile& tile)
 	{
 		renderChannelsTexts(tile);
 	}
+	else if (mlx::TileType::eInfo == tile.getType())
+	{
+		renderInfo(tile);
+	}
+}
+void RenderEngine::renderInfo(const mlx::Tile& tile)
+{
+	if (currentInfo == mlx::eServer)
+	{
+		renderServerInfo(tile);
+	}
+	else if (currentInfo == mlx::eUsers)
+	{
+		renderUsersInfo(tile);
+	}
+	else if (currentInfo == mlx::eChannels)
+	{
+		//renderChannelsInfo(tile);
+	}
+}
+
+void RenderEngine::renderUsersInfo(const mlx::Tile& tile)
+{
+	if (infoIndex == 0 || infoIndex >= serverData->getNumOfClients())
+	{
+		std::vector<std::string> lines = {
+			"Number of active users: " + std::to_string(serverData->getNumOfClients() - 1),
+			"Number of unactive users: " + std::to_string(serverData->getNumOfAwayClients() - 1),
+		};
+		printLines(tile, lines);
+	}
+	else if (infoIndex < serverData->getNumOfClients())
+	{
+		Client temp = Client((*serverData)[sd::clientIt(infoIndex)]);
+		renderUser(tile, temp);
+	}
+}
+
+void RenderEngine::renderUser(const mlx::Tile& tile, const Client& user)
+{
+	
+	std::vector<std::string> lines = {
+		"Nickname: " + user.getNickname(),
+		"Username: " + user.getUsername(),
+		"Hostname: " +  user.getHostname(),
+		"Role: " + std::to_string(user.getRole()),
+		"Message: " + std::to_string(user.getAwayStatus()),
+	};
+	if (user.getAwayStatus())
+		lines[3] += "MESSAGE: " + user.getAwayMsg();
+	printLines(tile, lines);
+}
+
+void RenderEngine::renderServerInfo(const mlx::Tile& tile)
+{
+	const sd::t_serverInput& info = serverData->getConfig();
+	std::vector<std::string> lines = {
+		"CHANTYPES: " + info.chantypes,
+		"PREFIX: " + info.prefix,
+		"MODES: " + std::to_string(info.modes),
+		"CHANLIMIT: " + std::to_string(info.chanlimit),
+		"NICKLEN: " + std::to_string(info.nicklen),
+		"USERLEN: " + std::to_string(info.userlen),
+
+		"HOSTLEN: " + std::to_string(info.hostlen),
+		"TOPICLEN: " + std::to_string(info.topiclen),
+		"CHANNELLEN: " + std::to_string(info.channellen),
+		"MAXUSERS: " + std::to_string(info.maxusers),
+		"MAXUSERSCHAN: " + std::to_string(info.maxuserschan),
+		"VERSION: " + info.version,
+		"USERLEN: " + std::to_string(info.userlen),
+		"VERSION_COMMENTS: " + info.versionComments,
+	};
+	printLines(tile, lines);
 }
 
 void RenderEngine::renderClients(const mlx::Tile& tile)
 {
 	uint32_t numClients = serverData->getNumOfClients();
-	uint32_t height = 20;
 	for (uint32_t i = 1; i < numClients; i++)
 	{
-		drawRectWithPer(&image, tile.getPos().x + 2, tile.getPos().y + i * height, tile.getSize().x - 4, height, 2, BODY_COL, MAINBODY_COL);
+		drawRectWithPer(&image, tile.getPos().x + 2, tile.getPos().y + (i - 1) * HEIGHT + HEADER, tile.getSize().x - 4, HEIGHT, 2, BODY_COL, MAINBODY_COL);
 	}
 }
+
 
 void RenderEngine::renderClientsTexts(const mlx::Tile& tile)
 {
 	uint32_t numClients = serverData->getNumOfClients();
-	uint32_t height = 20;
 	for (uint32_t i = 1; i < numClients; i++)
 	{
 		//drawRectWithPer(&image, 2, tile.getPos().y + (i + 1) * height, tile.getSize().x - 4, height, 2, tile.getCol(), 0xF1F6F9);
 		int stringSize = (*serverData)[(sd::clientIt)i].getNickname().size();
-		mlx_string_put(mlx.mlx, mlx.win, tile.getPos().x + tile.getSize().x / 2 - stringSize, tile.getPos().y + i * height + 15, TEXT_COL, strdup((*serverData)[(sd::clientIt)i].getNickname().c_str()));
+		mlx_string_put(mlx.mlx, mlx.win, tile.getPos().x + tile.getSize().x / 2 - stringSize, tile.getPos().y + (i - 1) * HEIGHT + HEADER + 15, TEXT_COL, strdup((*serverData)[(sd::clientIt)i].getNickname().c_str()));
 	}
 }
 
 void RenderEngine::renderChannels(const mlx::Tile& tile)
 {
 	uint32_t numChann = serverData->getNumOfChannels();
-	uint32_t height = 20;
 	for (uint32_t i = 1; i < numChann; i++)
 	{
-		drawRectWithPer(&image, tile.getPos().x + 2, tile.getPos().y + i * height, tile.getSize().x - 4, height, 2, BODY_COL, MAINBODY_COL);
+		drawRectWithPer(&image, tile.getPos().x + 2, tile.getPos().y + (i - 1) * HEIGHT + HEADER, tile.getSize().x - 4, HEIGHT, 2, BODY_COL, MAINBODY_COL);
 	}
 }
 
 void RenderEngine::renderChannelsTexts(const mlx::Tile& tile)
 {
 	uint32_t numChann = serverData->getNumOfChannels();
-	uint32_t height = 20;
 	for (uint32_t i = 1; i < numChann; i++)
 	{
 		//drawRectWithPer(&image, 2, tile.getPos().y + (i + 1) * height, tile.getSize().x - 4, height, 2, tile.getCol(), 0xF1F6F9);
 		int stringSize = (*serverData)[(sd::channIt)i].getName().size();
-		mlx_string_put(mlx.mlx, mlx.win, tile.getPos().x + tile.getSize().x / 2 - stringSize, tile.getPos().y + i * height + 15, TEXT_COL, strdup((*serverData)[(sd::channIt)i].getName().c_str()));
+		mlx_string_put(mlx.mlx, mlx.win, tile.getPos().x + tile.getSize().x / 2 - stringSize, tile.getPos().y + (i - 1) * HEIGHT + HEADER + 15, TEXT_COL, strdup((*serverData)[(sd::channIt)i].getName().c_str()));
 	}
 }
 
@@ -184,14 +260,58 @@ void	RenderEngine::eventrealese(int keycode)
 
 void	RenderEngine::mouseEvent(int keycode, int x, int y)
 {
-	(void)x;
-	(void)y;
-	if (keycode == 1)
+	if (keycode != 1)
+		return;
+	for (int i = 0; i < 3; i++)
 	{
-		glm::ivec2 pos;
-		//std::cout << "self =" << this << "\n";
-		//std::cout << "[" << mlx << "]\n";
-		mlx_mouse_get_pos(mlx.win, &pos.x, &pos.y);
+		if (tiles[i].isTouching({x,y}))
+		{
+			if (tiles[i].getType() == mlx::eUsers)
+			{
+				if (currentInfo != mlx::eUsers)
+				{
+					currentInfo = mlx::eUsers;
+					infoIndex = 0;
+					return ;
+				}
+				int index = (y - HEADER) / HEIGHT;
+				std::cout << "index: " << index << " y " << y << "\n";
+				if (index >= 0 && index < (int)serverData->getNumOfClients() - 1)
+					infoIndex = index + 1;
+				else
+					infoIndex = 0;
+				currentInfo = mlx::eUsers;
+			}
+			else if (tiles[i].getType() == mlx::eChannels && currentInfo == mlx::eChannels)
+			{
+				if (currentInfo != mlx::eChannels)
+				{
+					currentInfo = mlx::eChannels;
+					infoIndex = 0;
+					return ;
+				}
+				int index = (x - HEADER) / HEIGHT;
+				if (index > 0 && index < (int)serverData->getNumOfChannels())
+					infoIndex = x;
+				else
+					infoIndex = 0;
+				currentInfo = mlx::eChannels;
+			}
+			else if (tiles[i].getType() == mlx::eInfo)
+			{
+				currentInfo = mlx::eServer;
+				infoIndex = 0;
+				return ;
+			}
+		}
+	}
+}
+
+void RenderEngine::printLines(const mlx::Tile& tile, const std::vector<std::string>&lines)
+{
+	for (uint32_t i = 0; i < lines.size(); i++)
+	{
+		mlx_string_put(mlx.mlx, mlx.win, tile.getPos().x + (tile.getSize().x / 2) - lines[i].size(), i * HEIGHT + HEADER, TEXT_COL, (char *)lines[i].c_str());
 	}
 }
 

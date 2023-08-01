@@ -52,6 +52,13 @@ class RenderEngine{
 		void		renderClientsTexts(const mlx::Tile& tile);
 		void		renderChannels(const mlx::Tile& tile);
 		void		renderChannelsTexts(const mlx::Tile& tile);
+		void		renderInfo(const mlx::Tile& tile);
+	
+		void		renderServerInfo(const mlx::Tile& tile);
+		void		renderUsersInfo(const mlx::Tile& tile);
+		void		renderChannelsInfo(const mlx::Tile& tile);
+		void		renderUser(const mlx::Tile& tile, const Client& temp);
+		void		printLines(const mlx::Tile& tile, const std::vector<std::string>&lines);
 	private:
 		t_mlx mlx;
 		t_image image;
@@ -59,6 +66,9 @@ class RenderEngine{
 		glm::uvec2 winSize;
 		sd::ServerData *serverData;
 		glm::ivec3 indexs;//user, chann, info
+		
+		mlx::TileType currentInfo;
+		uint32_t infoIndex;
 };
 
 

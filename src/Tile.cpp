@@ -2,7 +2,7 @@
 
 namespace mlx{
 
-Tile::Tile(glm::uvec2 pos, glm::uvec2 size, std::string text, int col, TileType type)
+Tile::Tile(glm::ivec2 pos, glm::ivec2 size, std::string text, int col, TileType type)
 {
 	tiles = nullptr;
 	this->pos = pos;
@@ -21,11 +21,11 @@ Tile::Tile(const Tile& tile)
 	type = tile.getType();
 }
 
-glm::uvec2 Tile::getPos() const
+glm::ivec2 Tile::getPos() const
 {
 	return pos;
 }
-glm::uvec2 Tile::getSize() const
+glm::ivec2 Tile::getSize() const
 {
 	return size;
 }
@@ -41,6 +41,14 @@ int Tile::getCol() const
 TileType Tile::getType()const
 {
 	return type;
+}
+
+bool Tile::isTouching(glm::ivec2 point)
+{
+	if (point.x > pos.x && point.x < pos.x + size.x 
+		&& point.y > pos.y && point.y < pos.y + size.y)
+		return true;
+	return false;
 }
 
 }

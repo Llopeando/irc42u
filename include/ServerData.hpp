@@ -57,6 +57,7 @@ class ServerData{
 		void		addChannel(std::string name, std::string username, ServerData &serverData);
 		uint32_t	getNumOfChannels() const;
 		uint32_t	getNumOfClients() const;
+		uint32_t	getNumOfAwayClients() const {return back.size();}
 		void 		removeClientChannels(sd::clientIt index);
 		void		deleteChannel(uint32_t channel);
 		uint32_t	findChannel(const std::string &name) const;
