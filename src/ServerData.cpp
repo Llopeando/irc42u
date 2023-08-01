@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/28 18:14:18 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 12:56:49 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 19:31:47 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,6 @@ bool ServerData::checkOperPass(const std::string &user, const std::string& pass)
 	std::map<std::string, std::string>::const_iterator it = operblock.find(user);
 	if (it != operblock.end())
 		return it->second == pass;
-	
 	return false;
 }
 
@@ -151,7 +150,7 @@ bool ServerData::findOper(const std::string &user)const
 
 uint32_t	ServerData::findChannel(const std::string &name) const
 {
-	for (uint32_t i =0;i < channels.size();i++)
+	for (uint32_t i = 0;i < channels.size();i++)
 	{
 		if (channels[i].getName() == name)
 			return i;
@@ -177,7 +176,7 @@ void	ServerData::broadcastChannel(channIt channel, clientIt sender, std::string 
 
 std::string ServerData::getUserList(channIt channel)const
 {
-	std::string result;
+	std::string result = "";
 	for (uint32_t i = 1; i < channels[channel].getNumUser();i++)
 	{
 		result += clients[channels[channel][i]].getNickname() + " ";
@@ -200,17 +199,50 @@ void	ServerData::forwardClient(const std::string& nickname) //no existe el caso 
 	back.resize(back.size() - 1);
 }
 
+char rotatetLetter(char origChar)
+{
+	if (origChar > 'z' || origChar < 'a')
+		return 'a';
+	if (origChar == 'z')
+		return 'a';
+	return origChar++;
+}
+
+std::string ServerData::randomNickname(clientIt index, std::string origNickname)
+{
+	int i = 0;
+	std::string newNickname = origNickname;
+	if (findNickname(newNickname) == index)
+			return newNickname;
+	while (findNickname(newNickname))
+	{
+		if (newNickname.size() >= config.nicklen)
+		{
+			if (newNickname[i] == 'z')
+			{
+				i++;
+				continue;
+			}
+			newNickname[i] = rotatetLetter(origNickname[i]);
+		}
+		else 
+			newNickname += "_";
+	}
+	return newNickname;
+}
+
 void	ServerData::transferIndex(clientIt index, const std::string& nickname)
 {
 	uint32_t backIndex = findNicknameBack(nickname);
 	if (index == 0)
 		return ;
+	back[backIndex].setNickname(randomNickname(index, back[backIndex].getNickname()));
 	clients[index] = back[backIndex];
 	if (backIndex != back.size() - 1)
 	{
 		back[index] = back[clients.size() - 1];
 	}
-	back.resize(back.size() - 1);
+	back.pop_back();
 }
 
 pollfd *ServerData::getPollfdData()

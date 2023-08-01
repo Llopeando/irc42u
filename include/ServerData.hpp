@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:32 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 12:51:16 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 19:17:05 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ class ServerData{
 
  		uint32_t	pollfdSize() const {return pollfds.size();}
 
-
 		char		*getCreationDate()const;
 
 		clientIt	findUsername(const std::string& argument) const;
@@ -57,7 +56,6 @@ class ServerData{
 		void	forwardClient(const std::string& nickname); 
 		void	removeClient(clientIt index);
 
-
 		std::deque<sd::Channel>::iterator getChannelBegin() {return channels.begin();}
 		std::deque<sd::Channel>::const_iterator getChannelBeginConst() {return channels.begin();}
 		std::deque<sd::Channel>::iterator getChannelEnd() {return channels.end();}
@@ -66,7 +64,8 @@ class ServerData{
 
 		bool nicknameExists(const std::string& nickname) const {return findNickname(nickname) || findNicknameBack(nickname);}
 		bool usernameExists(const std::string& username) const {return findUsername(username) || findUsernameBack(username);}
-		
+		std::string randomNickname(clientIt index, std::string origNickname);
+				
 		//OPERATOR BLOCK
 
 		std::string getOperList();
@@ -80,7 +79,7 @@ class ServerData{
 		uint32_t	getNumOfChannels() const;
 		uint32_t	getNumOfClients() const;
 		//void 		removeClientChannels(sd::clientIt index);
-		void		deleteChannel(uint32_t channel);
+		void		deleteChannel(uint32_t channel){channels.erase(channels.begin() + channel);};
 		uint32_t	findChannel(const std::string &name) const;
 		void		broadcastChannel(channIt channel, clientIt sender, std::string const &msg);
 		std::string getUserList(channIt channel)const;
@@ -95,6 +94,8 @@ class ServerData{
 		const pollfd &operator[](pollfdIt idx) const{return pollfds[idx];}
 		Channel &operator[](channIt idx){return channels[idx];}
 		const Channel &operator[](channIt idx) const{return channels[idx];}
+
+
 
 	private:
 		std::vector<struct pollfd> pollfds;

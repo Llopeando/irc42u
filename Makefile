@@ -6,7 +6,7 @@
 #    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/07/31 13:10:48 by ullorent         ###   ########.fr        #
+#    Updated: 2023/08/01 19:00:18 by ullorent         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,7 +46,7 @@ $(NAME): $(CPPOBJ) $(CPPINCLUDE)
 	@echo "\033[92mircserv has been successfully compiled!\033[0m"
 
 clean:
-	@rm -rf src/*.o
+	@rm -rf $(CPPOBJ)
 	@rm -rf src/*.dSYM
 
 fclean: clean

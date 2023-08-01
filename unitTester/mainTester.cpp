@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/01 17:36:42 by ecamara           #+#    #+#             */
-/*   Updated: 2023/06/09 17:41:08 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 18:11:28 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ void checkSplit(Checker &checker)
 	std::vector<std::pair<std::string, std::vector<std::string> > > items = setVectorsSplitSpace();
 	for (auto elem = items.begin(); elem != items.end(); ++elem)
 	{
-		checker.assertVector(elem->second, split(elem->first, ' '));
+		checker.assertVector(elem->second, utils::split(elem->first, ' '));
 	}
 }
 
@@ -83,7 +83,7 @@ void checkSplitIrc(Checker &checker)
 	std::vector<std::pair<std::string, std::vector<std::string> > > items = setVectorsSplitIrcSpace();
 	for (auto elem = items.begin(); elem != items.end(); ++elem)
 	{
-		checker.assertVector(elem->second, splitIrcPrameters(elem->first, ' '));
+		checker.assertVector(elem->second, utils::splitIrcPrameters(elem->first, ' '));
 	}
 }
 
@@ -93,7 +93,7 @@ void checkstrJoin(Checker &checker)
 	std::vector<strJoin_t> items = setVectorsJoin();
 	for (auto elem = items.begin(); elem != items.end(); ++elem)
 	{
-		checker.assertCheck(elem->string, joinStr(elem->str_vec, elem->index));
+		checker.assertCheck(elem->string, utils::joinStr(elem->str_vec, elem->index));
 	}
 }
 
@@ -104,7 +104,7 @@ void checkUtils(Checker &checker)
 	checkstrJoin(checker);
 }
 
-void	serverCreateInfo(t_serverInput *serverInfo)
+void	serverCreateInfo(sd::t_serverInput *serverInfo)
 {
 	int port = 5555; //y de paso chequea si es un int valido
 	serverInfo->password = std::string("hola");

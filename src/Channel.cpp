@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/11 14:00:32 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 12:53:00 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 18:16:05 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ std::string Channel::getTopic( void)const{
 }
 
 uint32_t	Channel::getNumUser( void)const{
-	return (numOfUsers);
+	return (users.size());
 
 }
 
@@ -97,7 +97,7 @@ uint32_t	Channel::findUser(clientIt indexAct) const {
 	uint32_t i = 1;
 	for (std::deque<uint32_t>::const_iterator it = users.begin() + 1; it != users.end(); it++)
 	{
-		std::cout << "i[" << i << "]size[" << users.size() << "]\n";
+		//std::cout << "i[" << i << "]size[" << users.size() << "]\n";
 		if (*it == indexAct)
 			return i;
 		i++;

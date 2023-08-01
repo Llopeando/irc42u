@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:44:08 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 13:02:02 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 17:11:59 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ class Channel
 		std::string			getCreationDate()const;
 		void				setCreationDate(std::time_t);
 		std::string			getName()const;
-		//std::string			getUserList()const;
+		//std::string		getUserList()const;
 		void				addClient(clientIt index);
 		eFlags				removeClient(clientIt indexAct);
 	//	void 				broadcast(clientIt sender, std::string const &msg);

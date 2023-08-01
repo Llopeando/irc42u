@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/28 18:14:04 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 13:22:14 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 20:21:18 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,10 +175,11 @@ eFlags Server::handleInput(sd::clientIt index, std::string input)
 	std::vector<std::string> arguments = utils::splitIrcPrameters(input, ' ');
 
 	cmd::CmdInput package(arguments, serverData, index);
-	
-	if (serverData[index].getAuthentificied() != sd::eAuthentified &&
-		arguments[0] != "NICK" && arguments[0] != "USER" && arguments[0] != "PASS")
+
+	if (serverData[index].getAuthentificied() != sd::eAuthentified && arguments[0] != "NICK" && arguments[0] != "USER" && arguments[0] != "PASS")
+	{
 		return eError;
+	}
 
 	eFlags output = cmd::callFunction(arguments[0], package);
 	
@@ -193,7 +194,7 @@ eFlags Server::handleInput(sd::clientIt index, std::string input)
 		cmd::removeClientChannels(serverData, index);
 		serverData.removeClient(index);
 	}
-	else if (output & eRemoveClientChannel) //probablemente falle por devolver el casteo
+	else if (output & eRemoveClientChannel)
 	{
 		cmd::removeClientChannels(serverData, index);
 	}
@@ -210,9 +211,9 @@ void Server::handleEvents(sd::pollfdIt index)
 	if (serverData[index].revents & POLLIN)
 	{
 		std::string input = readTCPInput(serverData[index].fd, (sd::clientIt)index);
-		std::cout << color::blue << "input: [" << input << "]\n" << color::reset;
-		if ("QUIT" == input)
-			return;
+		std::cout << color::blue << "Client -> [" << input << "]\n" << color::reset;
+		//if ("QUIT" == input)
+		//	return;
 		serverData[(sd::clientIt)index].addBuffer(input);
 		if (input[input.size() - 1] != '\n')
 			return;
@@ -223,8 +224,9 @@ void Server::handleEvents(sd::pollfdIt index)
 			bool exited = false;
 			for (uint32_t i = 0; i < lines.size(); i++)
 			{
-				if (handleInput((sd::clientIt)index, lines[i]) == eExited)
-					exited = true;
+				eFlags value;
+				value = handleInput((sd::clientIt)index, lines[i]);
+				exited = value & eBack || value & eExited;
 			}
 			if (!exited)
 				serverData[(sd::clientIt)index].emptyBuffer();
@@ -248,21 +250,17 @@ std::string Server::getName()const
 std::string Server::readTCPInput(int client_fd, sd::clientIt index) {
 	char echoBuffer[RCVBUFSIZE];
 	int	recvMsgSize;
-	
+	(void)index;
 
 	memset(echoBuffer, 0, RCVBUFSIZE);
 	recvMsgSize = recv(client_fd, echoBuffer, sizeof(echoBuffer) - 1, 0);
 	if (recvMsgSize == SERVER_FAILURE)
 	{
-		std::cerr << color::red << "ERROR: recv failed\n" << color::reset; 
-		return (std::string(nullptr));
+		std::cerr << color::red << "ERROR: recv failed\n" << color::reset;
+		return (std::string(""));
 	}
 	else if (recvMsgSize == 0) {
-		std::vector<std::string>arguments;
-		arguments.push_back("QUIT");
-		cmd::CmdInput package(arguments, serverData, index);
-		cmd::callFunction("QUIT", package);
-		return("QUIT");
+		return ("QUIT\n");
 	}
 	///////////////LIMPIACARRO///////////
 	ssize_t j = 0;
@@ -276,53 +274,6 @@ std::string Server::readTCPInput(int client_fd, sd::clientIt index) {
 	}
 	return std::string(echoBuffer, j);
 }
-
-//
-//
-//
-//
-//void Server::removeClientChannels(sd::clientIt index)
-//{
-//	uint32_t i = 1;
-//	std::vector<uint32_t> deleteChannels;
-//	for(std::deque<sd::Channel>::iterator channel = serverData.getChannelBegin() + 1; channel != serverData.getChannelEnd(); channel++)
-//	{
-//		if(channel->findUser(index))
-//		{
-//			if (channel->removeClient(index) == eRemoveChannel)
-//				deleteChannels.push_back(i);
-//		}
-//		i++;
-//	}
-//	i = 0;
-//	for (std::vector<uint32_t>::iterator deleteChannel = deleteChannels.begin();
-//			deleteChannel != deleteChannels.end(); deleteChannel++)
-//	{
-//		std::string creatorName = serverData[(sd::channIt)(*deleteChannel - i)].getCreator();
-//		sd::clientIt creator = serverData.findUsername(creatorName);
-//		if (creator == 0)
-//		{
-//			creator = serverData.findUsernameBack(creatorName);
-//			if (creator == 0)
-//				continue ;
-//			serverData[(sd::backIt)creator].updateOps(*deleteChannel - i);
-//		}
-//		else
-//			serverData[creator].updateOps(*deleteChannel - i);
-//		//input.serverData[channel].broadcast(0, reply(eRPL_PART, input));
-//
-//		/* MOVE TO SERVER */
-//		std::vector<std::string> arguments;
-//		arguments.push_back("PART");
-//		arguments.push_back(serverData[(sd::channIt)(*deleteChannel - i)].getName());
-//		cmd::CmdInput input(arguments, serverData, index);
-//		
-//		cmd::callFunction("PART", input);
-//		serverData.getChannel().erase(serverData.getChannelBegin() + *deleteChannel - i);
-//		i++;
-//	}
-//}
-//
 
 /* ---------------------------------------------------------------------------------------- */
 /*										DEBUG PRINT											*/
@@ -443,7 +394,7 @@ void Server::minishell()
 			rmrf(line);
 		}
 		else {
-			std::cout << color::red << "║ Unknown command!\n" << color::reset;
+			std::cout << color::red << "║ Unknown command! Type 'info' for help.\n" << color::reset;
 		}
 	}
 }
@@ -460,7 +411,7 @@ void Server::printAllUsers()const
 {
 	for (sd::clientIt user = 0; user < serverData.getNumOfClients(); user++)
 	{
-		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << serverData[user].getNickname() << color::reset << '\n';
+		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << serverData[user].getNickname() << '[' << serverData[(sd::pollfdIt)user].fd << ']' << color::reset << '\n';
 	}
 }
 
@@ -476,7 +427,7 @@ void Server::printChannelInfo(const std::string& chName)const
 	std::cout << color::boldwhite << "║ " << color::yellow << "Topic: " << color::reset << serverData[channel].getTopic() << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "Creator: " << color::reset << serverData[channel].getCreator() << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "Creation Date: " << color::reset << serverData[channel].getCreationDate() << '\n';
-	std::cout << color::boldwhite << "║ " << color::yellow << "Num of users: " << color::reset << serverData[channel].getNumUser() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Num of users: " << color::reset << serverData[channel].getNumUser() - 1 << '\n';
 	std::cout << color::boldwhite << "║ " << color::yellow << "Users:\n" << color::reset;
 	std::vector<std::string> names = utils::split(serverData.getUserList(channel), '\n');
 	for (std::vector<std::string>::const_iterator name = names.begin(); name != names.end(); name++)
@@ -484,7 +435,6 @@ void Server::printChannelInfo(const std::string& chName)const
 		std::cout << color::cyan << "\t" << *name << '\n' << color::reset;
 	}
 }
-
 
 void Server::printUserInfo(const std::string& nickname)const
 {
@@ -513,10 +463,15 @@ void Server::rmrf(const std::string& nickname)
 	sd::clientIt user = serverData.findNickname(nickname);
 	if (user == 0)
 	{
-		std::cout << color::red << "║ Channel " << nickname << " does not exist\n" << color::reset;
+		std::cout << color::red << "║ User " << nickname << " does not exist\n" << color::reset;
 		return ;
 	}
-	serverData.removeClient(user);
+	std::vector<std::string> arguments;
+	arguments.push_back("QUIT");
+	cmd::CmdInput input(arguments, serverData, user);
+	cmd::callFunction("QUIT", input);
+	//serverData.backClient(user);
+	std::cout << color::green << "║ User " << nickname << " has been successfully killed\n" << color::reset;
 }
 
 void Server::printServerInfo()const

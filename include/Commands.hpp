@@ -24,22 +24,18 @@
 
 #include "ErrorHandler.hpp"
 
-//repasar si son public o private (cmd o cmd anonimous)
-//START_ANONYMOUS_NAMESPACE-> All functions reside inside the <namespace cmd namespace anonymous> so that they cannot be accessed from outside
 
 /* CMD namespace  : 
 
-	Util functions : removeClientChannels(), getFunctionMap(),getReplyMap();
+	Util functions : removeClientChannels(), getFunctionMap() 																										//Public
 
-	Access function : callFunction() -> Will call any function that matches the key passed as a parameter. Receives a key and a CmdInput. Returns a CmdReturn.
-	
-	Command functions [...]
+	Command functions [...]																																			//Public
 
-	Map of functions : getFunctionMap() , getReplyMap()
+	Map of commandss : getFunctionMap() , getReplyMap()																												// Anonymous namespace
+
+	Access function : callFunction() -> Will call any function that matches the key passed as a parameter. Receives a key and a CmdInput. Returns a CmdReturn. 		//Public
 
 */
-
-
 
 
 START_CMD_NAMESPACE
@@ -48,22 +44,7 @@ START_CMD_NAMESPACE
 
 void removeClientChannels(sd::ServerData &serverData, sd::clientIt index);
 bool checkChannelName(const std::string &channel);
-const CmdMap& getFunctionMap();
-
-/* --------------------------------			ACCESS TO FUNCTION 		-------------------------- */
-
-inline eFlags callFunction(const std::string& key, CmdInput& input)
-{
-	CmdMap::const_iterator it = getFunctionMap().find(key);
-	if (it != getFunctionMap().end()) {
-		return it->second(input);
-	}
-	else
-	{
-		return eNoSuchFunction;
-	}
-}
-
+//const CmdMap& getFunctionMap();
 
 /* --------------------------------			COMMANDS		-------------------------- */
 
@@ -117,7 +98,9 @@ eFlags	away(CmdInput& input);
 eFlags	cap(CmdInput& input); //(For now the server does not support capability negotiation )
 
 
-START_ANONYMOUS_NAMESPACE
+START_ANONYMOUS_NAMESPACE //-> Access to functions reside inside the <namespace cmd anonymous> so that they cannot be accessed from outside
+
+/* --------------------------------			MAP OF COMMANDS 		-------------------------- */
 
 const CmdMap& getFunctionMap()
 {
@@ -166,6 +149,22 @@ const CmdMap& getFunctionMap()
 //const RplMap& getReplyMap(); //POR QUE ESTA ESTA DECCLARACION AQUI 
 
 END_ANONYMOUS_NAMESPACE
+
+
+/* --------------------------------			ACCESS TO FUNCTION 		-------------------------- */ 
+
+inline eFlags callFunction(const std::string& key, CmdInput& input)
+{
+	CmdMap::const_iterator it = getFunctionMap().find(key);
+	if (it != getFunctionMap().end()) {
+		return it->second(input);
+	}
+	else
+	{
+		return eNoSuchFunction;
+	}
+}
+
 
 END_CMD_NAMESPACE
 

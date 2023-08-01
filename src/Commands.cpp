@@ -6,11 +6,12 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/31 13:11:23 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 13:11:23 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 20:37:30 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Commands.hpp"
+#include <iostream>
 
 START_CMD_NAMESPACE
 
@@ -124,7 +125,7 @@ eFlags	nick(CmdInput& input)
 			return eError;
 		}
 	}
-	if (input.serverData.nicknameExists(input.arguments[1])) 
+	if (input.serverData.findNickname(input.arguments[1]))
 	{
 		error::error(input, error::ERR_NICKNAMEINUSE);
 		return eError;
@@ -154,9 +155,7 @@ eFlags	user(CmdInput& input)
 		return eError;
 	}
 	if (input.serverData.findNicknameBack(input.serverData[input.index].getNickname())) //ESTA EN BACK 
-	{
 		input.serverData.transferIndex(input.index, input.serverData[input.index].getNickname());
-	}
 	else
 	{
 		input.serverData[input.index].setUsername(input.arguments[1]);
@@ -192,7 +191,7 @@ eFlags	user(CmdInput& input)
 
 eFlags	oper(CmdInput& input) 
 {
-	if (input.arguments.size() < 2)
+	if (input.arguments.size() < 3)
 	{
 		error::error(input, error::ERR_NEEDMOREPARAMS); 
 		return eError;
@@ -237,7 +236,7 @@ eFlags	quit(CmdInput& input)
 	var.pnext = &var2;
 
 	input.serverData.broadcastChannel(0, 0, reply(eRPL_QUIT, input));
-	input.serverData.backClient(input.index);
+	//input.serverData.backClient(input.index);
 	input.var = nullptr;
 	return (eBack);
 }
@@ -255,9 +254,7 @@ eFlags	join(CmdInput& input)
 		return eError;
 	}
 	std::vector<std::string>channelNames = utils::split(input.arguments[1], ',');
-	if (input.arguments[1] == "#0")
-	{
-	//	input.serverData.removeClientChannels(input.index);
+	if (input.arguments[1] == "#0") {
 		return (eFlags)(eSuccess | eRemoveClientChannel);
 	}
 	eFlags ret_value = eSuccess;
@@ -275,24 +272,24 @@ eFlags	join(CmdInput& input)
 		sd::channIt channel = input.serverData.findChannel(channelNames[i].substr(1));
 		if(!channel) //NO EXISTE CHANNEL -> se crea y se une 
 		{
-			//se covierte en op de ese canal
-			if (input.serverData.getNumOfChannels() >= input.serverData.getConfig().chanlimit)
+			if (input.serverData.getNumOfChannels() >= input.serverData.getConfig().chanlimit) 	
 			{
 				error::error(input, error::ERR_TOOMANYCHANNELS);
-				ret_value = eError;
+				ret_value =  (eFlags)(ret_value | eError);
 				continue ;
 			}
 			input.serverData.addChannel(channelNames[i].substr(1), input.serverData[input.index].getUsername(), input.serverData);
 			channel = input.serverData.getNumOfChannels() - 1;
 			input.serverData[channel].addClient(input.index);
 			
-			input.serverData[input.index].addChannelToOps(channel);
+			input.serverData[input.index].addChannelToOps(channel); //se covierte en op de ese canal
 
 			CmdInputVar var;
 			var.data = &channel;
 			var.pnext = nullptr;
 			input.var = &var;
-			
+			std::string a = reply(eRPL_JOIN, input);
+			std::cout << a << '\n';
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_JOIN, input));
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_JOINMODE, input));
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_NAMREPLY, input));
@@ -304,10 +301,9 @@ eFlags	join(CmdInput& input)
 		{
 			if(input.serverData[channel].findUser(input.index))
 			{
-				return eSuccess;
+				continue ;
 			}
-			//std::cout << color::blue << input.serverData.getConfig().maxuserschan << color::reset << "\n";
-			if (input.serverData[channel].getNumUser() == input.serverData.getConfig().maxuserschan)
+			if (input.serverData[channel].getNumUser()-1 >= input.serverData.getConfig().maxuserschan)
 			{
 				error::error(input, error::ERR_CHANNELISFULL);
 				ret_value = eError;
@@ -370,6 +366,7 @@ eFlags	part(CmdInput& input)
 		}
 		if(!input.serverData[channel].findUser(input.index)) 
 		{
+			std::cout << "ERROR: " << input.serverData[channel].findUser(input.index) << '\n';
 			error::error(input, error::ERR_NOTONCHANNEL, *channelName); //NO ESTAS EN EL CHANNEL 
 			continue ;
 		}
@@ -385,15 +382,15 @@ eFlags	part(CmdInput& input)
 		var1.pnext = nullptr;
 
 		input.serverData[channel].removeClient(input.index);
+		if (input.serverData[channel].getNumUser() - 1 == 0)
+			input.serverData.deleteChannel(channel);
 	}
-	
 	input.var = nullptr;
 	return eSuccess;
 }
 
 eFlags	topic(CmdInput& input) 
 {
-
 	if (input.arguments.size() < 2)
 	{
 		error::error(input, error::ERR_NEEDMOREPARAMS , "TOPIC"); //ARGUMENT ERROR
@@ -417,7 +414,7 @@ eFlags	topic(CmdInput& input)
 	}
 	if( input.arguments.size() >= 3) //SETTING TOPIC 
 	{
-		if (!input.serverData[input.index].findChannelInOps(channel)) 
+		if (!input.serverData[input.index].findChannelInOps(channel))
 		{
 			error::error(input, error::ERR_CHANOPRIVSNEEDED, input.arguments[1].substr(1));// NO CHANNEL OPER 
 			return eError;
@@ -497,8 +494,6 @@ eFlags	names(CmdInput& input)
 
 eFlags	list(CmdInput& input) 
 {
-	
-
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_LISTSTART, input));
 	for (sd::channIt channel = 1;channel < input.serverData.getNumOfChannels() ; channel++)
 	{
@@ -516,15 +511,21 @@ eFlags	list(CmdInput& input)
 
 eFlags	invite(CmdInput& input) 
 {
-	if (input.arguments.size() < 2)
+	std::cout << "argument 2 [" << input.arguments[2] << "]\n";
+	if (input.arguments.size() < 3)
 	{
 		error::error(input, error::ERR_NEEDMOREPARAMS , "INVITE"); //ARGUMENT ERROR
 		return eError;
 	}
-	sd::channIt channel = input.serverData.findChannel(input.arguments[1].substr(1));
-	if (!input.serverData[input.index].findChannelInOps(channel)) 
+	if (!checkChannelName(input.arguments[2]))
 	{
-		error::error(input, error::ERR_CHANOPRIVSNEEDED, input.arguments[1].substr(1));// NO CHANNEL OPER 
+		error::error(input, error::ERR_BADCHANMASK, input.arguments[2]);
+		return eError;
+	}
+	sd::channIt channel = input.serverData.findChannel(input.arguments[2].substr(1));
+	if (!input.serverData[input.index].findChannelInOps(channel))
+	{
+		error::error(input, error::ERR_CHANOPRIVSNEEDED, utils::removeHashtag(input.arguments[2]));// NO CHANNEL OPER 
 		return eError;
 	}
 
@@ -536,13 +537,16 @@ eFlags	invite(CmdInput& input)
 			error::error(input, error::ERR_NOSUCHNICK, input.arguments[1]);
 			return eError;
 		}
-		sd::channIt channel = input.serverData.findChannel(input.arguments[2].substr(1));
-		if (channel == 0)
-			error::error(input, error::ERR_NOSUCHCHANNEL, input.arguments[2]); // NO EXISTE CHANNEL
 
-		else if (!input.serverData[input.index].findChannelInOps(channel)) 
+		sd::channIt channel = input.serverData.findChannel(utils::removeHashtag(input.arguments[2]));
+		if (channel == 0)
 		{
-			error::error(input, error::ERR_CHANOPRIVSNEEDED, input.arguments[1].substr(1));// NO CHANNEL OPER 
+			error::error(input, error::ERR_NOSUCHCHANNEL, input.arguments[2]);
+			return eError;
+		}
+		else if (!input.serverData[input.index].findChannelInOps(channel))
+		{
+			error::error(input, error::ERR_CHANOPRIVSNEEDED, utils::removeHashtag(input.arguments[2]));// NO CHANNEL OPER 
 			return eError;
 		}
 		else if (!input.serverData[channel].findUser(input.index))
@@ -713,7 +717,12 @@ eFlags	notice(CmdInput& input)
 		if ((*target)[0] == '#') //ES UN CANAL - solo OPs 
 		{
 			sd::channIt channel = input.serverData.findChannel(target->substr(1));
-			if (!input.serverData[input.index].findChannelInOps(channel)) 
+			if (channel == 0)
+			{
+				error::error(input, error::ERR_NOSUCHCHANNEL, input.arguments[1]); //NO EXISTE CHANNEL 
+				return eError;
+			}
+			else if (!input.serverData[input.index].findChannelInOps(channel)) 
 			{
 				error::error(input, error::ERR_CHANOPRIVSNEEDED, input.arguments[1].substr(1));// NO CHANNEL OPER 
 				return eError;
@@ -796,7 +805,7 @@ eFlags	kill(CmdInput& input)
 	{
 		reason += utils::joinStr(input.arguments, 2);
 	}
-	
+
 	CmdInputVar var;
 	var.data = &target_user;
 	var.pnext = nullptr;
@@ -809,7 +818,6 @@ eFlags	kill(CmdInput& input)
 	
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)target_user].fd, reply(eRPL_KILL, input));
 
-
 	std::string message = input.serverData[input.index].getUserMask() + "  has forced " + input.serverData[target_user].getNickname() + " to leave " + input.serverData.getName();
 	var.data = &message;
 	var2.data = &target_user;
@@ -819,12 +827,10 @@ eFlags	kill(CmdInput& input)
 	input.var = nullptr;
 	var.pnext = nullptr;
 
-//ARREGLAR 
-
-	close(input.serverData[(sd::pollfdIt)target_user].fd);
-	input.serverData.backClient(target_user);
+	//close(input.serverData[(sd::pollfdIt)target_user].fd);
 	removeClientChannels(input.serverData, target_user);
-	return (eFlags)(eBack | eRemoveClientChannel);
+	input.serverData.backClient(target_user);
+	return (eSuccess);
 
 //casos en los que server hace quit EL SERVER : "Ping timeout: 120 seconds", "Excess Flood", and "Too many connections from this IP" 
 
@@ -954,7 +960,7 @@ void removeClientChannels(sd::ServerData &serverData, sd::clientIt index)
 	{
 		if(channel->findUser(index))
 		{
-			if (channel->removeClient(index) == eRemoveChannel)
+			//if (channel->removeClient(index) == eRemoveChannel)
 				deleteChannels.push_back(i);
 		}
 		i++;
@@ -977,19 +983,20 @@ void removeClientChannels(sd::ServerData &serverData, sd::clientIt index)
 		//input.serverData[channel].broadcast(0, reply(eRPL_PART, input));
 
 		/* MOVE TO SERVER */
+		
 		std::vector<std::string> arguments;
 		arguments.push_back("PART");
-		arguments.push_back(serverData[(sd::channIt)(*deleteChannel - i)].getName());
+		arguments.push_back("#" + serverData[(sd::channIt)(*deleteChannel - i)].getName());
 		cmd::CmdInput input(arguments, serverData, index);
 		part(input);
-		//cmd::callFunction("PART", input);
-		serverData.getChannel().erase(serverData.getChannelBegin() + *deleteChannel - i);
+		//serverData.getChannel().erase(serverData.getChannelBegin() + *deleteChannel - i);
 		i++;
 	}
 }
 
 bool checkChannelName(const std::string &channel)
 {
+	std::cout << channel[0] <<  " != '#' == " << (channel[0] != '#') << '\n';
 	if (channel.size() < 2 || channel[0] != '#')
 		return false;
 	for (std::string::const_iterator it = channel.begin() + 1; it != channel.end(); it++)

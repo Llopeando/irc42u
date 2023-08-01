@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:44:03 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 13:39:43 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 18:19:55 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,15 +39,23 @@
 			"        /:::/    /                       \\::/    /                       \\::/    /                         \\:|   |                         \\::/    /         \n" \
 			"        \\::/____/                         \\/____/                         \\/____/                           \\|___|                          \\/____/          \n"
 
-/*
-*	Public:
-*		reply() -> handles the key to call &rpl_command
-*
-*	Private:
-*		//all the rpl_command() that return the string 
-*		getReplyMap()						-> to access the map 
-*		static RplMap rplMap;			 	-> map to find the key of the command
+
+/* CMD namespace  : 
+
+	ereply() -> Enums of the replies that will be the key to call reply()																										//Public
+
+	struct CmdInput and struct CmdInputVar -> the package that will be sent to the reply. CmdInputVar is an aux void * variable to allocate data								//Public
+
+	typedef eFlags , typedef std::string (*pRplFunction)(CmdInput& input), , typedef CmdMap, typedef RplMap;																	//Anonymous
+
+	reply() -> Call function to access the map 																																					//Public
+
+	Al the rpl_command() that return the string definitions																																			//Anonymous	
+
+	const RplMap& getReplyMap() -> map to find the key of the command																																				//Anonymous
+};
 */
+
 
 START_CMD_NAMESPACE
 
@@ -122,7 +130,9 @@ inline std::string reply(eReply key, CmdInput &input)
 {
 	RplMap::const_iterator it = getReplyMap().find(key);
 	if (it != getReplyMap().end()) {
+		//std::cout << color::green << "Server -> sended to " << input.serverData[input.index].getNickname() << " [" << it->second(input) << "]\n" << color::reset; 
 		return it->second(input);
+		
 	}
 	else
 	{
@@ -274,7 +284,7 @@ inline std::string rpl_liststart(CmdInput& input)
 inline std::string rpl_list(CmdInput& input)
 {
 	sd::channIt *channel = static_cast<sd::channIt *>(input.var->data);
-	return (":" + input.serverData.getName() + " 322 " + input.serverData[input.index].getNickname() + " #" + input.serverData[*channel].getName() + " " +  std::to_string(input.serverData[*channel].getNumUser()) + " :" + input.serverData[*channel].getTopic() + "\r\n");
+	return (":" + input.serverData.getName() + " 322 " + input.serverData[input.index].getNickname() + " #" + input.serverData[*channel].getName() + " " +  std::to_string(input.serverData[*channel].getNumUser() - 1) + " :" + input.serverData[*channel].getTopic() + "\r\n");
 }
 
 inline std::string rpl_listend(CmdInput& input)

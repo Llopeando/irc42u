@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/28 18:14:24 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/28 18:14:25 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 20:19:30 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,4 +179,6 @@ namespace utils{
 			*it = std::tolower(*it);
 		}
 	}
+
+	
 }

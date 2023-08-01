@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/31 12:36:06 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 13:06:19 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 17:46:59 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void	serverCreateInfo(char **argv, int argc, sd::t_serverInput *serverInfo)
 	//RELLENAR STRUCT
 	int port = std::atoi(argv[0]); 
 	serverInfo->password = std::string(argv[1]);
-	serverInfo->serverName = "A O I R C";
+	serverInfo->serverName = serverInfo->IP;
 	serverInfo->address.sin_family = AF_INET;
 	serverInfo->address.sin_addr.s_addr = INADDR_ANY;
 	serverInfo->address.sin_port = htons( port );

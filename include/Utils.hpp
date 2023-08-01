@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:36 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 12:27:20 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/01 20:25:46 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ namespace utils{
 	void printBinary(uint32_t value);
 
 	void tolower(std::string &string);
+	inline std::string removeHashtag(std::string& a){return a.substr(a[0] == '#');}
 }
 
 #endif
