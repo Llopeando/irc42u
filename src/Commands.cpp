@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/31 13:11:23 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/01 20:37:30 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/02 19:41:32 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,22 +25,7 @@ eFlags	motd(CmdInput& input)
 
 eFlags	mode(CmdInput& input)  //only available to modify user mode OPERATOR
 {
-	if (input.arguments.size() < 2) {
-		error::error(input, error::ERR_NEEDMOREPARAMS, "MODE");
-		return eError;
-	}
-	if (input.arguments[1] == "+o")
-	{
-		if(input.serverData.findOper(input.serverData[(sd::clientIt)input.index].getUsername()))
-		{
-			error::error(input, error::ERR_NOPRIVILEGES);
-		}
-		input.serverData[input.index].setRole(CL_OPER);
-	}
-	else if (input.arguments[1] == "-o")
-		input.serverData[input.index].setRole(CL_USER);
-	else
-		return eError;
+	(void) input;
 	return eSuccess;
 }
 
@@ -154,8 +139,10 @@ eFlags	user(CmdInput& input)
 		error::error(input, error::ERR_ALREADYREGISTERED); 
 		return eError;
 	}
-	if (input.serverData.findNicknameBack(input.serverData[input.index].getNickname())) //ESTA EN BACK 
-		input.serverData.transferIndex(input.index, input.serverData[input.index].getNickname());
+	if (input.serverData.findUsernameBack(input.arguments[1])) //ESTA EN BACK 
+	{
+			input.serverData.transferIndex(input.index, input.arguments[1]);
+	}
 	else
 	{
 		input.serverData[input.index].setUsername(input.arguments[1]);
@@ -230,8 +217,10 @@ eFlags	quit(CmdInput& input)
 	var.pnext = nullptr;
 	input.var = &var;
 
+	std::string mask = input.serverData[input.index].getUserMask();
+
 	CmdInputVar var2;
-	var2.data = &input.index;
+	var2.data = &mask;
 	var2.pnext = nullptr;
 	var.pnext = &var2;
 
@@ -511,7 +500,6 @@ eFlags	list(CmdInput& input)
 
 eFlags	invite(CmdInput& input) 
 {
-	std::cout << "argument 2 [" << input.arguments[2] << "]\n";
 	if (input.arguments.size() < 3)
 	{
 		error::error(input, error::ERR_NEEDMOREPARAMS , "INVITE"); //ARGUMENT ERROR
@@ -700,8 +688,11 @@ eFlags	privmsg(CmdInput& input)
 
 eFlags	notice(CmdInput& input) 
 {
-	if (input.arguments.size() < 2 || input.arguments[1].empty()) 
+	if (input.arguments.size() < 3 ) 
+	{
+		error::error(input, error::ERR_NEEDMOREPARAMS);
 		return eError;
+	}
 	std::vector<std::string> targets = utils::split(input.arguments[1], ',');
 	std::set<std::string> uniqueNames;
 	for (std::vector<std::string>::iterator target = targets.begin(); target != targets.end(); target++)
@@ -716,18 +707,21 @@ eFlags	notice(CmdInput& input)
 		
 		if ((*target)[0] == '#') //ES UN CANAL - solo OPs 
 		{
+			
 			sd::channIt channel = input.serverData.findChannel(target->substr(1));
 			if (channel == 0)
 			{
 				error::error(input, error::ERR_NOSUCHCHANNEL, input.arguments[1]); //NO EXISTE CHANNEL 
-				return eError;
+				continue;
 			}
 			else if (!input.serverData[input.index].findChannelInOps(channel)) 
 			{
 				error::error(input, error::ERR_CHANOPRIVSNEEDED, input.arguments[1].substr(1));// NO CHANNEL OPER 
-				return eError;
+				continue;
 			}
+			
 			input.serverData.broadcastChannel(channel, input.index, reply(eRPL_PRIVMSG, input));
+			
 		}
 		else  //ES UN USER 
 		{
@@ -741,7 +735,10 @@ eFlags	notice(CmdInput& input)
 					if(!input.arguments[2].empty())  
 						utils::sendMsgUser(input.serverData[(sd::pollfdIt)user].fd, reply(eRPL_PRIVMSG, input));
 				}
-			
+			}
+			else
+			{
+				error::error(input, error::ERR_NOSUCHNICK);
 			}
 		}
 		input.var = nullptr;
@@ -783,7 +780,7 @@ eFlags	whois(CmdInput& input)
 eFlags	kill(CmdInput& input) 
 {
 
-	if (input.arguments.size() < 1)
+	if (input.arguments.size() < 2)
 	{
 		error::error(input, error::ERR_NEEDMOREPARAMS , "KILL"); //ARGUMENT ERROR
 		return eError;
@@ -816,24 +813,25 @@ eFlags	kill(CmdInput& input)
 	var2.pnext = nullptr;
 	var.pnext = &var2;
 	
+	
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)target_user].fd, reply(eRPL_KILL, input));
 
-	std::string message = input.serverData[input.index].getUserMask() + "  has forced " + input.serverData[target_user].getNickname() + " to leave " + input.serverData.getName();
+	std::string message = "Killed (" + input.serverData[input.index].getNickname() + " (" + reason + "))";
+	std::string mask = input.serverData[target_user].getUserMask();
+
 	var.data = &message;
-	var2.data = &target_user;
+	var2.data =  &mask;
+
+	removeClientChannels(input.serverData, target_user);
+	input.serverData.backClient(target_user);//hace close
 
 	input.serverData.broadcastChannel(0,0,reply(eRPL_QUIT, input));
 
 	input.var = nullptr;
 	var.pnext = nullptr;
-
-	//close(input.serverData[(sd::pollfdIt)target_user].fd);
-	removeClientChannels(input.serverData, target_user);
-	input.serverData.backClient(target_user);
-	return (eSuccess);
-
+	
+	return (eReordered);
 //casos en los que server hace quit EL SERVER : "Ping timeout: 120 seconds", "Excess Flood", and "Too many connections from this IP" 
-
 }
 /* --------------------------------Optional Messages------------------------------------ */
 
@@ -954,14 +952,15 @@ eFlags	cap(CmdInput& input)
 
 void removeClientChannels(sd::ServerData &serverData, sd::clientIt index)
 {
-	uint32_t i = 1;
+	uint32_t i = 0;
 	std::vector<uint32_t> deleteChannels;
-	for(std::deque<sd::Channel>::iterator channel = serverData.getChannelBegin() + 1; channel != serverData.getChannelEnd(); channel++)
+	for(std::deque<sd::Channel>::iterator channel = serverData.getChannelBegin(); channel != serverData.getChannelEnd(); channel++)
 	{
 		if(channel->findUser(index))
 		{
+			std::cout << "channel to save : " <<  channel->getName() << "\n";
 			//if (channel->removeClient(index) == eRemoveChannel)
-				deleteChannels.push_back(i);
+			deleteChannels.push_back(i);
 		}
 		i++;
 	}
@@ -969,21 +968,27 @@ void removeClientChannels(sd::ServerData &serverData, sd::clientIt index)
 	for (std::vector<uint32_t>::iterator deleteChannel = deleteChannels.begin();
 			deleteChannel != deleteChannels.end(); deleteChannel++)
 	{
-		std::string creatorName = serverData[(sd::channIt)(*deleteChannel - i)].getCreator();
-		sd::clientIt creator = serverData.findUsername(creatorName);
-		if (creator == 0)
+		std::cout << "channel to delete : " <<  serverData[(sd::channIt)(*deleteChannel - i)].getName() << "\n";
+		if (serverData[(sd::channIt)(*deleteChannel - i)].getNumUser() - 1 == 1)
 		{
-			creator = serverData.findUsernameBack(creatorName);
+			std::string creatorName = serverData[(sd::channIt)(*deleteChannel - i)].getCreator();
+			sd::clientIt creator = serverData.findUsername(creatorName);
 			if (creator == 0)
-				continue ;
-			serverData[(sd::backIt)creator].updateOps(*deleteChannel - i);
+			{
+				creator = serverData.findUsernameBack(creatorName);
+				if (creator != 0)
+					serverData[(sd::backIt)creator].updateOps(*deleteChannel - i);
+			}
+			else
+				serverData[creator].updateOps(*deleteChannel - i);
 		}
-		else
-			serverData[creator].updateOps(*deleteChannel - i);
-		//input.serverData[channel].broadcast(0, reply(eRPL_PART, input));
 
 		/* MOVE TO SERVER */
-		
+		if (*deleteChannel - i == 0)
+		{
+			serverData[(sd::channIt)0].removeClient(index);
+			continue ;
+		}
 		std::vector<std::string> arguments;
 		arguments.push_back("PART");
 		arguments.push_back("#" + serverData[(sd::channIt)(*deleteChannel - i)].getName());
@@ -996,7 +1001,6 @@ void removeClientChannels(sd::ServerData &serverData, sd::clientIt index)
 
 bool checkChannelName(const std::string &channel)
 {
-	std::cout << channel[0] <<  " != '#' == " << (channel[0] != '#') << '\n';
 	if (channel.size() < 2 || channel[0] != '#')
 		return false;
 	for (std::string::const_iterator it = channel.begin() + 1; it != channel.end(); it++)

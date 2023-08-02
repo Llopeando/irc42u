@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:44:03 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/01 18:19:55 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/02 19:37:52 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,7 +148,7 @@ inline std::string	rpl_welcome(CmdInput& input){
 }
 
 inline std::string	rpl_yourhost(CmdInput& input){
-	return ("002 " + input.serverData[input.index].getNickname() + " : Your host is " + input.serverData.getName() + ", running version " + std::string(VERSION) + "\r\n"); 
+	return ("002 " + input.serverData[input.index].getNickname() + " : Your host is " + input.serverData.getName() + ", running version " + input.serverData.getConfig().version + "\r\n"); 
 }
 
 inline std::string	rpl_created(CmdInput& input){
@@ -156,7 +156,7 @@ inline std::string	rpl_created(CmdInput& input){
 }
 
 inline std::string	rpl_myinfo(CmdInput& input){
-	return ("004 " + input.serverData[input.index].getNickname() + " " + input.serverData.getName() + " " + std::string(VERSION) + "\r\n");
+	return ("004 " + input.serverData[input.index].getNickname() + " " + input.serverData.getName() + " " + input.serverData.getConfig().version + "\r\n");
 }
 inline std::string	rpl_isupport(CmdInput& input){
 	return ("005 " + input.serverData[input.index].getNickname() + " CHANTYPES=" + input.serverData.getConfig().chantypes
@@ -187,17 +187,17 @@ inline std::string	rpl_motd(CmdInput& input) //375//372//376
 
 inline std::string rpl_version(CmdInput& input)
 {
-	return (":" + input.serverData[input.index].getUserMask() + " 351 " + input.serverData[input.index].getNickname() + " " + std::string(VERSION)  + " " + input.serverData.getName() + "\r\n");
+	return (":" + input.serverData[input.index].getUserMask() + " 351 " + input.serverData[input.index].getNickname() + " " + input.serverData.getConfig().version + " " + input.serverData.getName() + ":" + input.serverData.getConfig().versionComments + "\r\n");
 }
 
 inline std::string rpl_luserclient(CmdInput& input)
 {
-	return ("251 " + input.serverData[input.index].getNickname() + " :There are " + std::to_string(input.serverData.getNumOfClients()) + " users on 1 servers\r\n"); // we only have 1 server 
+	return ("251 " + input.serverData[input.index].getNickname() + " :There are " + std::to_string(input.serverData.getNumOfClients()-1) + " users on 1 servers\r\n"); // we only have 1 server 
 }
 
 inline std::string rpl_luserme(CmdInput& input)
 {
-	return ("255 " + input.serverData[input.index].getNickname() + " :I have " + std::to_string(input.serverData. getNumOfClients()) + " clients and 0 servers\r\n"); //we will never have any server connected 
+	return ("255 " + input.serverData[input.index].getNickname() + " : A O I R C : I have " + std::to_string(input.serverData.getNumOfClients()-1) + " clients and 0 servers\r\n"); //we will never have any server connected 
 }
 
 inline std::string rpl_pong(CmdInput& input)
@@ -219,8 +219,8 @@ inline std::string rpl_youreoper(CmdInput& input)
 inline std::string rpl_quit(CmdInput& input)
 {
 	std::string *reason = static_cast<std::string *>(input.var->data);
-	sd::clientIt *user = static_cast<sd::clientIt *>(input.var->pnext->data);
-	return (':' + input.serverData[*user].getUserMask() + " QUIT :Quit:" + *reason + "\r\n");
+	std::string *mask = static_cast<std::string *>(input.var->pnext->data);
+	return (':' + *mask + " QUIT :Quit: " + *reason + "\r\n");
 }
 
 inline std::string rpl_join(CmdInput& input)
@@ -338,7 +338,7 @@ inline std::string rpl_kill(CmdInput& input)
 	sd::clientIt *user = static_cast<sd::clientIt *>(input.var->data);
 	std::string *reason = static_cast<std::string *>(input.var->pnext->data);
 
-	return (':' + input.serverData[input.index].getUserMask() + " KILL " + input.serverData[*user].getNickname() + " : " + *reason + "\r\n");
+	return (':' + input.serverData[input.index].getNickname() + " KILL " + input.serverData[*user].getNickname() + " : " + *reason + "\r\n");
 }
 
 inline std::string rpl_whois(CmdInput &input)

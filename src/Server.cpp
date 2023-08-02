@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/28 18:14:04 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/01 20:21:18 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/02 18:44:33 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,17 +184,17 @@ eFlags Server::handleInput(sd::clientIt index, std::string input)
 	eFlags output = cmd::callFunction(arguments[0], package);
 	
 	// Recoger eFLAG y gestionar el cliente segun eFlag
-	if (output & eBack)
+	if (output == eBack)
 	{
 		cmd::removeClientChannels(serverData, index);
 		serverData.backClient(index);
 	}
-	else if (output & eExited)
+	else if (output == eExited)
 	{
 		cmd::removeClientChannels(serverData, index);
 		serverData.removeClient(index);
 	}
-	else if (output & eRemoveClientChannel)
+	else if (output == eRemoveClientChannel)
 	{
 		cmd::removeClientChannels(serverData, index);
 	}
@@ -211,22 +211,28 @@ void Server::handleEvents(sd::pollfdIt index)
 	if (serverData[index].revents & POLLIN)
 	{
 		std::string input = readTCPInput(serverData[index].fd, (sd::clientIt)index);
-		std::cout << color::blue << "Client -> [" << input << "]\n" << color::reset;
-		//if ("QUIT" == input)
-		//	return;
 		serverData[(sd::clientIt)index].addBuffer(input);
 		if (input[input.size() - 1] != '\n')
 			return;
 		else
 		{
+			std::cout << color::cyan << "CLIENT: [" << input << "]\n" << color::reset;
+			if (input == "QUIT\n" && serverData[(sd::clientIt)index].getAuthentificied() != sd::eAuthentified)
+			{
+				serverData.removeClient((sd::clientIt)index);
+				return ;
+			}
 			input = serverData[(sd::clientIt)index].getBuffer();
 			std::vector<std::string> lines = utils::split(input, '\n');
 			bool exited = false;
 			for (uint32_t i = 0; i < lines.size(); i++)
 			{
 				eFlags value;
+				std::string username = serverData[(sd::clientIt)index].getUsername();
 				value = handleInput((sd::clientIt)index, lines[i]);
-				exited = value & eBack || value & eExited;
+				if (value == eReordered)
+					index = serverData.findUsername(username);
+				exited = value == eBack || value == eExited;
 			}
 			if (!exited)
 				serverData[(sd::clientIt)index].emptyBuffer();
@@ -371,6 +377,13 @@ void Server::minishell()
 			printAllChannNames();
 		else if (line == "ls users")
 			printAllUsers();
+		else if (line == "ls back")
+			printAllUsersBack();
+		else if (line == "ls all")
+		{
+			printAllUsers();
+			printAllUsersBack();
+		}
 		else if (line == "info ch")
 		{
 			std::cout << "ch name: ";
@@ -385,6 +398,8 @@ void Server::minishell()
 		}
 		else if (line == "info server")
 			printServerInfo();
+		else if (line == "info lobby")
+			printLobbyInfo();
 		else if (line == "info")
 			printInfo();
 		else if (line == "rm -rf")
@@ -412,6 +427,31 @@ void Server::printAllUsers()const
 	for (sd::clientIt user = 0; user < serverData.getNumOfClients(); user++)
 	{
 		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << serverData[user].getNickname() << '[' << serverData[(sd::pollfdIt)user].fd << ']' << color::reset << '\n';
+	}
+}
+
+void Server::printAllUsersBack()const
+{
+	for (sd::backIt user = 0; user < serverData.getNumOfClientsBack(); user++)
+	{
+		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << serverData[user].getNickname() << color::reset << '\n';
+	}
+}
+
+
+void Server::printLobbyInfo()const
+{
+	sd::channIt channel = 0;
+	std::cout << color::boldwhite << "║ " << color::yellow << "Name: " << color::reset << "Lobby" << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Topic: " << color::reset << serverData[channel].getTopic() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Creator: " << color::reset << serverData[channel].getCreator() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Creation Date: " << color::reset << serverData[channel].getCreationDate() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Num of users: " << color::reset << serverData[channel].getNumUser() - 1 << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Users:\n" << color::reset;
+	std::vector<std::string> names = utils::split(serverData.getUserList(channel), '\n');
+	for (std::vector<std::string>::const_iterator name = names.begin(); name != names.end(); name++)
+	{
+		std::cout << color::cyan << "\t" << *name << '\n' << color::reset;
 	}
 }
 

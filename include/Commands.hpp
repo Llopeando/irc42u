@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   commands.h                                         :+:      :+:    :+:   */
+/*   Commands.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:54 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 13:03:56 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/02 17:58:28 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,8 +146,6 @@ const CmdMap& getFunctionMap()
 	return cmdMap;
 };
 
-//const RplMap& getReplyMap(); //POR QUE ESTA ESTA DECCLARACION AQUI 
-
 END_ANONYMOUS_NAMESPACE
 
 
@@ -167,7 +165,6 @@ inline eFlags callFunction(const std::string& key, CmdInput& input)
 
 
 END_CMD_NAMESPACE
-
 
 
 #endif

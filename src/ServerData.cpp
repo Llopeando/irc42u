@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/28 18:14:18 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/01 19:31:47 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/02 17:54:10 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,21 +47,19 @@ ServerData::ServerData(t_serverInput &serverInfo):config(serverInfo)
 	}
 }
 
-ServerData::~ServerData()
-{
-	
-}
+ServerData::~ServerData() { }
 
 uint32_t	ServerData::getNumOfChannels() const{
-
 	return (channels.size());
 }
 
-uint32_t	ServerData::getNumOfClients() const{
-
+uint32_t	ServerData::getNumOfClients() const {
 	return (pollfds.size());
 }
 
+uint32_t	ServerData::getNumOfClientsBack() const {
+	return (back.size());
+}
 
 std::string ServerData::getName() const
 {
@@ -96,12 +94,12 @@ void	ServerData::setSocket(pollfd &server, t_serverInput &serverInfo) {
 void	ServerData::backClient(clientIt index)
 {
 	back.push_back(Client(clients[index]));
+	close(pollfds[index].fd);
 	if (index != clients.size() - 1)
 	{
 		clients[index] = clients[clients.size() - 1];
 		pollfds[index] = pollfds[pollfds.size() - 1];
 	}
-	close(pollfds[index].fd);
 	clients.pop_back();
 	pollfds.pop_back();
 }
@@ -110,6 +108,7 @@ void	ServerData::backClient(clientIt index)
 void	ServerData::removeClient(clientIt index)
 {
 	close(pollfds[index].fd);
+	//removeClientChannels();
 	if (index != clients.size() - 1)
 	{
 		clients[index] = clients[clients.size() - 1];
@@ -208,35 +207,35 @@ char rotatetLetter(char origChar)
 	return origChar++;
 }
 
-std::string ServerData::randomNickname(clientIt index, std::string origNickname)
+std::string ServerData::randomUsername(clientIt index, std::string origUsername)
 {
 	int i = 0;
-	std::string newNickname = origNickname;
-	if (findNickname(newNickname) == index)
-			return newNickname;
-	while (findNickname(newNickname))
+	std::string newUsername = origUsername;
+	if (findUsername(newUsername) == index)
+			return newUsername;
+	while (findUsername(newUsername))
 	{
-		if (newNickname.size() >= config.nicklen)
+		if (newUsername.size() >= config.userlen)
 		{
-			if (newNickname[i] == 'z')
+			if (newUsername[i] == 'z')
 			{
 				i++;
 				continue;
 			}
-			newNickname[i] = rotatetLetter(origNickname[i]);
+			newUsername[i] = rotatetLetter(origUsername[i]);
 		}
 		else 
-			newNickname += "_";
+			newUsername += "_";
 	}
-	return newNickname;
+	return newUsername;
 }
 
-void	ServerData::transferIndex(clientIt index, const std::string& nickname)
+void	ServerData::transferIndex(clientIt index, const std::string& username)
 {
-	uint32_t backIndex = findNicknameBack(nickname);
+	uint32_t backIndex = findUsernameBack(username);
 	if (index == 0)
 		return ;
-	back[backIndex].setNickname(randomNickname(index, back[backIndex].getNickname()));
+	back[backIndex].setUsername(randomUsername(index, back[backIndex].getUsername()));
 	clients[index] = back[backIndex];
 	if (backIndex != back.size() - 1)
 	{

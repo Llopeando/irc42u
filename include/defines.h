@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:44 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 13:39:10 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/02 19:38:05 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,6 @@
 #define CL_OPER 2
 
 #define RCVBUFSIZE 1024
-
-#define VERSION "AOIRC Version: 1.0"
 
 namespace color {
 	const std::string reset		= "\033[0m";
@@ -80,11 +78,12 @@ typedef struct activeIndex {
 enum eFlags{
 	eSuccess = 0,
 	eError = 1,
-	eNoSuchFunction = 4,
+	eNoSuchFunction = 2,
 	eExited = 8,
 	eBack = 16,
 	eRemoveChannel = 32,
 	eRemoveClientChannel = 64,
+	eReordered = 124,
 };
 
 #endif

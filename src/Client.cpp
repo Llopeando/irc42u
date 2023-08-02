@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/28 18:14:11 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/28 18:14:13 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/02 18:32:38 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,6 @@ void	Client::emptyBuffer()
 {
 	buffer.clear();
 }
-
 
 /* --- DATA SETTERS --- */
 

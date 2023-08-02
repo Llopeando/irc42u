@@ -39,7 +39,7 @@
         "    * MOTD                                                                              \n" \
         "    * VERSION                                                                           \n" \
         "    * LUSERS                                                                            \n" \
-        "    * MODE      [+o/-o]                                //our server has only User mode available, to change user mode for operators          \n" \
+        "    * MODE                                                     //No available by server \n" \
         "                                                      \n" \
         "Sending Messages                                      \n" \
         "    * PRIVMSG   <target>{,<target>} <text to be sent> \n" \

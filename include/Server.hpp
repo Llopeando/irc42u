@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:28 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/01 20:08:02 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/02 17:58:39 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,8 @@ class Server
 		void	minishell();
 		void	printAllChannNames() const;
 		void	printAllUsers() const ;
+		void	printAllUsersBack() const ;
+		void	printLobbyInfo()const;
 		void	printChannelInfo(const std::string& chName) const;
 		void	printUserInfo(const std::string& nickname) const;
 		void	printServerInfo()const;

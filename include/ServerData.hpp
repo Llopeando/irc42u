@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:32 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/01 19:17:05 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/02 17:43:40 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,8 +64,8 @@ class ServerData{
 
 		bool nicknameExists(const std::string& nickname) const {return findNickname(nickname) || findNicknameBack(nickname);}
 		bool usernameExists(const std::string& username) const {return findUsername(username) || findUsernameBack(username);}
-		std::string randomNickname(clientIt index, std::string origNickname);
-				
+		std::string randomUsername(clientIt index, std::string origUsername);
+
 		//OPERATOR BLOCK
 
 		std::string getOperList();
@@ -78,6 +78,7 @@ class ServerData{
 		void		addChannel(std::string name, std::string username, ServerData &serverData);
 		uint32_t	getNumOfChannels() const;
 		uint32_t	getNumOfClients() const;
+		uint32_t	getNumOfClientsBack() const;
 		//void 		removeClientChannels(sd::clientIt index);
 		void		deleteChannel(uint32_t channel){channels.erase(channels.begin() + channel);};
 		uint32_t	findChannel(const std::string &name) const;
