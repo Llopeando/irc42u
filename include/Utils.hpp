@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:36 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/01 20:25:46 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:02:11 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,7 @@
 
 #include "defines.h"
 
-namespace utils{
-
+namespace utils {
 	typedef std::chrono::system_clock t_chrono;
 	
 	std::string printIp();

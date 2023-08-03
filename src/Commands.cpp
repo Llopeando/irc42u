@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/31 13:11:23 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/02 19:41:32 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:15:30 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ eFlags	motd(CmdInput& input)
 	return eSuccess;
 }
 
-eFlags	mode(CmdInput& input)  //only available to modify user mode OPERATOR
+eFlags	mode(CmdInput& input)  //not available but returns OK
 {
 	(void) input;
 	return eSuccess;
@@ -47,11 +47,6 @@ eFlags help(CmdInput& input) {
  return(eSuccess);
 }
 
-//void time(CmdInput& input)  
-//{
-//	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_TIME, input));
-//}
-
 /* --------------------------------Connection Messages---------------------------------- */
 
 eFlags	ping(CmdInput& input)
@@ -72,9 +67,7 @@ eFlags	pass(CmdInput& input)
 		return eSuccess;
 	if (input.arguments.size() < 2)
 	{
-		error::fatalError(input, error::ERR_PASSWDMISMATCH);
-//		input.serverData.removeClient(input.index);
-//		input.serverData.removeClientChannels(input.index);
+		error::fatalError(input, error::ERR_NEEDMOREPARAMS);
 		return eExited;
 	}
 	if (input.serverData.getPassword() == input.arguments[1])
@@ -84,7 +77,7 @@ eFlags	pass(CmdInput& input)
 	}
 	else
 	{
-		error::fatalError(input, error::ERR_PASSWDMISMATCH);
+		error::fatalError(input, error::ERR_BADPASSWORD);
 		return eExited;
 	}
 	return eSuccess;
@@ -112,7 +105,7 @@ eFlags	nick(CmdInput& input)
 	}
 	if (input.serverData.findNickname(input.arguments[1]))
 	{
-		error::error(input, error::ERR_NICKNAMEINUSE);
+		error::error(input, error::ERR_NICKNAMEINUSE); 
 		return eError;
 	}
 	else 
@@ -141,7 +134,7 @@ eFlags	user(CmdInput& input)
 	}
 	if (input.serverData.findUsernameBack(input.arguments[1])) //ESTA EN BACK 
 	{
-			input.serverData.transferIndex(input.index, input.arguments[1]);
+		input.serverData.transferIndex(input.index, input.arguments[1]);
 	}
 	else
 	{
@@ -169,8 +162,7 @@ eFlags	user(CmdInput& input)
 	}
 	else
 	{
-		error::error(input, error::ERR_PASSWDMISMATCH);
-		error::fatalError(input, error::ERR_BADPASSWORD);
+		error::error(input, error::ERR_BADPASSWORD); 
 		return eExited;
 	}
 	return eSuccess;
@@ -205,7 +197,6 @@ eFlags	oper(CmdInput& input)
 	return eSuccess;
 }
 
-
 eFlags	quit(CmdInput& input) 
 {	
 	std::string reason = "";
@@ -225,7 +216,6 @@ eFlags	quit(CmdInput& input)
 	var.pnext = &var2;
 
 	input.serverData.broadcastChannel(0, 0, reply(eRPL_QUIT, input));
-	//input.serverData.backClient(input.index);
 	input.var = nullptr;
 	return (eBack);
 }
@@ -233,9 +223,7 @@ eFlags	quit(CmdInput& input)
 
 /* --------------------------------Channel Operations----------------------------------- */
 
-
-
-eFlags	join(CmdInput& input) 
+eFlags	join(CmdInput& input)
 {
 	if (input.arguments.size() < 2 || input.arguments[1].empty())
 	{
@@ -261,7 +249,7 @@ eFlags	join(CmdInput& input)
 		sd::channIt channel = input.serverData.findChannel(channelNames[i].substr(1));
 		if(!channel) //NO EXISTE CHANNEL -> se crea y se une 
 		{
-			if (input.serverData.getNumOfChannels() >= input.serverData.getConfig().chanlimit) 	
+			if (input.serverData.getNumOfChannels() >= input.serverData.getConfig().chanlimit)
 			{
 				error::error(input, error::ERR_TOOMANYCHANNELS);
 				ret_value =  (eFlags)(ret_value | eError);
@@ -277,8 +265,6 @@ eFlags	join(CmdInput& input)
 			var.data = &channel;
 			var.pnext = nullptr;
 			input.var = &var;
-			std::string a = reply(eRPL_JOIN, input);
-			std::cout << a << '\n';
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_JOIN, input));
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_JOINMODE, input));
 			utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_NAMREPLY, input));
@@ -318,17 +304,16 @@ eFlags	join(CmdInput& input)
 		var.data = &channel;
 		var.pnext = nullptr;
 		input.var = &var;
-		//input.serverData[channel].broadcast(input.index, reply(eRPL_JOIN, input));
 		input.var = nullptr;
 	}
 	return ret_value;
 }
 
-eFlags	part(CmdInput& input) 
+eFlags	part(CmdInput& input)
 {
 	if (input.arguments.size() < 2)
 	{
-		error::error(input, error::ERR_NEEDMOREPARAMS , "PART"); //ARGUMENT ERROR
+		error::error(input, error::ERR_NEEDMOREPARAMS , "PART");
 		return eError;
 	}
 	std::string reason;
@@ -342,21 +327,21 @@ eFlags	part(CmdInput& input)
 	std::vector<std::string> channelNames = utils::split(input.arguments[1], ',');
 	for (std::vector<std::string>::iterator channelName = channelNames.begin(); channelName != channelNames.end(); channelName++)
 	{
-		if(!((*channelName)[0] == '#' || (*channelName)[0] == '@')) 
+		if(!((*channelName)[0] == '#' || (*channelName)[0] == '@'))
 		{
-			error::error(input, error::ERR_BADCHANMASK, *channelName); //FORMAT INCORRECT  
+			error::error(input, error::ERR_BADCHANMASK, *channelName);
 			continue ;
 		}
 		sd::channIt channel = input.serverData.findChannel(channelName->substr(1));
 		if (channel == 0)
 		{
-			error::error(input, error::ERR_NOSUCHCHANNEL, *channelName); //NO CHANNEL
+			error::error(input, error::ERR_NOSUCHCHANNEL, *channelName); 
 			continue ;
 		}
 		if(!input.serverData[channel].findUser(input.index)) 
 		{
-			std::cout << "ERROR: " << input.serverData[channel].findUser(input.index) << '\n';
-			error::error(input, error::ERR_NOTONCHANNEL, *channelName); //NO ESTAS EN EL CHANNEL 
+
+			error::error(input, error::ERR_NOTONCHANNEL, *channelName);
 			continue ;
 		}
 
@@ -370,38 +355,37 @@ eFlags	part(CmdInput& input)
 		
 		var1.pnext = nullptr;
 
-		input.serverData[channel].removeClient(input.index);
-		if (input.serverData[channel].getNumUser() - 1 == 0)
+		if(input.serverData[channel].removeClient(input.index)) //return eRemoveChannel
 			input.serverData.deleteChannel(channel);
 	}
 	input.var = nullptr;
 	return eSuccess;
 }
 
-eFlags	topic(CmdInput& input) 
+eFlags	topic(CmdInput& input)
 {
 	if (input.arguments.size() < 2)
 	{
-		error::error(input, error::ERR_NEEDMOREPARAMS , "TOPIC"); //ARGUMENT ERROR
+		error::error(input, error::ERR_NEEDMOREPARAMS , "TOPIC"); 
 		return eError;
 	}
 	sd::channIt channel = input.serverData.findChannel(input.arguments[1].substr(1));
-	if(!(input.arguments[1][0] == '#' || input.arguments[1][0] == '@')) 
+	if(!(input.arguments[1][0] == '#' || input.arguments[1][0] == '@'))
 	{
-		error::error(input, error::ERR_BADCHANMASK, input.arguments[1]); //INCORRECT FORMAT 
+		error::error(input, error::ERR_BADCHANMASK, input.arguments[1]); 
 		return eError;
 	}
 	if (channel == 0)
 	{
-		error::error(input, error::ERR_NOSUCHCHANNEL, input.arguments[1]); //NO EXISTE CHANNEL 
+		error::error(input, error::ERR_NOSUCHCHANNEL, input.arguments[1]); 
 		return eError;
 	}
-	if(!input.serverData[channel].findUser(input.index)) 
+	if(!input.serverData[channel].findUser(input.index))
 	{
-		error::error(input, error::ERR_NOTONCHANNEL, input.arguments[1]); //NO ESTAS EN EL CHANNEL 
+		error::error(input, error::ERR_NOTONCHANNEL, input.arguments[1]); 
 		return eError;
 	}
-	if( input.arguments.size() >= 3) //SETTING TOPIC 
+	if( input.arguments.size() >= 3) //SETTING TOPIC
 	{
 		if (!input.serverData[input.index].findChannelInOps(channel))
 		{
@@ -433,8 +417,8 @@ eFlags	topic(CmdInput& input)
 			input.var = nullptr;
 			return eSuccess;
 		}
-		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_TOPIC, input)); //sendmesssageuser ???
-		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_TOPICWHOTIME, input)); //sendmesssageuser ???
+		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_TOPIC, input)); 
+		utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, reply(eRPL_TOPICWHOTIME, input)); 
 		input.var = nullptr;
 	}
 	return eSuccess;
@@ -502,7 +486,7 @@ eFlags	invite(CmdInput& input)
 {
 	if (input.arguments.size() < 3)
 	{
-		error::error(input, error::ERR_NEEDMOREPARAMS , "INVITE"); //ARGUMENT ERROR
+		error::error(input, error::ERR_NEEDMOREPARAMS , "INVITE"); 
 		return eError;
 	}
 	if (!checkChannelName(input.arguments[2]))
@@ -513,7 +497,7 @@ eFlags	invite(CmdInput& input)
 	sd::channIt channel = input.serverData.findChannel(input.arguments[2].substr(1));
 	if (!input.serverData[input.index].findChannelInOps(channel))
 	{
-		error::error(input, error::ERR_CHANOPRIVSNEEDED, utils::removeHashtag(input.arguments[2]));// NO CHANNEL OPER 
+		error::error(input, error::ERR_CHANOPRIVSNEEDED, utils::removeHashtag(input.arguments[2]));
 		return eError;
 	}
 
@@ -525,7 +509,6 @@ eFlags	invite(CmdInput& input)
 			error::error(input, error::ERR_NOSUCHNICK, input.arguments[1]);
 			return eError;
 		}
-
 		sd::channIt channel = input.serverData.findChannel(utils::removeHashtag(input.arguments[2]));
 		if (channel == 0)
 		{
@@ -539,11 +522,11 @@ eFlags	invite(CmdInput& input)
 		}
 		else if (!input.serverData[channel].findUser(input.index))
 		{
-			error::error(input, error::ERR_NOTONCHANNEL, input.serverData[channel].getName()); //NO ESTAS EN ESE CHANNEL 
+			error::error(input, error::ERR_NOTONCHANNEL, input.serverData[channel].getName()); 
 		}
 		else if (input.serverData[channel].findUser(target_user)) 
 		{
-			error::error(input, error::ERR_USERONCHANNEL, input.arguments[1]); //TARGET YA ESTA EN EL CHANNEL
+			error::error(input, error::ERR_USERONCHANNEL, input.arguments[1]);
 		}
 		else
 		{
@@ -562,7 +545,7 @@ eFlags	kick(CmdInput& input)
 {
 	if (input.arguments.size() < 3)
 	{
-		error::error(input, error::ERR_NEEDMOREPARAMS , "KICK"); // ARGUMENT ERROR 
+		error::error(input, error::ERR_NEEDMOREPARAMS , "KICK"); 
 		return eError;
 	}
 	sd::channIt channel = input.serverData.findChannel(input.arguments[1].substr(1));
@@ -579,18 +562,19 @@ eFlags	kick(CmdInput& input)
 
 	if (channel == 0)
 	{
-		error::error(input, error::ERR_NOSUCHCHANNEL, input.arguments[1].substr(1)); //INCORRECT FORMAT 
+		error::error(input, error::ERR_NOSUCHCHANNEL, input.arguments[1].substr(1)); 
 		return eError;
 	}
 	if (!input.serverData[input.index].findChannelInOps(channel)) 
 	{
-		error::error(input, error::ERR_CHANOPRIVSNEEDED, input.arguments[1].substr(1));// NO CHANNEL OPER 
+		error::error(input, error::ERR_CHANOPRIVSNEEDED, input.arguments[1].substr(1));
 		return eError;
 	}
 	else if (!input.serverData[channel].findUser(input.index))
 	{
-		error::error(input, error::ERR_NOTONCHANNEL, input.serverData[channel].getName()); //NO ESTAS EN ESE CHANNEL 
+		error::error(input, error::ERR_NOTONCHANNEL, input.serverData[channel].getName());
 	}
+	bool deleteChannel = false;
 	std::vector<std::string>targets = utils::split(input.arguments[2], ',');
 	for(std::vector<std::string>::const_iterator target = targets.begin();target != targets.end(); target++)
 	{
@@ -607,23 +591,24 @@ eFlags	kick(CmdInput& input)
 			var1.pnext = &var2;
 			
 			input.serverData.broadcastChannel(channel, 0, reply(eRPL_KICK, input));
-			input.serverData[channel].removeClient(clientIdx);
-
+			if(input.serverData[channel].removeClient(clientIdx))
+				deleteChannel = true;
 			var1.pnext = nullptr;
 		}
 	}
+	if (deleteChannel)
+		input.serverData.deleteChannel(channel);
 	input.var = nullptr;
 	return eSuccess;
 }
 
 /* --------------------------------Sending Messages------------------------------------- */
 
-
-eFlags	privmsg(CmdInput& input) 
+eFlags	privmsg(CmdInput& input)
 {
 	if (input.arguments.size() < 2 || input.arguments[1].empty()) 
 	{
-		error::error(input, error::ERR_NORECIPIENT); //NO ARGS
+		error::error(input, error::ERR_NORECIPIENT);
 		return eError;
 	}
 	std::vector<std::string> targets = utils::split(input.arguments[1], ',');
@@ -651,7 +636,7 @@ eFlags	privmsg(CmdInput& input)
 			}
 			input.serverData.broadcastChannel(channel, input.index, reply(eRPL_PRIVMSG, input));
 		}
-		else  //ES UN USER 
+		else //ES UN USER
 		{
 			sd::clientIt user = input.serverData.findNickname(*target);
 			if (user != 0)
@@ -668,7 +653,7 @@ eFlags	privmsg(CmdInput& input)
 				}
 				else 
 				{	
-					if(input.arguments.size() < 3 || input.arguments[2].empty())  
+					if(input.arguments.size() < 3 || input.arguments[2].empty())
 					{
 						error::error(input, error::ERR_NOTEXTTOSEND); //NO TEXT
 					}
@@ -686,9 +671,9 @@ eFlags	privmsg(CmdInput& input)
 	return eSuccess;
 }
 
-eFlags	notice(CmdInput& input) 
+eFlags	notice(CmdInput& input)
 {
-	if (input.arguments.size() < 3 ) 
+	if (input.arguments.size() < 3 )
 	{
 		error::error(input, error::ERR_NEEDMOREPARAMS);
 		return eError;
@@ -705,13 +690,13 @@ eFlags	notice(CmdInput& input)
 		var1.pnext = nullptr;
 		input.var = &var1;
 		
-		if ((*target)[0] == '#') //ES UN CANAL - solo OPs 
+		if ((*target)[0] == '#') // ES UN CANAL - solo OPs 
 		{
 			
 			sd::channIt channel = input.serverData.findChannel(target->substr(1));
 			if (channel == 0)
 			{
-				error::error(input, error::ERR_NOSUCHCHANNEL, input.arguments[1]); //NO EXISTE CHANNEL 
+				error::error(input, error::ERR_NOSUCHCHANNEL, input.arguments[1]); 
 				continue;
 			}
 			else if (!input.serverData[input.index].findChannelInOps(channel)) 
@@ -723,12 +708,12 @@ eFlags	notice(CmdInput& input)
 			input.serverData.broadcastChannel(channel, input.index, reply(eRPL_PRIVMSG, input));
 			
 		}
-		else  //ES UN USER 
+		else  //ES UN USER
 		{
 			sd::clientIt user = input.serverData.findNickname(*target);
 			if (user != 0)
 			{
-				if (input.serverData[user].getAwayStatus() == true) 
+				if (input.serverData[user].getAwayStatus() == true)
 					continue;
 				else 
 				{	
@@ -751,9 +736,8 @@ eFlags	notice(CmdInput& input)
 
 eFlags	whois(CmdInput& input)
 {
-	// Arguments checker
 	if (input.arguments.size() < 2) {
-		error::error(input, error::ERR_NEEDMOREPARAMS , "WHOIS"); // ARGUMENTS ERROR
+		error::error(input, error::ERR_NEEDMOREPARAMS , "WHOIS");
 		return eError;
 	}
 	else if (input.arguments[1].empty()) {
@@ -777,12 +761,11 @@ eFlags	whois(CmdInput& input)
 /* --------------------------------Operator Messages------------------------------------ */
 
 
-eFlags	kill(CmdInput& input) 
+eFlags	kill(CmdInput& input)
 {
-
 	if (input.arguments.size() < 2)
 	{
-		error::error(input, error::ERR_NEEDMOREPARAMS , "KILL"); //ARGUMENT ERROR
+		error::error(input, error::ERR_NEEDMOREPARAMS , "KILL");
 		return eError;
 	}
 	if (input.serverData[input.index].getRole() != CL_OPER)
@@ -812,8 +795,7 @@ eFlags	kill(CmdInput& input)
 	var2.data = &reason;
 	var2.pnext = nullptr;
 	var.pnext = &var2;
-	
-	
+
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)target_user].fd, reply(eRPL_KILL, input));
 
 	std::string message = "Killed (" + input.serverData[input.index].getNickname() + " (" + reason + "))";
@@ -825,18 +807,18 @@ eFlags	kill(CmdInput& input)
 	removeClientChannels(input.serverData, target_user);
 	input.serverData.backClient(target_user);//hace close
 
+
 	input.serverData.broadcastChannel(0,0,reply(eRPL_QUIT, input));
 
 	input.var = nullptr;
 	var.pnext = nullptr;
 	
 	return (eReordered);
-//casos en los que server hace quit EL SERVER : "Ping timeout: 120 seconds", "Excess Flood", and "Too many connections from this IP" 
 }
+
 /* --------------------------------Optional Messages------------------------------------ */
 
-
-eFlags	away(CmdInput& input) 
+eFlags	away(CmdInput& input)
 {
 	if (input.serverData[input.index].getAwayStatus() == true || input.arguments.size() < 2) {
 		input.serverData[input.index].setAwayStatus(false);
@@ -850,105 +832,15 @@ eFlags	away(CmdInput& input)
 	return eSuccess;
 }
 
-/* --------------------- CAPABILITIES NEGOTIATION (For now the server does not support capability negotiation ) ----------------------- */
-
+/* --------------------- CAPABILITIES NEGOTIATION (For now the server does not support capability negotiation, CAP is being OMMITED) ----------------------- */
 
 eFlags	cap(CmdInput& input)
 {
 	(void)input;
 	return eSuccess;
-	////
-	//void (Server::*cap_func)(sd::clientIt index, std::vector<std::string>& arguments) = commands.cap_funcmap[input.arguments[0]];
-	////
-	//if (cap_func != nullptr)
-	////
-	//{
-	////
-	//	(this->*cap_func)(index, input.arguments);
-	//
-	//	return;
-	//}
 }
 
-//	// CAP FUNCTIONS
-//
-//	void	Server::cap_req(clientIt index, std::vector<std::string> &arguments)
-//	{
-//		std::string ack = "CAP * ACK";
-//		std::string nack = "CAP * NACK";
-//	
-//		//en vez de esto podemos usar una funcion generica  Server::cap_available() que devuelva las capabilities disponibles, osea las que coinciden en un vector 
-//	
-//		for (uint32_t i = 3; i < arguments.size(); i++)
-//		{
-//			bool found = false;
-//			//for (uint32_t j = 0; j < COMMANDS;j++)
-//			//{
-//			//0	std::cout << "	[" << j << "]"<<commands.cmd[j] << "\n" << color::reset;
-//				if (arguments[i] == "multi-prefix")
-//				{
-//					ack +=  " multi-prefix";
-//					found = true;
-//				}
-//				else
-//					nack += " " + arguments[i];
-//			/*}
-//			if (!found)
-//			{
-//			}*/
-//		}
-//		sendMsgUser(data[(pollfdIt)index].fd, ack);
-//		std::cout << "SENDED CAP [" << ack << "]\n";
-//		std::cout << "SENDED NACK [" << nack << "]\n";
-//		sendMsgUser(data[(pollfdIt)index].fd, nack);
-//		//sendMssgUser(data[(pollfdIt)index].fd, "CAP END")
-//	}
-//	
-//	void	Server::cap_ls(clientIt index, std::vector<std::string> &arguments)
-//	{
-//		(void)arguments;
-//		//std::cout << "CAP LS REACHED\n"; 	//mostrar las capabilities que ofrecemos, 	
-//		std::string message = "CAP * LS :multi-prefix sasl ";//sasl account-notify extended-join away-notify chghost userhost-in-names cap-notify server-time message-tags invite-notify batch echo-message account-tag";
-//		sendMsgUser(data[(pollfdIt)index].fd, message);
-//	}
-//	
-//	void	Server::cap_end(clientIt index, std::vector<std::string> &arguments)
-//	{
-//		(void)arguments;	
-//		std::cout << "CAP END!!!! \n";
-//		std::string message = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; ///PARA MI NO TIENE QUE IR AQUI , FUERA EN EL BUCLE DE COMANDOS COMO METER???
-//		sendMsgUser(data[(pollfdIt)index].fd, message);
-//	
-//	}
-//	
-//	void	Server::cap_ack(clientIt index, std::vector<std::string> &arguments)
-//	{
-//		(void)arguments;
-//		std::string message = "CAP * ACK : multi-prefix sasl account-notify extended-join away-notify chghost userhost-in-names cap-notify server-time message-tags invite-notify batch echo-message account-tag";
-//		sendMsgUser(data[(pollfdIt)index].fd, message);
-//		//sendMsgUser(index, "CAP * END");
-//	}
-//		
-//		
-//	void	Server::cap_nak(clientIt index, std::vector<std::string> &arguments)
-//	{
-//	
-//		(void)index;
-//		(void)arguments;
-//	}
-//	
-//	
-//	/*void	Server::cap_available(std::vector<std::string> &arguments)
-//	{
-//			//va a devolver las capabilities disponibles, osea las que coinciden 
-//	
-//		std::vector<std::string> availables;
-//	
-//	
-//	}*/
-
-
-//END_ANONYMOUS_NAMESPACE
+/* --------------------- UTILS ----------------------- */
 
 void removeClientChannels(sd::ServerData &serverData, sd::clientIt index)
 {
@@ -957,18 +849,13 @@ void removeClientChannels(sd::ServerData &serverData, sd::clientIt index)
 	for(std::deque<sd::Channel>::iterator channel = serverData.getChannelBegin(); channel != serverData.getChannelEnd(); channel++)
 	{
 		if(channel->findUser(index))
-		{
-			std::cout << "channel to save : " <<  channel->getName() << "\n";
-			//if (channel->removeClient(index) == eRemoveChannel)
 			deleteChannels.push_back(i);
-		}
 		i++;
 	}
 	i = 0;
 	for (std::vector<uint32_t>::iterator deleteChannel = deleteChannels.begin();
 			deleteChannel != deleteChannels.end(); deleteChannel++)
 	{
-		std::cout << "channel to delete : " <<  serverData[(sd::channIt)(*deleteChannel - i)].getName() << "\n";
 		if (serverData[(sd::channIt)(*deleteChannel - i)].getNumUser() - 1 == 1)
 		{
 			std::string creatorName = serverData[(sd::channIt)(*deleteChannel - i)].getCreator();
@@ -986,7 +873,7 @@ void removeClientChannels(sd::ServerData &serverData, sd::clientIt index)
 		/* MOVE TO SERVER */
 		if (*deleteChannel - i == 0)
 		{
-			serverData[(sd::channIt)0].removeClient(index);
+			serverData[(sd::channIt)0].removeClient(index); // es lobby asi que no gestionamos eRemoveChannel
 			continue ;
 		}
 		std::vector<std::string> arguments;
@@ -994,7 +881,6 @@ void removeClientChannels(sd::ServerData &serverData, sd::clientIt index)
 		arguments.push_back("#" + serverData[(sd::channIt)(*deleteChannel - i)].getName());
 		cmd::CmdInput input(arguments, serverData, index);
 		part(input);
-		//serverData.getChannel().erase(serverData.getChannelBegin() + *deleteChannel - i);
 		i++;
 	}
 }

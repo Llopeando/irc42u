@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/28 18:14:11 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/02 18:32:38 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:15:39 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,13 @@
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
 
-Client::Client(){};
+Client::Client() { };
 
 Client::Client(std::string hostName):hostname(hostName), role(CL_USER), authentificied(sd::eNone) {
 	state = CL_STATE_INPUT;
 	this->isAway = false;
 	this->away_msg = "";
 	channelOps = 0;
-
 }
 
 Client::Client(const Client &client)
@@ -86,17 +85,15 @@ void Client::setNickname(std::string nickname) {
 	this->nickname = nickname;
 }
 
-void Client::setPassword(std::string password) { //ya veremos, esto no es muy seguro
+void Client::setPassword(std::string password) { 
 	this->password = password;
 }
 
 void	Client::addChannelToOps(sd::channIt index)
 {
-	std::cout << "INDEX: " << index << '\n';
+
 	channelOps |= (1 << index);
 }
-
-
 
 /* --- DATA GETTERS --- */
 
@@ -156,7 +153,7 @@ bool Client::checkPassword(std::string pass)const {
 
 /* --- FINDERS --- */
 
-bool	Client::findChannelInOps(sd::channIt index) const //con operadores de bits porque a eneko se le ha encaprichado 
+bool	Client::findChannelInOps(sd::channIt index) const //con operadores de bits porque eneko mola
 {
 	return (1 << index) & channelOps;
 }

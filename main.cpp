@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/31 12:36:06 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/01 17:46:59 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:12:54 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ int	main(int argc, char *argv[])
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
+
 	Server	*server = new Server(serverInfo);
 	server->run2();
 	delete server;

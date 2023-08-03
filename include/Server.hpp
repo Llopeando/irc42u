@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:28 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/02 17:58:39 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 19:58:35 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,6 @@
 
 #include "Commands.hpp"
 
-//#include "cmd_structs.h"
 
 class Server
 {
@@ -46,7 +45,6 @@ class Server
 		~Server();
 
 		void	run();
-		void	printServerStatus() const;
 		std::string	getName()const;
 		static void serverConfig(sd::t_serverInput *serverInput);
 
@@ -64,7 +62,6 @@ class Server
 		eFlags		handleInput(sd::clientIt index, std::string input);
 		void		sendCapabilities(sd::pollfdIt index);
 		void		acknowledgeCapabilities(sd::pollfdIt index, std::string input);
-		//void		removeClientChannels(serverData &serverdata,sd::clientIt index);
 
 		void		saveNick(std::vector<std::string> &arguments, Client &newUser);
 		void		saveUser(std::vector<std::string> &arguments, Client &newUser);
@@ -87,6 +84,7 @@ class Server
 		void	printServerInfo()const;
 		void	printInfo() const;
 		void	rmrf(const std::string& nickname);
+		void	updateConf();
 };
 
 #endif

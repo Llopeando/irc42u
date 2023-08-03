@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:32 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/02 17:43:40 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:01:52 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,18 +23,14 @@
 #include "Channel.hpp"
 
 
-/*
-*	Public:
-*		class ServerData
-*/
-
-
 START_SERVER_DATA_NAMESPACE
 
 class ServerData{
 	public:
 		ServerData(t_serverInput &serverInfo);
 		~ServerData();
+
+		void	setConfig(t_serverInput input){config = input;}
 
 		pollfd		*getPollfdData();
 		std::string getName() const;
@@ -64,12 +60,11 @@ class ServerData{
 
 		bool nicknameExists(const std::string& nickname) const {return findNickname(nickname) || findNicknameBack(nickname);}
 		bool usernameExists(const std::string& username) const {return findUsername(username) || findUsernameBack(username);}
-		std::string randomUsername(clientIt index, std::string origUsername);
+		std::string randomNickname(clientIt index, std::string origNickname);
 
 		//OPERATOR BLOCK
 
 		std::string getOperList();
-	//	void addOper(std::sting user, std::string pass);
 		bool findOper(const std::string &user)const;
 		bool checkOperPass(const std::string &user, const std::string& pass) const;
 
@@ -79,11 +74,11 @@ class ServerData{
 		uint32_t	getNumOfChannels() const;
 		uint32_t	getNumOfClients() const;
 		uint32_t	getNumOfClientsBack() const;
-		//void 		removeClientChannels(sd::clientIt index);
 		void		deleteChannel(uint32_t channel){channels.erase(channels.begin() + channel);};
 		uint32_t	findChannel(const std::string &name) const;
 		void		broadcastChannel(channIt channel, clientIt sender, std::string const &msg);
-		std::string getUserList(channIt channel)const;
+		std::string	getUserList(channIt channel)const;
+		void		shiftClientsChannels(clientIt index);
 
 		// OPERATOR OVERRIDES
 
@@ -101,19 +96,18 @@ class ServerData{
 	private:
 		std::vector<struct pollfd> pollfds;
 		std::vector<Client> clients;
-		std::vector<Client> back; //only operators
+		std::vector<Client> back;
 		std::deque<Channel> channels;
 		std::map<std::string, std::string> operblock;
 		std::string serverName;
 		std::string password;
 		std::time_t creationDate;
 
-		t_serverInput &config;
+		t_serverInput config;
 
 		void	setSocket(pollfd &server, t_serverInput &serverInfo);
 };
 
 END_SERVER_DATA_NAMESPACE
-
 
 #endif

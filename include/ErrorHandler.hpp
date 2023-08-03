@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:41 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/31 13:28:38 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:14:37 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,13 +22,16 @@
 
 #include "cmd_reply.h"
 
-/*
-*	Public:
-*		Enum Type:	enum of all the error values;
-*		error(): (2 arguments): sends error(code) message to specified client;
-*		error(): (3 arguments): sends error(code) message to specified client with argument;
-*		fatalError(): sends fatal error type(code) message to specified client
-
+/* ERROR namespace  : 
+*	
+*		typedef Errmap														//Public
+*		Enum Type:	Enum of all the error values							//Public
+*		
+*		getErrorMap() -> Map of error strings assigned to each num			//Anonymous
+*
+*		fatalError()														//Public
+*		error(): (2 arguments)												//Public
+*		error(): (3 arguments)												//Public
 *		
 */
 
@@ -145,7 +148,7 @@ static const ErrMap& getErrorMap()
 	errMap[ERR_NOOPERHOST]			= "No O-lines for your host"; 								//491
 	errMap[ERR_CANNOTSENDTOCHAN]	= "Cannot send to channel";									//404
 	errMap[ERR_TOOMANYTARGETS]		= "Duplicate recipients. No message delivered"; 			//407
-	errMap[ERR_BADPASSWORD]			= "Closing Link: localhost (Bad Password)";
+	errMap[ERR_BADPASSWORD]			= "Closing Link: localhost (Bad Password)";					//
 	errMap[ERR_CHANNELISFULL]		= "Cannot join channel (+l): (Channel is full)";
 	errMap[ERR_NOMODEOPTION]		= "No MODE option in A O I R C Server";
 	errMap[ERR_UNKNOWNCOMMAND]		= ":Unknown command";										//421
@@ -167,6 +170,7 @@ inline void	fatalError(cmd::CmdInput &bundle, Type errorCode)
 
 inline void	error(cmd::CmdInput &bundle, Type errorCode)
 {
+	std::string err_msg = "";
 	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
 	if (bundle.serverData[(sd::clientIt)bundle.index].getNickname().empty())
 	{
@@ -183,11 +187,11 @@ inline void	error(cmd::CmdInput &bundle, Type errorCode)
 		std::string err_msg = ":" + bundle.serverData.getName() + " " + std::to_string(errorCode) + " " + bundle.serverData[(sd::clientIt)bundle.index].getNickname() + " :" + getErrorMap().begin()->second + "\r\n";
 		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, err_msg);
 	}
-	//std::cout << color::red << "ERROR: [" << err_msg.substr(0, err_msg << "]\n" << color::reset;
 }
 
 inline void	error(cmd::CmdInput &bundle, Type errorCode, std::string param)
 {
+	std::string err_msg = "";
 	ErrMap::const_iterator it =  getErrorMap().find(errorCode);
 	if (it != getErrorMap().end())
 	{
@@ -199,7 +203,6 @@ inline void	error(cmd::CmdInput &bundle, Type errorCode, std::string param)
 		std::string err_msg = ":" + bundle.serverData.getName() + " " + std::to_string(errorCode) + " " + bundle.serverData[(sd::clientIt)bundle.index].getNickname() + " :" + getErrorMap().begin()->second + "\r\n";
 		utils::sendMsgUser(bundle.serverData[(sd::pollfdIt)bundle.index].fd, err_msg);
 	}
-	//std::cout << color::red << "ERROR: [" << err_msg.substr(0, err_msg << "]\n" << color::reset;
 }
 
 END_ERROR_NAMESPACE

@@ -6,17 +6,13 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/28 18:14:04 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/02 18:44:33 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:14:07 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <chrono>
+#include <arpa/inet.h>
 #include "../include/Server.hpp"
-
-
-//#include "../include/commands.h"
-//#include "../include/function.h"
-
 
 /* ------------------------------------------------------------ */
 /* 			CONSTRUCTOR DESTRUCTOR INITIALIZATION 				*/
@@ -41,15 +37,13 @@ Server::~Server()
 /*							MAIN								*/
 /* ------------------------------------------------------------	*/
 
-
 void	Server::run(){
 	int events;
 	
 	listenConnection();
 	while(1)
 	{
-		//printServerStatus();
-		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), 200);//200 mirar mas tarde
+		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), serverData.getConfig().maxusers);
 		if (events < 0)
 		{
 			perror("error-event detected");
@@ -88,8 +82,6 @@ void	Server::listenConnection() {
 	}
 }
 
-#include <arpa/inet.h>
-
 std::string getHostName(int fd)
 {
 	struct sockaddr_in clientAddr;
@@ -98,8 +90,7 @@ std::string getHostName(int fd)
 		std::cerr << color::red << "ERROR: getpeername() failed\n" << color::reset; 
 		exit(1);
 	}
-	// Convert the IP address from binary to string representation
-	char ipStr[INET_ADDRSTRLEN];
+	char ipStr[INET_ADDRSTRLEN];// Convert the IP address from binary to string representation
 	if (inet_ntop(AF_INET, &(clientAddr.sin_addr), ipStr, INET_ADDRSTRLEN) == nullptr) {
 		std::cerr << color::red << "ERROR: inet process failure\n" << color::reset; 
 		exit(1);
@@ -167,7 +158,7 @@ void Server::serverConfig(sd::t_serverInput *serverInput)
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/*						POLL() AND HANDLE EVENTS	 (incoming requests and inputs)	    //La nueva minishell		*/
+/*				POLL() AND HANDLE EVENTS	 (incoming requests and inputs)	   				*/
 /* ---------------------------------------------------------------------------------------- */
 
 eFlags Server::handleInput(sd::clientIt index, std::string input)
@@ -183,7 +174,7 @@ eFlags Server::handleInput(sd::clientIt index, std::string input)
 
 	eFlags output = cmd::callFunction(arguments[0], package);
 	
-	// Recoger eFLAG y gestionar el cliente segun eFlag
+	// Algunas eFLAG necesitan gestion:
 	if (output == eBack)
 	{
 		cmd::removeClientChannels(serverData, index);
@@ -200,7 +191,6 @@ eFlags Server::handleInput(sd::clientIt index, std::string input)
 	}
 	else if (output == eNoSuchFunction && arguments.size() &&!arguments[0].empty())
 	{
-		std::cerr << color::red << "ERR_UNKNOWNCOMMAND: [" <<  arguments[0] << "]\n" << color::reset; 
 		error::error(package, error::ERR_UNKNOWNCOMMAND, arguments[0]);
 	}
 	return output;
@@ -216,7 +206,6 @@ void Server::handleEvents(sd::pollfdIt index)
 			return;
 		else
 		{
-			std::cout << color::cyan << "CLIENT: [" << input << "]\n" << color::reset;
 			if (input == "QUIT\n" && serverData[(sd::clientIt)index].getAuthentificied() != sd::eAuthentified)
 			{
 				serverData.removeClient((sd::clientIt)index);
@@ -231,27 +220,27 @@ void Server::handleEvents(sd::pollfdIt index)
 				std::string username = serverData[(sd::clientIt)index].getUsername();
 				value = handleInput((sd::clientIt)index, lines[i]);
 				if (value == eReordered)
+				{
 					index = serverData.findUsername(username);
+					if (index == 0)
+						return;
+				}
 				exited = value == eBack || value == eExited;
 			}
-			if (!exited)
+			if (!exited) 		//eSuccess / eError / eRemoveChannel / eNoSuchFUnction / eReordered / eRemoveClientChannel / eRemoveChannel -> todas son validas y siguen corriendo el bucle, emptyBuffer() y sigue
 				serverData[(sd::clientIt)index].emptyBuffer();
 		}
 	}
 }
-
 
 std::string Server::getName()const
 {
 	return serverData.getName();
 }
 
-
 /* ------------------------------------------------------------ */
 /*							UTILS								*/
 /* ------------------------------------------------------------ */
-
-
 
 std::string Server::readTCPInput(int client_fd, sd::clientIt index) {
 	char echoBuffer[RCVBUFSIZE];
@@ -282,43 +271,6 @@ std::string Server::readTCPInput(int client_fd, sd::clientIt index) {
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/*										DEBUG PRINT											*/
-/* ---------------------------------------------------------------------------------------- */
-
-
-void	Server::printServerStatus() const
-{
-	static std::chrono::steady_clock::time_point last_time = std::chrono::high_resolution_clock::now();
-	std::chrono::steady_clock::time_point now;
-	double timeElapsed;
-
-	now = std::chrono::high_resolution_clock::now();
-	timeElapsed = std::chrono::duration_cast<std::chrono::duration<double> >(now - last_time).count();
-	if (timeElapsed > 1)
-	{
-		system("clear");
-		utils::printIp();
-		std::cout << "≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡ 🖥️  SERVER STATUS ℹ️  ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡\n";
-	
-		//std::cout << "🖥️  👥 SERVER ACTIVE USERS: " << data.size() << '\n' << std::endl;
-
-		std::cout << "USERS (waiting to login or register): " << serverData.pollfdSize() << '\n';
-		for(sd::clientIt i = 0; i < serverData.pollfdSize(); i++)
-		{
-			std::cout << "\t[" << i << "]  username: " << serverData[i].getUsername() << " nickname: " << serverData[i].getNickname() << " role: " << serverData[i].getRole() << "\n";
-		}
-
-		//std::cout << "\t\t CHANNELS LIST:" << channels.size() << "\n";
-		//for(uint32_t i = 0; i < channels.size(); i++)
-		//{
-		//	std::cout << "[" << channels[i].getName() << "]" << std::endl;
-		//}
-		std::cout << "DEBUG LOG (if any)" << std::endl;
-		last_time = now;
-	}
-}
-
-/* ---------------------------------------------------------------------------------------- */
 /*										SERVER FROM ITERM									*/
 /* ---------------------------------------------------------------------------------------- */
 
@@ -329,8 +281,7 @@ void Server::lauch()
 	listenConnection();
 	while(1)
 	{
-		//printServerStatus();
-		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), 200);//200 mirar mas tarde MAXUSERS
+		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), serverData.getConfig().maxusers);
 		if (events < 0)
 		{
 			std::cerr << color::red << "ERROR: poll() - error-event detected\n" << color::reset; 
@@ -362,6 +313,11 @@ void	Server::run2()
 		return ;
 	}
 }
+
+/* ---------------------------------------------------------------------------------------- */
+/*										SERVER SHELLL 										*/
+/*							Allows to debug data while executing 							*/
+/* ---------------------------------------------------------------------------------------- */
 
 void Server::minishell()
 {
@@ -402,15 +358,28 @@ void Server::minishell()
 			printLobbyInfo();
 		else if (line == "info")
 			printInfo();
-		else if (line == "rm -rf")
+		else if (line == "update conf")
 		{
-			std::cout << "user nickname: ";
-			std::getline(std::cin, line);
-			rmrf(line);
+			updateConf();
 		}
 		else {
 			std::cout << color::red << "║ Unknown command! Type 'info' for help.\n" << color::reset;
 		}
+	}
+}
+
+void Server::updateConf()
+{
+	try {
+		sd::t_serverInput input;
+		serverConfig(&input);
+		serverInfo = input;
+		serverData.setConfig(input);
+		std::cout << color::green << "║ The config has been successfully updated with new server.conf changes\n" << color::reset;
+	}
+	catch (std::exception &e)
+	{
+		std::cout << color::red << "ERROR: " << e.what() << color::reset << '\n';
 	}
 }
 
@@ -426,15 +395,16 @@ void Server::printAllUsers()const
 {
 	for (sd::clientIt user = 0; user < serverData.getNumOfClients(); user++)
 	{
-		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << serverData[user].getNickname() << '[' << serverData[(sd::pollfdIt)user].fd << ']' << color::reset << '\n';
+		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << color::green << "Nick: [" << color::reset << serverData[user].getNickname() << "] - " << color::yellow << "Username: [" << color::reset << serverData[user].getUsername() << "] [" << serverData[(sd::pollfdIt)user].fd << "]" << color::reset << '\n';
 	}
 }
 
 void Server::printAllUsersBack()const
 {
+	std::cout << color::boldwhite << "║ " << color::red << "Back Users: " << std::endl;
 	for (sd::backIt user = 0; user < serverData.getNumOfClientsBack(); user++)
 	{
-		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << serverData[user].getNickname() << color::reset << '\n';
+		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << color::green << "Nick: [" << color::reset << serverData[user].getNickname() << "] - " << color::yellow << "Username: [" << color::reset << serverData[user].getUsername() << "]" <<  color::reset << "\n";
 	}
 }
 
@@ -510,7 +480,7 @@ void Server::rmrf(const std::string& nickname)
 	arguments.push_back("QUIT");
 	cmd::CmdInput input(arguments, serverData, user);
 	cmd::callFunction("QUIT", input);
-	//serverData.backClient(user);
+	
 	std::cout << color::green << "║ User " << nickname << " has been successfully killed\n" << color::reset;
 }
 

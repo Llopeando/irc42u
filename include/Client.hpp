@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:44:06 by ullorent          #+#    #+#             */
-/*   Updated: 2023/07/28 18:42:10 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:00:09 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,6 @@ class Client
 		uint8_t state;
 		bool	isAway;
 		int	authentificied;
-		//bool	inputBlock
 };
 
 #endif

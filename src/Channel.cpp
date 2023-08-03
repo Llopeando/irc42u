@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/11 14:00:32 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/01 18:16:05 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:02:21 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 START_SERVER_DATA_NAMESPACE
 
 /* --- CONSTRUCTORS and DESTRUCTOR --- */
+
 Channel::Channel(std::string name, std::string username, ServerData *data)
 {
 	this->name = name;
@@ -24,12 +25,9 @@ Channel::Channel(std::string name, std::string username, ServerData *data)
 	users.resize(1);
 	numOfUsers = 0;
 	creationDate = utils::t_chrono::to_time_t(utils::t_chrono::now());
-	//std::cout << "CH NAME: "<< name << " DATE: " << std::ctime(&creationDate) << "]\n";
 }
 
-Channel::~Channel() {
-	//std::cout << "CHANNEL DESTROYED\n";
-}
+Channel::~Channel() { }
 
 /* --- GETTER AND SETTERS --- */
 
@@ -40,7 +38,6 @@ std::string Channel::getCreator()const
 
 std::string Channel::getCreationDate()const
 {
-	//return std::ctime(&creationDate);
 	return std::to_string(creationDate);
 }
 
@@ -50,7 +47,6 @@ std::string Channel::getName() const{
 
 void Channel::addClient(clientIt index){
 	users.push_back(index);
-	//uint32_t user_pos = numOfUsers;
 	numOfUsers++;
 }
 
@@ -72,32 +68,26 @@ void	Channel::setCreationDate(std::time_t now){
 }
 
 eFlags Channel::removeClient(clientIt indexAct){
-	if (users.size() == 1)
-	{
-		return eRemoveChannel;
-	}
-	uint32_t	user_pos = findUser(indexAct);
-	if (user_pos == 0)
-	{
-		return eSuccess;
-	}
-	numOfUsers--;
-	if (numOfUsers == 0)
+	if (users.size() == 2) 
 	{
 		users.pop_back();
-		//data->deleteChannel(data->findChannel(name));
 		return eRemoveChannel;
 	}
+	uint32_t user_pos = findUser(indexAct);
+	if (user_pos == 0)
+		return eSuccess;
 	users[user_pos] = users[numOfUsers];
+	numOfUsers--; 
 	users.pop_back();
 	return eSuccess;
 }
+
+/* --- OTHER CHANNELS UTILS FUNCTIONS --- */
 
 uint32_t	Channel::findUser(clientIt indexAct) const {
 	uint32_t i = 1;
 	for (std::deque<uint32_t>::const_iterator it = users.begin() + 1; it != users.end(); it++)
 	{
-		//std::cout << "i[" << i << "]size[" << users.size() << "]\n";
 		if (*it == indexAct)
 			return i;
 		i++;
@@ -105,6 +95,13 @@ uint32_t	Channel::findUser(clientIt indexAct) const {
 	return (0);
 }
 
-
+void	Channel::shiftClients(clientIt index)
+{
+	for (std::deque<uint32_t>::iterator user = users.begin(); user != users.end();user++)
+	{
+		if (*user > index)
+			(*user)--;
+	}
+}
 
 END_SERVER_DATA_NAMESPACE

@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:44 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/02 19:38:05 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:01:27 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,6 @@ namespace color {
 	const std::string boldgreenback =  "\033[1m\033[42m";
 }
 
-
 #define START_CMD_NAMESPACE namespace cmd {
 #define END_CMD_NAMESPACE }
 
@@ -69,12 +68,6 @@ namespace color {
 #define START_ANONYMOUS_NAMESPACE namespace {
 #define END_ANONYMOUS_NAMESPACE }
 
-
-typedef struct activeIndex {
-	bool		registered;
-	uint32_t	index;
-}t_activeIndex;
-
 enum eFlags{
 	eSuccess = 0,
 	eError = 1,
@@ -85,5 +78,68 @@ enum eFlags{
 	eRemoveClientChannel = 64,
 	eReordered = 124,
 };
+
+#define INFO "\n " \
+        "                                                       Welcome to A O I R C server. \n" \
+        "These are COMMANDS you may find in a IRC server as described in RFC2119 protocol, marked with a * ONLY those that A O I R C server allows.   \n" \
+        "                                         \n" \
+        "Connection Messages                      \n" \
+        "    * PASS     <password>                \n" \
+        "    * NICK     <nickname>                \n" \
+        "    * USER     <username> 0 * <realname> \n" \
+        "    * PING     <token>                   \n" \
+        "    * OPER     <name> <password>         \n" \
+        "    * QUIT     [<reason>]                \n" \
+        "                                         \n" \
+        "Channel Operations                                                                      \n" \
+        "    * JOIN      <channel>{,<channel>}                                                   \n" \
+        "    * PART      <channel>{,<channel>} [<reason>]                                        \n" \
+        "    * TOPIC     <channel> [<topic>]                                                     \n" \
+        "    * NAMES     <channel>{,<channel>}                                                   \n" \
+        "    * LIST      [<channel>{,<channel>}]                                                 \n" \
+        "    * INVITE    <nickname> <channel>                           //only channel operators \n" \
+        "    * KICK      <channel> <user>{,<user>} [<comment>]                                   \n" \
+        "                                                                                        \n" \
+        "Server Queries and Commands                                                             \n" \
+        "    * MOTD                                                                              \n" \
+        "    * VERSION                                                                           \n" \
+        "    * LUSERS                                                                            \n" \
+        "    * MODE                                                     //No available by server \n" \
+        "                                                      \n" \
+        "Sending Messages                                      \n" \
+        "    * PRIVMSG   <target>{,<target>} <text to be sent> \n" \
+        "    * NOTICE    <target>{,<target>} <text to be sent> \n" \
+        "                                                      \n" \
+        "User-Based Queries                                    \n" \
+        "    * WHOIS    [<target>] <nick>                      \n" \
+        "    * HELP                                            \n" \
+        "                                                      \n" \
+        "Operator Messages                                     \n" \
+        "    * KILL    <nickname> <comment>                    \n" \
+        "                                                      \n" \
+        "Optional Messages                                     \n" \
+        "    * AWAY     [<text>]                               \n"
+
+#define MOTD "\n " \
+			"         _____                           _______                           _____                            _____                            _____          \n" \
+			"         /\\    \\                         /::\\    \\                         /\\    \\                          /\\    \\                          /\\    \\         \n" \
+			"        /::\\    \\                       /::::\\    \\                       /::\\    \\                        /::\\    \\                        /::\\    \\        \n" \
+			"       /::::\\    \\                     /::::::\\    \\                      \\:::\\    \\                      /::::\\    \\                      /::::\\    \\       \n" \
+			"      /::::::\\    \\                   /::::::::\\    \\                      \\:::\\    \\                    /::::::\\    \\                    /::::::\\    \\      \n" \
+			"     /:::/\\:::\\    \\                 /:::/~~\\:::\\    \\                      \\:::\\    \\                  /:::/\\:::\\    \\                  /:::/\\:::\\    \\     \n" \
+			"    /:::/__\\:::\\    \\               /:::/    \\:::\\    \\                      \\:::\\    \\                /:::/__\\:::\\    \\                /:::/  \\:::\\    \\    \n" \
+			"   /::::\\   \\:::\\    \\             /:::/    / \\:::\\    \\                     /::::\\    \\              /::::\\   \\:::\\    \\              /:::/    \\:::\\    \\   \n" \
+			"  /::::::\\   \\:::\\    \\           /:::/____/   \\:::\\____\\           ____    /::::::\\    \\            /::::::\\   \\:::\\    \\            /:::/    / \\:::\\    \\  \n" \
+			" /:::/\\:::\\   \\:::\\    \\         |:::|    |     |:::|    |         /\\   \\  /:::/\\:::\\    \\          /:::/\\:::\\   \\:::\\____\\          /:::/    /   \\:::\\    \\ \n" \
+			"/:::/  \\:::\\   \\:::\\____\\        |:::|____|     |:::|    |        /::\\   \\/:::/  \\:::\\____\\        /:::/  \\:::\\   \\:::|    |        /:::/____/     \\:::\\____\\\n" \
+			"\\::/    \\:::\\  /:::/    /         \\:::\\    \\   /:::/    /         \\:::\\  /:::/    \\::/    /        \\::/   |::::\\  /:::|____|        \\:::\\    \\      \\::/    /\n" \
+			" \\/____/ \\:::\\/:::/    /           \\:::\\    \\ /:::/    /           \\:::\\/:::/    / \\/____/          \\/____|:::::\\/:::/    /          \\:::\\    \\      \\/____/ \n" \
+			"          \\::::::/    /             \\:::\\    /:::/    /             \\::::::/    /                         |:::::::::/    /            \\:::\\    \\             \n" \
+			"           \\::::/    /               \\:::\\__/:::/    /               \\::::/____/                          |::|\\::::/    /              \\:::\\    \\            \n" \
+			"           /:::/    /                 \\::::::::/    /                 \\:::\\    \\                          |::| \\::/____/                \\:::\\    \\           \n" \
+			"          /:::/    /                   \\::::::/    /                   \\:::\\    \\                         |::|  ~|                       \\:::\\    \\          \n" \
+			"         /:::/    /                     \\::::/    /                     \\:::\\____\\                        |::|   |                        \\:::\\____\\         \n" \
+			"        /:::/    /                       \\::/    /                       \\::/    /                         \\:|   |                         \\::/    /         \n" \
+			"        \\::/____/                         \\/____/                         \\/____/                           \\|___|                          \\/____/          \n"
 
 #endif

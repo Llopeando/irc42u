@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:43:54 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/02 17:58:28 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 19:59:48 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ START_CMD_NAMESPACE
 
 void removeClientChannels(sd::ServerData &serverData, sd::clientIt index);
 bool checkChannelName(const std::string &channel);
-//const CmdMap& getFunctionMap();
 
 /* --------------------------------			COMMANDS		-------------------------- */
 
@@ -55,7 +54,6 @@ eFlags	mode(CmdInput& input);
 eFlags	version(CmdInput& input);
 eFlags	lusers(CmdInput& input);
 eFlags	help(CmdInput& input);
-//void time(CmdInput& input)  ;
 
 /* --------------------------------Connection Messages---------------------------------- */
 
@@ -95,7 +93,7 @@ eFlags	away(CmdInput& input);
 
 /* ------------------------------- Capability negotiation ------------------------------- */
 
-eFlags	cap(CmdInput& input); //(For now the server does not support capability negotiation )
+eFlags	cap(CmdInput& input);
 
 
 START_ANONYMOUS_NAMESPACE //-> Access to functions reside inside the <namespace cmd anonymous> so that they cannot be accessed from outside
@@ -129,19 +127,8 @@ const CmdMap& getFunctionMap()
 		cmdMap["KILL"]		= &kill;
 		cmdMap["VERSION"]	= &version;
 		cmdMap["LUSERS"]	= &lusers;
-		//cmdMap["TIME"]		= &time;
 		cmdMap["CAP"]		= &cap;
 		cmdMap["HELP"]		=&help;
-		
-		/*
-		
-			cmdMap["CAP_REQ"]	= &Server::cap_req;
-		 	cmdMap["CAP_LS"]	= &Server::cap_ls;
-		 	cmdMap["CAP_END"]	= &Server::cap_end;
-		 	cmdMap["CAP_ACK"]	= &Server::cap_ack;
-		 	cmdMap["CAP_NAK"]	= &Server::cap_nak;
-
-		*/
 	}
 	return cmdMap;
 };
@@ -163,8 +150,6 @@ inline eFlags callFunction(const std::string& key, CmdInput& input)
 	}
 }
 
-
 END_CMD_NAMESPACE
-
 
 #endif

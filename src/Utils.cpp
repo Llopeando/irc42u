@@ -6,7 +6,7 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/28 18:14:24 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/01 20:19:30 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:12:37 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,28 +24,8 @@ namespace utils{
 			std::error_code ec(errno, std::system_category());
 			std::cerr << color::red << "ERROR "<< color::boldwhite <<"An error ocurred sending the message: [" << str << "] error [" << color::boldwhite << ec.message() << "]" << color::reset << std::endl;
 		}
-	//std::cout << "bytes sent " << code << '\n';
 	}
-	/*
-	std::vector<std::string> spliti(const std::string &string, const char c)
-	{
-		
-		size_t pos = 0;
-		std::vector<std::string> tokens;
-		uint32_t line = 0;
-		while ((pos = string.find(c)) != std::string::npos) {
-		{
-			tokens[line] = string.substr(0, pos);
-			std::cout << color::blue << tokens[line] << color::reset << std::endl;
-			pos +  tokens[line].size();
-			line++;
-			}
-	}
-	std::cout << s << std::endl;
-	}
-	
-	*/
-	
+
 	std::vector<std::string> split(const std::string &string, const char c)
 	{
 		std::vector<std::string> tokens;
@@ -66,10 +46,9 @@ namespace utils{
 				break;
 			}
 		}
-			
 		return tokens;
 	}
-	
+
 	std::vector<std::string> splitIrcPrameters(const std::string &string, const char c)
 	{
 		std::vector<std::string> tokens;
@@ -81,7 +60,6 @@ namespace utils{
 		{
 			if (colom < end)
 			{
-				//tokens.push_back(string.substr(start, colom - start));
 				if (string.size() - colom - 1 == 0)
 					break ;
 				tokens.push_back(string.substr(colom + 1, string.size() - colom - 1));
@@ -99,11 +77,9 @@ namespace utils{
 				break;
 			}
 		}
-			
 		return tokens;
 	}
-	
-	
+
 	std::string joinStr(std::vector<std::string>& arguments, uint32_t index)
 	{
 		std::string finalString = "";
@@ -142,7 +118,7 @@ namespace utils{
 		freeifaddrs(ifaddr);
 		return std::string((char *)host);
 	}
-	
+
 	std::string readFile(const char * filename)
 	{
 		
@@ -179,6 +155,4 @@ namespace utils{
 			*it = std::tolower(*it);
 		}
 	}
-
-	
 }

@@ -6,38 +6,14 @@
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 17:44:03 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/02 19:37:52 by ullorent         ###   ########.fr       */
+/*   Updated: 2023/08/03 20:15:43 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "defines.h"
-
 #include "ServerData.hpp"
-#include "../info.h"
 
 #include <map>
-
-#define MOTD "\n " \
-			"         _____                           _______                           _____                            _____                            _____          \n" \
-			"         /\\    \\                         /::\\    \\                         /\\    \\                          /\\    \\                          /\\    \\         \n" \
-			"        /::\\    \\                       /::::\\    \\                       /::\\    \\                        /::\\    \\                        /::\\    \\        \n" \
-			"       /::::\\    \\                     /::::::\\    \\                      \\:::\\    \\                      /::::\\    \\                      /::::\\    \\       \n" \
-			"      /::::::\\    \\                   /::::::::\\    \\                      \\:::\\    \\                    /::::::\\    \\                    /::::::\\    \\      \n" \
-			"     /:::/\\:::\\    \\                 /:::/~~\\:::\\    \\                      \\:::\\    \\                  /:::/\\:::\\    \\                  /:::/\\:::\\    \\     \n" \
-			"    /:::/__\\:::\\    \\               /:::/    \\:::\\    \\                      \\:::\\    \\                /:::/__\\:::\\    \\                /:::/  \\:::\\    \\    \n" \
-			"   /::::\\   \\:::\\    \\             /:::/    / \\:::\\    \\                     /::::\\    \\              /::::\\   \\:::\\    \\              /:::/    \\:::\\    \\   \n" \
-			"  /::::::\\   \\:::\\    \\           /:::/____/   \\:::\\____\\           ____    /::::::\\    \\            /::::::\\   \\:::\\    \\            /:::/    / \\:::\\    \\  \n" \
-			" /:::/\\:::\\   \\:::\\    \\         |:::|    |     |:::|    |         /\\   \\  /:::/\\:::\\    \\          /:::/\\:::\\   \\:::\\____\\          /:::/    /   \\:::\\    \\ \n" \
-			"/:::/  \\:::\\   \\:::\\____\\        |:::|____|     |:::|    |        /::\\   \\/:::/  \\:::\\____\\        /:::/  \\:::\\   \\:::|    |        /:::/____/     \\:::\\____\\\n" \
-			"\\::/    \\:::\\  /:::/    /         \\:::\\    \\   /:::/    /         \\:::\\  /:::/    \\::/    /        \\::/   |::::\\  /:::|____|        \\:::\\    \\      \\::/    /\n" \
-			" \\/____/ \\:::\\/:::/    /           \\:::\\    \\ /:::/    /           \\:::\\/:::/    / \\/____/          \\/____|:::::\\/:::/    /          \\:::\\    \\      \\/____/ \n" \
-			"          \\::::::/    /             \\:::\\    /:::/    /             \\::::::/    /                         |:::::::::/    /            \\:::\\    \\             \n" \
-			"           \\::::/    /               \\:::\\__/:::/    /               \\::::/____/                          |::|\\::::/    /              \\:::\\    \\            \n" \
-			"           /:::/    /                 \\::::::::/    /                 \\:::\\    \\                          |::| \\::/____/                \\:::\\    \\           \n" \
-			"          /:::/    /                   \\::::::/    /                   \\:::\\    \\                         |::|  ~|                       \\:::\\    \\          \n" \
-			"         /:::/    /                     \\::::/    /                     \\:::\\____\\                        |::|   |                        \\:::\\____\\         \n" \
-			"        /:::/    /                       \\::/    /                       \\::/    /                         \\:|   |                         \\::/    /         \n" \
-			"        \\::/____/                         \\/____/                         \\/____/                           \\|___|                          \\/____/          \n"
 
 
 /* CMD namespace  : 
@@ -48,12 +24,11 @@
 
 	typedef eFlags , typedef std::string (*pRplFunction)(CmdInput& input), , typedef CmdMap, typedef RplMap;																	//Anonymous
 
-	reply() -> Call function to access the map 																																					//Public
+	reply() -> Call function to access the map 																																	//Public
 
-	Al the rpl_command() that return the string definitions																																			//Anonymous	
+	Al the rpl_command() that return the string definitions																														//Anonymous	
 
-	const RplMap& getReplyMap() -> map to find the key of the command																																				//Anonymous
-};
+	const RplMap& getReplyMap() -> map to find the key of the command																											//Anonymous
 */
 
 
@@ -129,14 +104,11 @@ END_ANONYMOUS_NAMESPACE
 inline std::string reply(eReply key, CmdInput &input)
 {
 	RplMap::const_iterator it = getReplyMap().find(key);
-	if (it != getReplyMap().end()) {
-		//std::cout << color::green << "Server -> sended to " << input.serverData[input.index].getNickname() << " [" << it->second(input) << "]\n" << color::reset; 
+	if (it != getReplyMap().end())
 		return it->second(input);
-		
-	}
 	else
 	{
-		std::cout << color::red << "ERROR, failed to find reply\n" << color::reset; 
+		std::cout << color::red << "ERROR, failed to find reply\n" << color::reset;
 		return "";
 	}
 }
@@ -171,7 +143,7 @@ inline std::string	rpl_isupport(CmdInput& input){
 																+ " CHANNELLEN=" + std::to_string(input.serverData.getConfig().channellen) + " :are supported by this server\r\n");
 }
 
-inline std::string	rpl_motd(CmdInput& input) //375//372//376
+inline std::string	rpl_motd(CmdInput& input) 
 {
 	std::string message = ":" + input.serverData[input.index].getUserMask() + " 375 " + input.serverData[input.index].getNickname() + " :- " + input.serverData.getName() + " Message of the day - \r\n";
 	utils::sendMsgUser(input.serverData[(sd::pollfdIt)input.index].fd, message);
@@ -347,13 +319,6 @@ inline std::string rpl_whois(CmdInput &input)
 	return ("311 " + input.serverData[*user].getNickname() + " " + input.serverData[*user].getNickname() + " " + input.serverData[*user].getUsername() + " " + input.serverData[*user].getHostname() + " * \r\n");
 }
 
-//std::string rpl_time(CmdInput &input)
-//{
-//	time_t now = utils::t_chrono::to_time_t(utils::t_chrono::now());
-//	return(": " + input.serverData.getName() + " 391 " + input.serverData[input.index].getNickname() + "[] :Local time is :" + std::ctime(&now) + "\r\n");
-//	//<client> <server> [<timestamp> [<TS offset>]] :<human-readable time>"
-//}
-
 inline std::string rpl_helpstart(CmdInput &input)
 {
 	return (":" + input.serverData[input.index].getUserMask() + " 704 " + input.serverData[input.index].getNickname() + " :Start of /HELP command \r\n");
@@ -408,7 +373,6 @@ const RplMap& getReplyMap()
 		rplMap[eRPL_ENDOFNAMES]		= &rpl_endofnames;//366
 		rplMap[eRPL_MOTD]			= &rpl_motd;//375
 		rplMap[eRPL_YOUREOPER]		= &rpl_youreoper;//381
-		//rplMap[eRPL_TIME]			= &rpl_time; //391
 		rplMap[eRPL_HELPSTART] 		= &rpl_helpstart; //704
  		rplMap[eRPL_HELPTXT]		= &rpl_helptxt; //705
 	}
