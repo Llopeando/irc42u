@@ -5,32 +5,34 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/06/01 18:06:37 by ullorent          #+#    #+#             */
-/*   Updated: 2023/06/02 18:12:38 by ullorent         ###   ########.fr       */
+/*   Created: 2023/07/31 12:36:06 by ullorent          #+#    #+#             */
+/*   Updated: 2023/08/03 20:12:54 by ullorent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "irc.hpp"
+#include "include/Server.hpp"
 
-void	serverCreateInfo(char **argv, int argc, t_serverInput *serverInfo)
+void	serverCreateInfo(char **argv, int argc, sd::t_serverInput *serverInfo)
 {
-	//check ( argumentos = 2 , puerto y password, puerto valido,...)
 	if (argc != 3)
-		throw std::runtime_error("bad arguments!"); //ya veremos si hacer excepciones definidas
+		throw std::runtime_error("bad arguments!"); 
 	
 	//RELLENAR STRUCT
-	int port = std::atoi(argv[0]); //y de paso chequea si es un int valido
+	int port = std::atoi(argv[0]); 
 	serverInfo->password = std::string(argv[1]);
+	serverInfo->serverName = serverInfo->IP;
 	serverInfo->address.sin_family = AF_INET;
 	serverInfo->address.sin_addr.s_addr = INADDR_ANY;
-	serverInfo->address.sin_port = htons( port ); //mirar htons
+	serverInfo->address.sin_port = htons( port );
+
+	Server::serverConfig(serverInfo);
 }
 
 int	main(int argc, char *argv[])
 {
-	t_serverInput serverInfo;
+	sd::t_serverInput serverInfo;
 	
-	serverInfo.IP = printIp();	
+	serverInfo.IP = utils::printIp();
 	try {
 		serverCreateInfo(argv + 1, argc, &serverInfo);
 	}
@@ -38,9 +40,9 @@ int	main(int argc, char *argv[])
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
-	Server	*server = new Server(&serverInfo);
-	//server->setSocket(serverInfo);
-	server->run();
+
+	Server	*server = new Server(serverInfo);
+	server->run2();
 	delete server;
 	return (0);
 }

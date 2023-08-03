@@ -1,20 +1,32 @@
-#include "../include/Server.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/28 18:14:04 by ullorent          #+#    #+#             */
+/*   Updated: 2023/08/03 20:14:07 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <chrono>
+#include <arpa/inet.h>
+#include "../include/Server.hpp"
+
 /* ------------------------------------------------------------ */
 /* 			CONSTRUCTOR DESTRUCTOR INITIALIZATION 				*/
 /* ------------------------------------------------------------ */
 
-Server::Server(t_serverInput *serverInput):serverInfo(*serverInput),serverName(serverInput->IP)
+Server::Server(sd::t_serverInput &serverInput) :
+	serverInfo(serverInput),serverData(serverInfo)
 {
-	data = UsersData(serverInfo);
-	errorHandler.setData(&data, serverName);
-	setCommands();
-	channels.push_back(Channel("Lobby", data[(clientIt)0].getUsername() , &data));
+	
 }
 
 Server::~Server()
 {
-	if ((status = close(data[(pollfdIt)0].fd) == SERVER_FAILURE))
+	if ((status = close(serverData[(sd::pollfdIt)0].fd) == SERVER_FAILURE))
 	{
 		perror("socket closing failed");
 		exit(EXIT_FAILURE);
@@ -25,16 +37,13 @@ Server::~Server()
 /*							MAIN								*/
 /* ------------------------------------------------------------	*/
 
-
 void	Server::run(){
-	
 	int events;
 	
 	listenConnection();
 	while(1)
 	{
-		//printServerStatus();
-		events = poll(data.getPollfdData(), static_cast<nfds_t>(data.size()), 200);
+		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), serverData.getConfig().maxusers);
 		if (events < 0)
 		{
 			perror("error-event detected");
@@ -45,87 +54,48 @@ void	Server::run(){
 	}
 }
 
-
-
 void	Server::checkFds(int events)
 {
-	pollfdIt i = 0;
-	if (data[i].revents & POLLIN) //CONEXION REQUEST
+	sd::pollfdIt i = 0;
+	if (serverData[i].revents & POLLIN) //CONEXION REQUEST
 	{
-		//printf("-------- INCOMING REQUEST RECEIVED --------\n");
 		acceptConnection();
 		events--;
 	}
-	for (i = 1; i < data.size() && events; i++) //INPUT REQUEST
+	for (i = 1; i < serverData.pollfdSize() && events; i++) //INPUT REQUEST
 	{
 		handleEvents(i);
 		events--;
 	}
 }
 
-
-/* ------------------------------------------------------------ */
-/*		   				GETTERS AND SETTERS						*/
-/* ------------------------------------------------------------ */
-
-
-std::string Server::getName()const
-{
-	return serverName;
-}
-
-
 /* ------------------------------------------------------------ */
 /*				LISTEN AND ACCEPT CONNECTION					*/
 /* ------------------------------------------------------------ */
 
-
 void	Server::listenConnection() {
 	std::cout << "Server started, im listening" << std::endl;
-	if (listen(data[(pollfdIt)0].fd, 3) == SERVER_FAILURE)
+	if (listen(serverData[(sd::pollfdIt)0].fd, 3) == SERVER_FAILURE)
 	{
-		perror("listening process failure");
+		std::cerr << color::red << "ERROR: listening process failure\n" << color::reset; 
 		exit(EXIT_FAILURE);
 	}
 }
-
-#include <arpa/inet.h>
 
 std::string getHostName(int fd)
 {
 	struct sockaddr_in clientAddr;
 	socklen_t clientAddrLen = sizeof(clientAddr);
 	if (getpeername(fd, (struct sockaddr *)&clientAddr, &clientAddrLen) == -1) {
-		perror("getpeername error");
+		std::cerr << color::red << "ERROR: getpeername() failed\n" << color::reset; 
 		exit(1);
 	}
-
-	// Convert the IP address from binary to string representation
-	char ipStr[INET_ADDRSTRLEN];
+	char ipStr[INET_ADDRSTRLEN];// Convert the IP address from binary to string representation
 	if (inet_ntop(AF_INET, &(clientAddr.sin_addr), ipStr, INET_ADDRSTRLEN) == nullptr) {
-		perror("inet_ntop error");
+		std::cerr << color::red << "ERROR: inet process failure\n" << color::reset; 
 		exit(1);
 	}
 	return std::string(ipStr);
-
-/*
-struct addrinfo {
-               int              ai_flags;
-               int              ai_family;
-               int              ai_socktype;
-               int              ai_protocol;
-               socklen_t        ai_addrlen;
-               struct sockaddr *ai_addr;
-               char            *ai_canonname;
-               struct addrinfo *ai_next;
-           };
-
-struct sockaddr {
-        ushort  sa_family;
-        char    sa_data[14];
-};
-*/
-
 }
 
 void	Server::acceptConnection() {
@@ -133,1034 +103,411 @@ void	Server::acceptConnection() {
 	unsigned int size = static_cast<unsigned int>(sizeof(serverInfo.address));
 	struct pollfd new_client;
 
-	std::cout << "The connection has been accepted, continuing" << std::endl;
-	//////PINGGGGGGGGGGGGGGGGGG//////
-	if ((new_client.fd = accept(data[(pollfdIt)0].fd, (struct sockaddr *)&serverInfo.address, &size)) == SERVER_FAILURE)
+	if ((new_client.fd = accept(serverData[(sd::pollfdIt)0].fd, (struct sockaddr *)&serverInfo.address, &size)) == SERVER_FAILURE)
 	{
-		perror("connection refused");
+		std::cerr << color::red << "ERROR: Connection refused\n" << color::reset; 
 		return;
 	}
 	new_client.events = POLLOUT | POLLIN;
 	std::string hostName = getHostName(new_client.fd);
-	
-	data.addClient(new_client, Client(hostName));
-	//sendMsgUser(data.size() - 1, "Welcome to - A O I R C - \n");
+	serverData.addClient(new_client, Client(hostName));
 }
 
-/* ---------------------------------------------------------------------------------------- */
-/*						POLL() AND HANDLE EVENTS	 (incoming requests and inputs)	    //La nueva minishell		*/
-/* ---------------------------------------------------------------------------------------- */
-
-void printVector(std::vector<std::string> &input)
+void Server::serverConfig(sd::t_serverInput *serverInput)
 {
-	(void)input;
-	/*for (std::vector<std::string>::iterator word = input.begin(); word != input.end(); word++)
-	{
-		std::cout << color::yellow << "[" << *word << "]\n";
-	}*/
-}
-
-void Server::handleInput(clientIt index, std::string input) 
-{
-	std::vector<std::string>arguments = splitIrcPrameters(input, ' ');
-	printVector(arguments);
-	//std::cout << "[" << arguments[0].c_str() << "]\n";
-	//std::cout << "[" << arguments[1].c_str() << "]\n";
-
-
-	void (Server::*func)(clientIt index, std::vector<std::string>& arguments) = commands.funcmap[arguments[0]];
-	if (func == nullptr)
-	{
-		std::cout << color::red << "[ERROR DE COMANDO [" <<  input << "]\n" << color::reset ; ////////////ERROR DE COMANDO 
-		return;
-	}
-	(this->*func)(index, arguments);
-
-}
-
-void Server::handleEvents(pollfdIt index)
-{
-	if (data[index].revents & POLLIN)
-	{
-		std::string input = readTCPInput(data[index].fd);
-		std::cout << color::green << "INPUT:[" << color::boldwhite << input << "]\n" << color::reset;
-		std::vector<std::string> lines = split(input, '\n');
-		for (uint32_t i = 0; i < lines.size();i++)
+	std::string file = utils::readFile("server.conf");
+	std::vector<std::string>params = utils::split(file, '\n');
+	try{
+		for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); it++)
 		{
-		//	std::cout << color::boldgreen << "[" << lines[i] << "]\n" << color::reset;
-			handleInput((clientIt)index, lines[i]);
+			std::vector<std::string> conf = utils::split(*it, '=');
+			if (conf[0] == "CHANTYPES")
+				serverInput->chantypes = conf[1];
+			else if (conf[0] == "PREFIX")
+				serverInput->prefix = conf[1];
+			else if (conf[0] == "MODES")
+				serverInput->modes = std::stoi(conf[1]);
+			else if (conf[0] == "CHANLIMIT")
+				serverInput->chanlimit = std::stoi(conf[1].substr(2));
+			else if (conf[0] == "NICKLEN")
+				serverInput->nicklen = std::stoi(conf[1]);
+			else if (conf[0] == "USERLEN")
+				serverInput->userlen = std::stoi(conf[1]);
+			else if (conf[0] == "HOSTLEN")
+				serverInput->hostlen = std::stoi(conf[1]);
+			else if (conf[0] == "TOPICLEN")
+				serverInput->topiclen = std::stoi(conf[1]);
+			else if (conf[0] == "KICKLEN")
+				serverInput->kicklen = std::stoi(conf[1]);
+			else if (conf[0] == "CHANNELLEN")
+				serverInput->channellen = std::stoi(conf[1]);
+			else if (conf[0] == "MAXUSERS")
+				serverInput->maxusers = std::stoi(conf[1]);
+			else if (conf[0] == "MAXUSERSCHAN")
+				serverInput->maxuserschan = std::stoi(conf[1]);
+			else if (conf[0] == "VERSION")
+				serverInput->version = conf[1];
+			else if (conf[0] == "VERSION_COMMENTS")
+				serverInput->versionComments = conf[1];
 		}
 	}
+	catch(...)
+	{
+		throw std::runtime_error("failed to fill server conf");
+	}
 }
-
 
 /* ---------------------------------------------------------------------------------------- */
-/*									COMMAND MESSAGES										*/
+/*				POLL() AND HANDLE EVENTS	 (incoming requests and inputs)	   				*/
 /* ---------------------------------------------------------------------------------------- */
 
-/* --------------------------------Connection Messages---------------------------------- */
-
-
-void	Server::cap(clientIt index, std::vector<std::string> &arguments) //CAPABILITIES NEGOTIATION     REPASARRRRRRRRRRRRRRRRRRRRRRRRRRRR
+eFlags Server::handleInput(sd::clientIt index, std::string input)
 {
-	void (Server::*cap_func)(clientIt index, std::vector<std::string>& arguments) = commands.cap_funcmap[arguments[0]];
-	if (cap_func != nullptr)
+	std::vector<std::string> arguments = utils::splitIrcPrameters(input, ' ');
+
+	cmd::CmdInput package(arguments, serverData, index);
+
+	if (serverData[index].getAuthentificied() != sd::eAuthentified && arguments[0] != "NICK" && arguments[0] != "USER" && arguments[0] != "PASS")
 	{
-		(this->*cap_func)(index, arguments);
-		return;
+		return eError;
 	}
-}
 
-void	Server::cap_req(clientIt index, std::vector<std::string> &arguments)
-{
-	std::string ack = "CAP * ACK";
-	std::string nack = "CAP * NACK";
-
-	//en vez de esto podemos usar una funcion generica  Server::cap_available() que devuelva las capabilities disponibles, osea las que coinciden en un vector 
-
-	for (uint32_t i = 3; i < arguments.size(); i++)
-	{
-		bool found = false;
-		//for (uint32_t j = 0; j < COMMANDS;j++)
-		//{
-		//0	std::cout << "	[" << j << "]"<<commands.cmd[j] << "\n" << color::reset;
-			if (arguments[i] == "multi-prefix")
-			{
-				ack +=  " multi-prefix";
-				found = true;
-			}
-			else
-				nack += " " + arguments[i];
-		/*}
-		if (!found)
-		{
-		}*/
-	}
-	sendMsgUser(data[(pollfdIt)index].fd, ack);
-	std::cout << "SENDED CAP [" << ack << "]\n";
-	std::cout << "SENDED NACK [" << nack << "]\n";
-	sendMsgUser(data[(pollfdIt)index].fd, nack);
-	//sendMssgUser(data[(pollfdIt)index].fd, "CAP END")
-}
-
-void	Server::cap_ls(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)arguments;
-	//std::cout << "CAP LS REACHED\n"; 	//mostrar las capabilities que ofrecemos, 	
-	std::string message = "CAP * LS :multi-prefix sasl ";//sasl account-notify extended-join away-notify chghost userhost-in-names cap-notify server-time message-tags invite-notify batch echo-message account-tag";
-	sendMsgUser(data[(pollfdIt)index].fd, message);
-}
-
-void	Server::cap_end(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)arguments;	
-	std::cout << "CAP END!!!! \n";
-	std::string message = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; ///PARA MI NO TIENE QUE IR AQUI , FUERA EN EL BUCLE DE COMANDOS COMO METER???
-	sendMsgUser(data[(pollfdIt)index].fd, message);
-
-}
-
-void	Server::cap_ack(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)arguments;
-	std::string message = "CAP * ACK : multi-prefix sasl account-notify extended-join away-notify chghost userhost-in-names cap-notify server-time message-tags invite-notify batch echo-message account-tag";
-	sendMsgUser(data[(pollfdIt)index].fd, message);
-	//sendMsgUser(index, "CAP * END");
-}
+	eFlags output = cmd::callFunction(arguments[0], package);
 	
-	
-void	Server::cap_nak(clientIt index, std::vector<std::string> &arguments)
-{
-
-	(void)index;
-	(void)arguments;
+	// Algunas eFLAG necesitan gestion:
+	if (output == eBack)
+	{
+		cmd::removeClientChannels(serverData, index);
+		serverData.backClient(index);
+	}
+	else if (output == eExited)
+	{
+		cmd::removeClientChannels(serverData, index);
+		serverData.removeClient(index);
+	}
+	else if (output == eRemoveClientChannel)
+	{
+		cmd::removeClientChannels(serverData, index);
+	}
+	else if (output == eNoSuchFunction && arguments.size() &&!arguments[0].empty())
+	{
+		error::error(package, error::ERR_UNKNOWNCOMMAND, arguments[0]);
+	}
+	return output;
 }
 
-
-/*void	Server::cap_available(std::vector<std::string> &arguments)
+void Server::handleEvents(sd::pollfdIt index)
 {
-		//va a devolver las capabilities disponibles, osea las que coinciden 
-
-	std::vector<std::string> availables;
-
-
-}*/
-
-void	Server::pass(clientIt index, std::vector<std::string> &arguments)
-{
-	if (data[index].getAuthentificied())
-		return ;
-	if (arguments.size() < 2)
+	if (serverData[index].revents & POLLIN)
 	{
-		errorHandler.error(index, ERR_PASSWDMISMATCH);
-		errorHandler.fatalError(index, ERR_BADPASSWORD);
-		data.removeClient(index);
-		removeClientChannels(index);
-		return ;
-	}
-	if (serverInfo.password == arguments[1])
-	{
-		data[index].setAuthentificied(true);
-		return ;
-	}
-	else
-	{
-		errorHandler.error(index, ERR_PASSWDMISMATCH);
-		errorHandler.fatalError(index, ERR_BADPASSWORD);
-		data.removeClient(index);
-		removeClientChannels(index);
-	}
-}
-
-void	Server::nick(clientIt index, std::vector<std::string> &arguments)
-{
-	if (arguments.size() < 2 || arguments[1].empty())
-	{
-		errorHandler.error(index, ERR_NONICKNAMEGIVEN);
-		return ;
-	}
-	if (arguments[1].size() == 0)
-	{
-		errorHandler.error(index, ERR_ERRONEUSNICKNAME);
-		return;
-	}
-	for (std::string::iterator c = arguments[1].begin(); c != arguments[1].end(); c++)
-	{
-		if (*c == '#' || !std::isprint(*c))
-		{
-			errorHandler.error(index, ERR_ERRONEUSNICKNAME, arguments[1]); 
+		std::string input = readTCPInput(serverData[index].fd, (sd::clientIt)index);
+		serverData[(sd::clientIt)index].addBuffer(input);
+		if (input[input.size() - 1] != '\n')
 			return;
-		}
-	}
-	if (data.findNickname(arguments[1])) 
-	{
-		errorHandler.error(index, ERR_NICKNAMEINUSE); //nickname repetido -> ERROR y cliente devielve de nuevo NICK automodificado. ???? 
-		return ;
-	}
-	else 
-	{
-		std::string message =  ":" + data[index].getUserMask() + " NICK :" + arguments[1] + "\r\n";
-		data[index].setNickname(arguments[1]);
-		channels[0].broadcast(0, message); 
-		std::string mask = data[index].getUserMask();
-	}
-}
-
-void	Server::user(clientIt index, std::vector<std::string> &arguments)
-{
-	if (arguments.size() < 5 || arguments[1].empty()) 
-	{
-		errorHandler.error(index, ERR_NEEDMOREPARAMS); //NO ARGS
-		return ;
-	}
-	//username format handler : The maximum length of <username> may be specified by the USERLEN RPL_ISUPPORT parameter.  MUST be silently truncated to the given length // The minimum length of <username> is 1, ie. it MUST NOT be empty. 
-	if (data.findUsername(arguments[1])) 
-	{
-		errorHandler.error(index, ERR_ALREADYREGISTERED); 
-		return ;
-	}
-	if (data.findNicknameBack(data[index].getNickname())) //si esta en back 
-	{
-		//std::cout << color::blue << "cliente recuperado de back " << color::reset << std::endl;
-		data.transferIndex(index, data[index].getNickname());
-		removeClientChannels(index);
-	}
-	else
-	{
-		//std::cout << color::blue << "nuevo cliente" << color::reset << std::endl;
-		data[index].setUsername(arguments[1]);
-	}
-		
-	if (data[index].getAuthentificied())
-	{
-		channels[0].addClient(index); 
-
-		/* SUCCESSFUL CONNECTION : info del server para el USUARIO */   
-
-		///TIENE QUE IR AQUI??? , o FUERA como WELCOME message?
-		/* Upon successful completion of the registration process, the server MUST send, in this order, the RPL_WELCOME (001), RPL_YOURHOST (002), RPL_CREATED (003), RPL_MYINFO (004), and at least one RPL_ISUPPORT (005) numeric to the client.*/
-
-		std::string welcome = "001 " + data[index].getNickname() + " :Welcome to the A O I R C server\n"; 
-		sendMsgUser(data[(pollfdIt)index].fd, welcome);
-		
-
-		std::string welcome_2 = "002 " + data[index].getNickname() + " : Your host is " + serverName + ", running version 1.0 " + "\r\n";//"<client> :Your host is <servername>, running version <version>"
-		std::string welcome_3 = "003 " + data[index].getNickname() + " : This server was created 1" + "\r\n"; // "<client> :This server was created <datetime>"
-		/*  "<client> <servername> <version> <available user modes>
-			<available channel modes> [<channel modes with a parameter>]*/
-		std::string welcome_4 = "004 " + data[index].getNickname() + " " + serverName + " 1.0 +i,+o\r\n";
-		sendMsgUser(data[(pollfdIt)index].fd, welcome_2);
-		sendMsgUser(data[(pollfdIt)index].fd, welcome_3);
-		sendMsgUser(data[(pollfdIt)index].fd, welcome_4);
-
-		std::vector<std::string> motd_arguments;
-		motd(index, motd_arguments);
-
-	/*llama a comando LUSERS 
-	
-	The server SHOULD then respond as though the client sent the LUSERS command and return the appropriate numerics. If the user has client modes set on them automatically upon joining the network, 
-	the server SHOULD send the client the RPL_UMODEIS (221) reply or a MODE message with the client as target, preferably the former. The server MAY send other numerics and messages. 
-	The server MUST then respond as though the client sent it the MOTD command, i.e. it must send either the successful Message of the Day numerics or the ERR_NOMOTD (422) numeric.
-	
-	*/
-
-	}
-	else
-	{
-		errorHandler.error(index, ERR_PASSWDMISMATCH);
-		errorHandler.fatalError(index, ERR_BADPASSWORD);
-		data.removeClient(index);
-		removeClientChannels(index);
-	}
-}
-
-void	Server::ping(clientIt index, std::vector<std::string> &arguments) // Servers MUST send a <server> parameter, and clients SHOULD ignore it. Parameters: [<server>] <token>
-{
-	if (arguments.size() < 2)//ARGUMENT ERROR 
-	{
-		errorHandler.error(index, ERR_NEEDMOREPARAMS , "PING"); // ERR_NOORIGIN (409) IN THE OLD IRCS 
-		return;
-	}
-	std::string mask = data[index].getUserMask();
-	std::string message = ":" + mask + arguments[0] + " PONG " + joinStr(arguments, 2) + "\r\n";
-	sendMsgUser(data[(pollfdIt)index].fd, message);
-}
-
-void	Server::oper(clientIt index, std::vector<std::string> &arguments) // OPER <name> <password> // OPER mike WzerT8zq 
-{
-	if (arguments.size() < 2)
-	{
-		errorHandler.error(index, ERR_NEEDMOREPARAMS); 
-		return ;
-	}
-	if (operators.findOper(arguments[1]))
-	{
-		if (operators.checkPass(arguments[1], arguments[2]) == false) //no es la contraseña correcta
-		{
-			errorHandler.error(index, ERR_PASSWDMISMATCH);
-			return ;
-		}
-		else 
-		{
-			std::string msg = ":" + serverName + " 381 " + data[index].getNickname() + " :You are now an IRC operator\r\n";
-			data[index].setRole(CL_OPER);
-			sendMsgUser(data[(pollfdIt)index].fd, msg);
-		}
-	}
-	else 
-		errorHandler.error(index, ERR_NOOPERHOST); //no estas como oper en el host
-}
-
-
-void	Server::quit(clientIt index, std::vector<std::string> &arguments) //reply->  :dan-!d@localhost QUIT :Quit: Bye for now!
-{	
-	std::string reason = "";
-	if (arguments.size() == 2)
-		reason = arguments[1];
-	std::string message = ':' + data[index].getUserMask() + " QUIT :Quit:" + reason + "\r\n";
-	channels[0].broadcast(0, message);
-	data.backClient(index);
-	removeClientChannels(index);
-	//std::cout << color::blue << "cliente a back" << color::reset << std::endl;
-	
-}
-
-
-/* --------------------------------Channel Operations----------------------------------- */
-
-void	Server::join(clientIt index, std::vector<std::string> &arguments)
-{
-	if (arguments.size() < 2)
-	{
-		errorHandler.error(index, ERR_NEEDMOREPARAMS, "JOIN");
-		return ;
-	}
-	std::vector<std::string>channelNames = split(arguments[1], ',');
-
-	//////JOIN 0 TE PIRAS SDE TODOS LOS CANALES 
-
-	for (uint32_t i = 0;i < channelNames.size();i++)
-	{
-		 //ARGUMENT ERROR 
-		if (arguments[1][0] != '#' || arguments[1].size() < 2 || !std::isprint(arguments[1][1]))
-		{
-			errorHandler.error(index, ERR_BADCHANMASK, arguments[1]);
-			continue ;
-		}
-		uint32_t channel = findChannel(channelNames[i].substr(1));
-		//NO EXISTE CHANNEL ->se crea y se une 
-		if(!channel) 
-		{
-			if (data[index].getRole() != CL_OPER)
-				data[index].setRole(CL_OP);
-			channels.push_back(Channel(channelNames[i].substr(1), data[index].getUsername(), &data));
-			channel = channels.size() - 1;
-			channels[channel].addClient(index);
-
-			std::string back = ':' + data[index].getUserMask() + " JOIN " + "#" + channels[channel].getName() + "\r\n";//bien
-			std::string back_mode = ':' + serverName + " MODE #" + channels[channel].getName() + " " + " +nt\r\n";
-			std::string back_list = ':' + serverName + " 353 " + data[index].getNickname() + " = #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";//@for the operator
-			std::string back_list_end = ':' + serverName + " 366 " + data[index].getNickname() + " #" + channels[channel].getName() + " :End of /NAMES list.\r\n";
-
-			sendMsgUser(data[(pollfdIt)index].fd, back);
-			sendMsgUser(data[(pollfdIt)index].fd, back_mode);
-			sendMsgUser(data[(pollfdIt)index].fd, back_list);
-			sendMsgUser(data[(pollfdIt)index].fd, back_list_end);
-		}
-		else // EXISTE CHANNEL ->se une
-		{
-			channels[channel].addClient(index);
-
-			std::string back = ':' + data[index].getUserMask() + " JOIN #" + channels[channel].getName() + "\r\n";
-			std::string back_topic = ':' + serverName + " 332 " + data[index].getNickname() + " #" + channels[channel].getName() + " :" + channels[channel].getTopic() + "\r\n";
-			//std::string back_channel  = ':' + serverName + " 333 " + data[index].getNickname() + " #" + channelNames[i] + "quien lo ha creado (mask) y cuando"  + "\r\n";
-			std::string back_list  = ':' + serverName + " 353 " + data[index].getNickname() + " = #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";
-			std::string back_list_end = ':' + serverName + " 366 " + data[index].getNickname()  + " #"+ channels[channel].getName() + " :End of /NAMES list." + "\r\n";
-
-			sendMsgUser(data[(pollfdIt)index].fd, back);
-			sendMsgUser(data[(pollfdIt)index].fd, back_topic);
-			sendMsgUser(data[(pollfdIt)index].fd, back_list);
-			sendMsgUser(data[(pollfdIt)index].fd, back_list_end);
-		}
-		std::string message =  ":" +  data[index].getUserMask() +" JOIN :#" + channels[channel].getName() + "\r\n";
-		channels[channel].broadcast(index, message);
-	}
-}
-
-void	Server::part(clientIt index, std::vector<std::string> &arguments)
-{
-	if (arguments.size() < 2)
-	{
-		errorHandler.error(index, ERR_NEEDMOREPARAMS , "PART"); //ARGUMENT ERROR
-		return;
-	}
-	std::string reason;
-	if (arguments.size() > 2)//REASON
-		reason = joinStr(arguments, 2);
-
-	std::vector<std::string> channelNames = split(arguments[1], ',');
-	for (std::vector<std::string>::iterator channelName = channelNames.begin(); channelName != channelNames.end(); channelName++)
-	{
-		
-		if(!((*channelName)[0] == '#' || (*channelName)[0] == '@')) //NO ES UN CHANNEL 
-		{
-			errorHandler.error(index, ERR_BADCHANMASK, *channelName);
-			continue ;
-		}
-		uint32_t channel = findChannel(channelName->substr(1));
-		if (channel == 0)//NO EXISTE CHANNEL 
-		{
-			errorHandler.error(index, ERR_NOSUCHCHANNEL, *channelName);
-			continue ;
-		}
-		if(!channels[channel].findUser(index)) //NO ESTAS EN EL CHANNEL 
-		{
-			errorHandler.error(index, ERR_NOTONCHANNEL, *channelName);
-			continue ;
-		}
-		std::string message;
-		if (!reason.empty())
-			message = ":" + data[index].getUserMask() + " PART #" + channels[channel].getName() + " :" + reason + "\r\n";
-		else
-			message = ":" + data[index].getUserMask() + " PART #" + channels[channel].getName() + "\r\n";
-		channels[channel].broadcast(0, message);
-		channels[channel].removeClient(index);
-		if (channels[channel].getNumUser() == 0) //when all users leave a group channel, the channel is deleted
-			deleteChannel(channel);
-	}
-}
-
-void	Server::topic(clientIt index, std::vector<std::string> &arguments) {
-
-	if (arguments.size() < 2)//ARGUMENT ERROR
-	{
-		errorHandler.error(index, ERR_NEEDMOREPARAMS , "TOPIC");
-		return;
-	}
-	if (!data[index].getRole()) //solo operators
-	{
-		errorHandler.error(index, ERR_CHANOPRIVSNEEDED, arguments[1].substr(1));//(481)   no channel operator 
-		return;
-	}
-	uint32_t channel = findChannel(arguments[1].substr(1));
-	if(!(arguments[1][0] == '#' || arguments[1][0] == '@')) //NO ES UN CHANNEL 
-	{
-		errorHandler.error(index, ERR_BADCHANMASK, arguments[1]);
-		return ;
-	}
-	if (channel == 0)//NO EXISTE CHANNEL 
-	{
-		errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[1]);
-		return ;
-	}
-	if(!channels[channel].findUser(index)) //NO ESTAS EN EL CHANNEL 
-	{
-		errorHandler.error(index, ERR_NOTONCHANNEL, arguments[1]);
-		return ;
-	}
-	//si no eres operator
-			// ERR_CHANOPRIVSNEEDED (482)
-			// s-> :irc.example.com 482 dan #v5 :You're not channel operator
-
-	if( arguments.size() >= 3) //SETTING topic
-	{
-		channels[channel].setTopic(joinStr(arguments, 2));
-		std::string message = ":" + data[index].getUserMask() + " TOPIC #" + arguments[1].substr(1) + " :" + channels[channel].getTopic() + "\r\n"; //RPL_TOPIC (332)
-		channels[channel].broadcast(0, message);
-		channels[channel].setCreationDate(t_chrono::to_time_t(t_chrono::now()));
-	}
-	else	//VIEWING topic
-	{
-		if(channels[channel].getTopic().empty())
-		{
-			std::string no_topic  = ":" + serverName + " 331 " + data[index].getNickname() + " #" + channels[channel].getName() + " :No topic is set.\r\n"; //RPL_TOPIC (332)
-			return ;
-		}
-		std::string message  = ":" + serverName + " 332 " + data[index].getNickname() + " #" + channels[channel].getName() + " :" + channels[channel].getTopic() + "\r\n"; //RPL_TOPIC (332)
-		std::time_t date = channels[channel].getCreationDate();
-		std::string message2 = ":" + serverName + " 333 " + data[index].getNickname() + " #" + channels[channel].getName() + " " +  channels[channel].getCreator() + " " +  std::ctime(&date) + "\r\n"; //RPL_TOPICWHOTIME (333) //cambiar la fecha a legible?
-		channels[channel].broadcast(0, message);
-		channels[channel].broadcast(0, message2);
-	}
-}
-
-void	Server::names(clientIt index, std::vector<std::string> &arguments)
-{
-	if (arguments.size() == 1)
-	{
-		for (std::deque<Channel>::const_iterator target = channels.begin() + 1; target != channels.end(); target++)
-		{
-			std::string message = ':' + serverName + " 353 " + data[index].getNickname() + " @ #" + target->getName() + " :" + target->getUserList() + "\r\n";
-			std::string back_list_end = ':' + serverName + " 366 " + data[index].getNickname() + " #" + target->getName() + " :End of /NAMES list.\r\n";
-			sendMsgUser(data[(pollfdIt)index].fd, message);
-			sendMsgUser(data[(pollfdIt)index].fd, back_list_end);
-		}
-		return ;
-	}
-	std::vector<std::string> targets = split(arguments[1], ',');
-	for (std::vector<std::string>::const_iterator target = targets.begin(); target != targets.end(); target++)
-	{
-		uint32_t channel = findChannel(target->substr(1));
-		if (!channel)
-		{
-			errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[1]);
-			continue;
-		}
-		std::string message = ':' + serverName + " 353 " + data[index].getNickname() + " = #" + channels[channel].getName() + " :" + channels[channel].getUserList() + "\r\n";
-		std::string back_list_end = ':' + serverName + " 366 " + data[index].getNickname() + " #" + channels[channel].getName() + " :End of /NAMES list.\r\n";
-		sendMsgUser(data[(pollfdIt)index].fd, message);
-		sendMsgUser(data[(pollfdIt)index].fd, back_list_end);
-	}
-}
-
-void	Server::list(clientIt index, std::vector<std::string> &arguments){
-
-	////LISTA RESET EN LIME????
-	// los demas parametros obviamos???
-	(void)arguments; 
-	std::string message = ":" + serverName + " 321: Channel Users Name\r\n";
-	sendMsgUser(data[(pollfdIt)index].fd, message);
-	for (uint32_t i = 1;i < channels.size() ; i++)
-	{
-		std::string back = ":" + serverName + " 322 " + data[index].getNickname() + " #" + channels[i].getName() + " " +  std::to_string(channels[i].getNumUser()) + " :" + channels[i].getTopic() + "\r\n";
-		sendMsgUser(data[(pollfdIt)index].fd, back);
-	}
-}
-
-void	Server::invite(clientIt index, std::vector<std::string> &arguments)
-{
-	if (arguments.size() < 2)//ARGUMENT ERROR
-	{
-		errorHandler.error(index, ERR_NEEDMOREPARAMS , "INVITE");
-		return;
-	}
-	if (!data[index].getRole())
-	{
-		errorHandler.error(index, ERR_CHANOPRIVSNEEDED, arguments[2].substr(1));//(481)   no channel operator 
-		return;
-	}
-	else if (arguments.size() == 3)
-	{
-		clientIt target_user = data.findNickname(arguments[1]);
-		if (!target_user)
-		{
-			errorHandler.error(index, ERR_NOSUCHNICK, arguments[1]);
-			return;
-		}
-		std::string channel_name = arguments[2].substr(1);
-		uint32_t channel = findChannel(channel_name);
-		if (channel == 0)
-			errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[2]); // NO EXISTE CHANNEL
-		else if (data[index].getRole() == CL_OP && !channels[channel].findUser(index))
-		{
-			errorHandler.error(index, ERR_NOTONCHANNEL, channels[channel].getName()); //NO ESTAS EN ESE CHANNEL 
-		}
-		else if (channels[channel].findUser(target_user)) //TARGET YA ESTA EN EL CHANNEL
-		{
-			errorHandler.error(index, ERR_USERONCHANNEL, arguments[1]);
-		}
 		else
 		{
-			std::string message = ":" + data[index].getUserMask() + " " + arguments[0] + " "+ data[target_user].getNickname() + " " + arguments[2] + "\r\n"; //reply->  :dan-!d@localhost INVITE Wiz #test
-			sendMsgUser(data[(pollfdIt)target_user].fd, message);  ///SUCCESSSSS
-		}
-	}
-	/*else if (arguments.size() == 2)
-	{
-		//list //RPL_INVITELIST (336) // RPL_ENDOFINVITELIST (337)
-	}
-	*/
-
-}
-
-void	Server::kick(clientIt index, std::vector<std::string> &arguments) // KICK <channel> <user> *( "," <user> ) [<comment>]
-{
-	if (arguments.size() < 3)
-	{
-		errorHandler.error(index, ERR_NEEDMOREPARAMS , "KICK");
-		return;
-	}
-	if (!data[index].getRole())
-	{
-		errorHandler.error(index, ERR_CHANOPRIVSNEEDED, arguments[2].substr(1));//(481)   no channel operator 
-		return;
-	}
-	////no operators are out!
-
-	std::string reason;
-	
-	if (arguments.size() == 4) //REASON
-	{
-		reason = arguments[3];
-	}
-	else
-	{
-		reason = "The kick hammer has spoken!";   //no me gustaaaaaaa
-	}
-	uint32_t channel = findChannel(arguments[1].substr(1));
-	if (channel == 0)
-	{
-		errorHandler.error(index, ERR_NOSUCHCHANNEL, arguments[1].substr(1));
-		return ;
-	}
-	else if (data[index].getRole() == CL_OP && !channels[channel].findUser(index))
-	{
-		errorHandler.error(index, ERR_NOTONCHANNEL, channels[channel].getName()); //NO ESTAS EN ESE CHANNEL 
-	}
-	std::vector<std::string>targets = split(arguments[2], ',');
-	for(std::vector<std::string>::const_iterator target = targets.begin();target != targets.end(); target++)
-	{
-		clientIt clientIdx = data.findNickname(*target);
-		if (clientIdx == 0) 									//no existe target
-			errorHandler.error(index, ERR_NOSUCHNICK);
-		else if (channels[channel].findUser(clientIdx) == 0) 	//TARGET no esta en el canal 
-			errorHandler.error(index, ERR_USERNOTINCHANNEL);
-		else
-		{
-			std::string broadcast_message = ":" + data[index].getUserMask() + " KICK " + " #" + channels[channel].getName() + " " + data[clientIdx].getNickname() + " :" + reason + "\r\n";
-			channels[channel].broadcast(0, broadcast_message);
-			channels[channel].removeClient(clientIdx);
-		}
-	}
-}
-
-
-/* --------------------------------Server Queries and Commands-------------------------- */
-
-void	Server::motd(clientIt index, std::vector<std::string> &arguments) {
-	(void)arguments;
-	std::string message = ":" + data[index].getUserMask() + " 375 " + data[index].getNickname() + " :- " + SERVER_NAME + " Message of the day - \r\n";
-	sendMsgUser(data[(pollfdIt)index].fd, message);
-
-	std::vector<std::string> words = split(std::string(MOTD), '\n');
-	for (std::vector<std::string>::iterator it = words.begin(); it != words.end(); it++) {
-		std::string motd_message = ":" + data[index].getUserMask() + " 372 " + data[index].getNickname() + " : " + *it + "\r\n";
-		sendMsgUser(data[(pollfdIt)index].fd, motd_message);
-	}
-	message = ":" + data[index].getUserMask() + " 376 " + data[index].getNickname() + " :End of /MOTD command.\r\n";
-	sendMsgUser(data[(pollfdIt)index].fd, message);
-}
-
-void	Server::mode(clientIt index, std::vector<std::string> &arguments)
-{
-	(void)index;
-	(void)arguments;
-}
-
-/* --------------------------------Sending Messages------------------------------------- */
-
-
-void	Server::privmsg(clientIt index, std::vector<std::string> &arguments)
-{
-	if (arguments.size() < 2 || arguments[1].empty()) 
-	{
-		errorHandler.error(index, ERR_NORECIPIENT); //NO ARGS
-		return ;
-	}
-	std::vector<std::string> targets = split(arguments[1], ',');
-	std::set<std::string> uniqueNames;
-	for (std::vector<std::string>::iterator target = targets.begin(); target != targets.end(); target++)
-	{
-		if (!uniqueNames.insert(*target).second) {
-			errorHandler.error(index, ERR_TOOMANYTARGETS, *target);  // ERR_TOOMANYTARGETS (407)
-			continue ;
-		}
-		std::string message = ":" + data[index].getNickname() +  " " +  arguments[0] + " " + *target + " :" + arguments[2] + "\r\n";
-		if ((*target)[0] == '#') 	//  channel membership prefix character (@, +, etc) 
-		{
-			uint32_t channel = findChannel(target->substr(1));
-			if(channel == 0)
+			if (input == "QUIT\n" && serverData[(sd::clientIt)index].getAuthentificied() != sd::eAuthentified)
 			{
-				errorHandler.error(index, ERR_CANNOTSENDTOCHAN);  //NO CHANNEL 404
-				continue;
+				serverData.removeClient((sd::clientIt)index);
+				return ;
 			}
-			////CHECK BANNED??? MOD??? ->>>>>> ERR_CANNOTSENDTOCHAN (404)  
-			channels[channel].broadcast(index, message);
-		}
-		else 
-		{
-			clientIt user = data.findNickname(*target);
-			if (user != 0)
+			input = serverData[(sd::clientIt)index].getBuffer();
+			std::vector<std::string> lines = utils::split(input, '\n');
+			bool exited = false;
+			for (uint32_t i = 0; i < lines.size(); i++)
 			{
-				if (data[user].getAwayStatus() == true) 
+				eFlags value;
+				std::string username = serverData[(sd::clientIt)index].getUsername();
+				value = handleInput((sd::clientIt)index, lines[i]);
+				if (value == eReordered)
 				{
-					sendMsgUser(data[(pollfdIt)index].fd, message);
-					std::string away_msg = ":" + serverName + " 301 " + data[index].getNickname() + " " + data[user].getNickname() + " :" + data[user].getAwayMsg() + "\r\n"; // RPL_AWAY (301)
-					sendMsgUser(data[(pollfdIt)index].fd, away_msg);
+					index = serverData.findUsername(username);
+					if (index == 0)
+						return;
 				}
-				else 
-				{	
-					if(arguments[2].empty())  
-					{
-						errorHandler.error(index, ERR_NOTEXTTOSEND); //ERR_NOTEXTTOSEND (412)
-					}
-					sendMsgUser(data[(pollfdIt)user].fd, message);
-				}
-			
+				exited = value == eBack || value == eExited;
 			}
-			else 
-			{
-				//std::cout << color::red << "ERROR NO NICK" << color::reset << std::endl;
-				errorHandler.error(index, ERR_NOSUCHNICK);
-			}
-		}
-	
-	}
-}
-
-void	Server::notice(clientIt index, std::vector<std::string> &arguments)
-{
-	if (arguments.size() < 2 || arguments[1].empty()) 
-	{
-
-		errorHandler.error(index, ERR_NORECIPIENT); //NO ARGS
-		return ;
-	}
-	std::vector<std::string> targets = split(arguments[1], ',');
-	std::set<std::string> uniqueNames;
-	for (std::vector<std::string>::iterator target = targets.begin(); target != targets.end(); target++)
-	{
-		if (!uniqueNames.insert(*target).second) {
-			errorHandler.error(index, ERR_TOOMANYTARGETS, *target);
-			continue ;
-		}
-		std::string message = ":" + serverName + " NOTICE " + " :-" + data[index].getNickname() + "- " + arguments[2] + "\r\n";
-		
-		if ((*target)[0] == '#' /*&& usuarioEsOperador()*/) //a un CHANNEL ---- OJO!!!!! El NOTICE para los CHANNELS solo lo pueden usar los OPERADORES
-		{
-			uint32_t channel = findChannel(target->substr(1));
-			if (channel == 0) {
-				errorHandler.error(index, ERR_CANNOTSENDTOCHAN);
-				continue;
-			}
-			channels[channel].broadcast(index, message);
-		}
-		else 
-		{
-			clientIt user = data.findNickname(*target);
-			if (user != 0)
-			{
-				if (arguments[2].empty()) {
-					errorHandler.error(index, ERR_NOTEXTTOSEND); 
-				}
-				sendMsgUser(data[(pollfdIt)user].fd, message);
-			}
-			else {
-				errorHandler.error(index, ERR_NOSUCHNICK);
-			}
+			if (!exited) 		//eSuccess / eError / eRemoveChannel / eNoSuchFUnction / eReordered / eRemoveClientChannel / eRemoveChannel -> todas son validas y siguen corriendo el bucle, emptyBuffer() y sigue
+				serverData[(sd::clientIt)index].emptyBuffer();
 		}
 	}
 }
 
-
-/* --------------------------------User-Based Queries----------------------------------- */
-
-void	Server::whois(clientIt index, std::vector<std::string> &arguments)
+std::string Server::getName()const
 {
-	(void)index;
-	(void)arguments;
+	return serverData.getName();
 }
-
-/* --------------------------------Operator Messages------------------------------------ */
-
-
-void	Server::kill(clientIt index, std::vector<std::string> &arguments)
-{
-
-	if (arguments.size() < 1)//ARGUMENT ERROR
-	{
-		errorHandler.error(index, ERR_NEEDMOREPARAMS , "KILL");
-		return;
-	}
-	if (data[index].getRole() != CL_OPER)
-	{
-		errorHandler.error(index, ERR_NOPRIVILEGES);
-		return;
-	}
-	std::string reason = "";
-	if (arguments.size() > 2)
-	{
-		reason += joinStr(arguments, 2);
-	}
-	clientIt target_user = data.findNickname(arguments[1]);
-	if (!target_user)
-	{
-		errorHandler.error(index, ERR_NOSUCHNICK, arguments[1]);
-		return;
-	}
-
-	std::string reason1 = "Killed (" + data[index].getNickname() + ")";
-
-	std::string message_u = ':' + data[target_user].getUserMask() + " QUIT :Quit:" + data[index].getNickname() + "\r\n";
-	//std::string message = data[index].getUserMask() + " has forced " + data[target_user].getNickname() + " to leave " + serverName + reason1 + "\r\n";
-	std::string message_user = "ERROR :Closing Link: (~" + data[target_user].getUserMask() +  ") [Killed (" + data[index].getNickname() + " (" + reason + "))]\r\n";
-	channels[0].broadcast(0, message_u);
-	//sendMsgUser(data[(pollfdIt)target_user].fd, message_u);
-	sendMsgUser(data[(pollfdIt)target_user].fd, message_user);
-	close(data[(pollfdIt)target_user].fd);
-//Closing link: (~eperaita@195.53.111.155) [Killed (DickCheney (meow))]
-//Closing Link: (~eperaita!eperaita@10.12.7.2) [Killed (ullorent (Killed (ullorent)))] 
-	
-	data.backClient(target_user);
-	removeClientChannels(target_user);
-
-// this->quit(target_user, arguments);
-/* QUIT
-
-	std::string reason = "";
-	if (arguments.size() == 2)
-		reason = arguments[1];
-	std::string message = ':' + data[index].getUserMask() + " QUIT :Quit:" + reason + "\r\n";
-	channels[0].broadcast(0, message);
-	data.backClient(index);
-	removeClientChannels(index);
-*/
-	//std::string message = ":" + data[	index].getUserMask() + " 361 " + data[target_user].getNickname() + " :" + reason + "\r\n"; //361	RPL_KILLDONE	RFC1459
-	//:dan-!d@localhost QUIT :Quit: Bye for now!
-	//std::string message = ':' + data[index].getUserMask() + " QUIT :Quit:" + argument[1] + "\r\n";
-}
-	/*
-	 casos en los que server hace quit a alguen "Ping timeout: 120 seconds", "Excess Flood", and "Too many connections from this IP" are examples of relevant reasons for closing or for a connection with a client to have been closed.
-	*/
-
-/* --------------------------------Optional Messages------------------------------------ */
-
-
-void	Server::away(clientIt index, std::vector<std::string> &arguments)
-{
-	if (data[index].getAwayStatus() == true || arguments.size() < 2) {
-		data[index].setAwayStatus(false);
-		data[index].setAwayMsg("");
-		std::string message  = ":" + data[index].getUserMask() + " 305 " + data[index].getNickname() + " :You are no longer marked as being away\r\n";
-		sendMsgUser(data[(pollfdIt)index].fd, message);
-		return ;
-	}
-	data[index].setAwayMsg(joinStr(arguments, 1));
-	data[index].setAwayStatus(true);
-	std::string message  = ":" + data[index].getUserMask() + " 306 " + data[index].getNickname() + " :You have been marked as being away\r\n";
-	sendMsgUser(data[(pollfdIt)index].fd, message);
-}
-
 
 /* ------------------------------------------------------------ */
 /*							UTILS								*/
 /* ------------------------------------------------------------ */
 
-
-uint32_t	Server::findChannel(const std::string &name) const
-{
-	for (uint32_t i =0;i < channels.size();i++)
-	{
-		if (channels[i].getName() == name)
-			return i;
-	}
-	return (0);
-}
-
-std::string Server::readTCPInput(int client_fd) {
+std::string Server::readTCPInput(int client_fd, sd::clientIt index) {
 	char echoBuffer[RCVBUFSIZE];
 	int	recvMsgSize;
+	(void)index;
 
 	memset(echoBuffer, 0, RCVBUFSIZE);
 	recvMsgSize = recv(client_fd, echoBuffer, sizeof(echoBuffer) - 1, 0);
 	if (recvMsgSize == SERVER_FAILURE)
 	{
-		perror("recv failed, debug here: ");
-		return (std::string(nullptr));
+		std::cerr << color::red << "ERROR: recv failed\n" << color::reset;
+		return (std::string(""));
 	}
 	else if (recvMsgSize == 0) {
-		std::vector<std::string> quit_arguments;
-		quit(client_fd, quit_arguments);
-		return std::string("A client was disconnected from the server");
+		return ("QUIT\n");
 	}
 	///////////////LIMPIACARRO///////////
-	ssize_t index = 0;
+	ssize_t j = 0;
 	for(ssize_t i = 0; i < recvMsgSize; i++)
 	{
 		if (echoBuffer[i] != '\r')
 		{
-			echoBuffer[index] = echoBuffer[i];
-			index++;
+			echoBuffer[j] = echoBuffer[i];
+			j++;
 		}
 	}
-	write(0, echoBuffer, index);
-	return std::string(echoBuffer, recvMsgSize);
-}
-/*
-uint32_t	Server::findUsername(const std::string &username) const
-{
-	for (uint32_t i =0;i < data->sizeReg();i++)
-	{
-		if ((data->Registered()[i].getUsername()) == username)
-		{	
-			return i;
-		}
-	}
-	return (0);
+	return std::string(echoBuffer, j);
 }
 
-bool	Server::assertClientPassword(uint32_t indexAct, const std::string &password) const
-{
-	uint32_t indexReg;
+/* ---------------------------------------------------------------------------------------- */
+/*										SERVER FROM ITERM									*/
+/* ---------------------------------------------------------------------------------------- */
 
-	indexReg = findUsername((*data)[indexAct].getUsername());
-	if(indexReg == 0)
+void Server::lauch()
+{
+	int events;
+
+	listenConnection();
+	while(1)
 	{
-		std::cout << "server crash\n";
-	}
-	else
-	{
-		if ((*data)[indexAct].checkPassword(password))
+		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), serverData.getConfig().maxusers);
+		if (events < 0)
 		{
-			return(true);
-			
+			std::cerr << color::red << "ERROR: poll() - error-event detected\n" << color::reset; 
+			return;
 		}
-		else
+		if (events != 0)
+			checkFds(events);
+	}
+}
+
+void *Server::lauchWrapper(void *data)
+{
+	Server *server = reinterpret_cast<Server *>(data);
+	server->lauch();
+	return nullptr;
+}
+
+void	Server::run2()
+{
+	if(pthread_create(&serverThread, NULL, lauchWrapper, this))
+	{
+		std::cerr << color::red << "ERROR: Error creating thread\n" << color::reset; 
+		return ;
+	}
+	minishell();
+	if(pthread_join(serverThread, NULL))
+	{
+		std::cerr << color::red << "ERROR: Error joining thread\n" << color::reset; 
+		return ;
+	}
+}
+
+/* ---------------------------------------------------------------------------------------- */
+/*										SERVER SHELLL 										*/
+/*							Allows to debug data while executing 							*/
+/* ---------------------------------------------------------------------------------------- */
+
+void Server::minishell()
+{
+	std::cout << std::endl;
+	while (1)
+	{
+		std::string line;
+		std::cout << color::boldwhite << "> " << color::reset;
+		std::getline(std::cin, line);
+		if (line == "quit")
+			return ;
+		else if (line == "ls ch")
+			printAllChannNames();
+		else if (line == "ls users")
+			printAllUsers();
+		else if (line == "ls back")
+			printAllUsersBack();
+		else if (line == "ls all")
 		{
-			return (false);
+			printAllUsers();
+			printAllUsersBack();
+		}
+		else if (line == "info ch")
+		{
+			std::cout << "ch name: ";
+			std::getline(std::cin, line);
+			printChannelInfo(line);
+		}
+		else if (line == "info user")
+		{
+			std::cout << "user name: ";
+			std::getline(std::cin, line);
+			printUserInfo(line);
+		}
+		else if (line == "info server")
+			printServerInfo();
+		else if (line == "info lobby")
+			printLobbyInfo();
+		else if (line == "info")
+			printInfo();
+		else if (line == "update conf")
+		{
+			updateConf();
+		}
+		else {
+			std::cout << color::red << "║ Unknown command! Type 'info' for help.\n" << color::reset;
 		}
 	}
-	return (false);
 }
-*/
 
-/*
-bool checkAdmin(Client *client) {
-	if (client->getRole() == CL_ROOT)
-		return true;
-	else
-		return false;
-}
-*/
-
-
-/* ---------------------------------------------------------------------------------------- */
-/*						INIT SETTINGS													*/
-/* ---------------------------------------------------------------------------------------- */
-
-
-
-void Server::setCommands()
+void Server::updateConf()
 {
-	commands.funcmap["PASS"]	= &Server::pass;
-	commands.funcmap["NICK"]	= &Server::nick;
-	commands.funcmap["USER"]	= &Server::user;
-	commands.funcmap["JOIN"]	= &Server::join;
-	commands.funcmap["PRIVMSG"]	= &Server::privmsg;
-	commands.funcmap["NOTICE"]	= &Server::notice;
-	commands.funcmap["QUIT"]	= &Server::quit;
-	commands.funcmap["MODE"]	= &Server::mode;
-	commands.funcmap["NAMES"]	= &Server::names;
-	commands.funcmap["WHOIS"]	= &Server::whois;
-	commands.funcmap["KICK"]	= &Server::kick;
-	commands.funcmap["AWAY"]	= &Server::away;
-	commands.funcmap["INVITE"]	= &Server::invite;
-	commands.funcmap["PING"]	= &Server::ping;
-	commands.funcmap["CAP"]		= &Server::cap;
-	commands.funcmap["TOPIC"]	= &Server::topic;
-	commands.funcmap["LIST"]	= &Server::list;
-	commands.funcmap["PART"]	= &Server::part;
-	commands.funcmap["MOTD"]	= &Server::motd;
-	commands.funcmap["OPER"]	= &Server::oper;
-	commands.funcmap["KILL"]	= &Server::kill;
-
-	commands.cap_funcmap["CAP_REQ"]	= &Server::cap_req;
-	commands.cap_funcmap["CAP_LS"]	= &Server::cap_ls;
-	commands.cap_funcmap["CAP_END"]	= &Server::cap_end;
-	commands.cap_funcmap["CAP_ACK"]	= &Server::cap_ack;
-	commands.cap_funcmap["CAP_NAK"]	= &Server::cap_nak;
-}
-
-
-/* ---------------------------------------------------------------------------------------- */
-/*						DEBUG PRINT													*/
-/* ---------------------------------------------------------------------------------------- */
-
-
-void	Server::printServerStatus() const
-{
-	static std::chrono::steady_clock::time_point last_time = std::chrono::high_resolution_clock::now();
-	std::chrono::steady_clock::time_point now;
-	double timeElapsed;
-
-	now = std::chrono::high_resolution_clock::now();
-	timeElapsed = std::chrono::duration_cast<std::chrono::duration<double> >(now - last_time).count();
-	if (timeElapsed > 1)
+	try {
+		sd::t_serverInput input;
+		serverConfig(&input);
+		serverInfo = input;
+		serverData.setConfig(input);
+		std::cout << color::green << "║ The config has been successfully updated with new server.conf changes\n" << color::reset;
+	}
+	catch (std::exception &e)
 	{
-		system("clear");
-		printIp();
-		std::cout << "≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡ 🖥️  SERVER STATUS ℹ️  ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡\n";
+		std::cout << color::red << "ERROR: " << e.what() << color::reset << '\n';
+	}
+}
+
+void Server::printAllChannNames() const
+{
+	for (sd::channIt ch = 0; ch < serverData.getNumOfChannels(); ch++)
+	{
+		std::cout << color::boldwhite << "║ [" << std::to_string(ch) << "]\t" << serverData[ch].getName() << "\n" << color::reset;
+	}
+}
+
+void Server::printAllUsers()const
+{
+	for (sd::clientIt user = 0; user < serverData.getNumOfClients(); user++)
+	{
+		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << color::green << "Nick: [" << color::reset << serverData[user].getNickname() << "] - " << color::yellow << "Username: [" << color::reset << serverData[user].getUsername() << "] [" << serverData[(sd::pollfdIt)user].fd << "]" << color::reset << '\n';
+	}
+}
+
+void Server::printAllUsersBack()const
+{
+	std::cout << color::boldwhite << "║ " << color::red << "Back Users: " << std::endl;
+	for (sd::backIt user = 0; user < serverData.getNumOfClientsBack(); user++)
+	{
+		std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << color::green << "Nick: [" << color::reset << serverData[user].getNickname() << "] - " << color::yellow << "Username: [" << color::reset << serverData[user].getUsername() << "]" <<  color::reset << "\n";
+	}
+}
+
+
+void Server::printLobbyInfo()const
+{
+	sd::channIt channel = 0;
+	std::cout << color::boldwhite << "║ " << color::yellow << "Name: " << color::reset << "Lobby" << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Topic: " << color::reset << serverData[channel].getTopic() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Creator: " << color::reset << serverData[channel].getCreator() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Creation Date: " << color::reset << serverData[channel].getCreationDate() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Num of users: " << color::reset << serverData[channel].getNumUser() - 1 << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Users:\n" << color::reset;
+	std::vector<std::string> names = utils::split(serverData.getUserList(channel), '\n');
+	for (std::vector<std::string>::const_iterator name = names.begin(); name != names.end(); name++)
+	{
+		std::cout << color::cyan << "\t" << *name << '\n' << color::reset;
+	}
+}
+
+void Server::printChannelInfo(const std::string& chName)const
+{
+	sd::channIt channel = serverData.findChannel(chName);
+	if (channel == 0)
+	{
+		std::cout << color::red << "║ Channel '" << chName << "' does not exist\n" << color::reset;
+		return ;
+	}
+	std::cout << color::boldwhite << "║ " << color::yellow << "Name: " << color::reset << chName << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Topic: " << color::reset << serverData[channel].getTopic() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Creator: " << color::reset << serverData[channel].getCreator() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Creation Date: " << color::reset << serverData[channel].getCreationDate() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Num of users: " << color::reset << serverData[channel].getNumUser() - 1 << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Users:\n" << color::reset;
+	std::vector<std::string> names = utils::split(serverData.getUserList(channel), '\n');
+	for (std::vector<std::string>::const_iterator name = names.begin(); name != names.end(); name++)
+	{
+		std::cout << color::cyan << "\t" << *name << '\n' << color::reset;
+	}
+}
+
+void Server::printUserInfo(const std::string& nickname)const
+{
+	sd::clientIt user = serverData.findNickname(nickname);
+	if (user == 0)
+	{
+		std::cout << color::red << "║ Channel " << nickname << " does not exist\n" << color::reset;
+		return ;
+	}
+	std::cout << color::boldwhite << "║ " << color::yellow << "Nickname: " << color::reset << nickname << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Username: " << color::reset << serverData[user].getUsername() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Hostname: " << color::reset << serverData[user].getHostname() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Role: " << color::reset << serverData[user].getRole() << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Authentified: " << color::reset << serverData[user].getAuthentificied() << '\n';
+		std::cout << color::boldwhite << "║ " << color::yellow << "ChannelOps: " << color::reset;
+		utils::printBinary(serverData[user].getChannelToOps());
+		std::cout << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "Away: " << color::reset << (bool)serverData[user].getAwayStatus();
+	if (serverData[user].getAwayStatus())
+		std::cout << color::boldwhite << "║ Message: " << color::reset << serverData[user].getAwayMsg();
+	std::cout << '\n';
+}
+
+void Server::rmrf(const std::string& nickname)
+{
+	sd::clientIt user = serverData.findNickname(nickname);
+	if (user == 0)
+	{
+		std::cout << color::red << "║ User " << nickname << " does not exist\n" << color::reset;
+		return ;
+	}
+	std::vector<std::string> arguments;
+	arguments.push_back("QUIT");
+	cmd::CmdInput input(arguments, serverData, user);
+	cmd::callFunction("QUIT", input);
 	
-		//std::cout << "🖥️  👥 SERVER ACTIVE USERS: " << data.size() << '\n' << std::endl;
-
-		std::cout << "USERS (waiting to login or register): " << data.size() << '\n';
-		for(clientIt i = 0; i < data.size(); i++)
-		{
-			std::cout << "\t[" << i << "]  username: " << data[i].getUsername() << " nickname: " << data[i].getNickname() << " role: " << data[i].getRole() << "\n";
-		}
-
-		//std::cout << "\t\t CHANNELS LIST:" << channels.size() << "\n";
-		//for(uint32_t i = 0; i < channels.size(); i++)
-		//{
-		//	std::cout << "[" << channels[i].getName() << "]" << std::endl;
-		//}
-		std::cout << "DEBUG LOG (if any)" << std::endl;
-		last_time = now;
-	}
+	std::cout << color::green << "║ User " << nickname << " has been successfully killed\n" << color::reset;
 }
 
-void	Server::deleteChannel(uint32_t channel)
+void Server::printServerInfo()const
 {
-	channels.erase(channels.begin() + channel);
+	std::cout << color::boldwhite << "║ " << color::yellow << "CHANTYPES: " << color::reset << serverInfo.chantypes << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "PREFIX: " << color::reset << serverInfo.prefix << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "MODES: " << color::reset << serverInfo.modes << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "CHANLIMIT: " << color::reset << serverInfo.chanlimit << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "NICKLEN: " << color::reset << serverInfo.nicklen << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "USERLEN: " << color::reset << serverInfo.userlen << '\n';
+
+	std::cout << color::boldwhite << "║ " << color::yellow << "HOSTLEN: " << color::reset << serverInfo.hostlen << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "TOPICLEN: " << color::reset << serverInfo.topiclen << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "CHANNELLEN: " << color::reset << serverInfo.channellen << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERS: " << color::reset << serverInfo.maxusers << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "MAXUSERSCHAN: " << color::reset << serverInfo.maxuserschan << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "VERSION: " << color::reset << serverInfo.version << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "USERLEN: " << color::reset << serverInfo.userlen << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "VERSION_COMMENTS: " << color::reset << serverInfo.versionComments << '\n';
 }
 
-void Server::removeClientChannels(clientIt index)
+void Server::printInfo()const
 {
-	for(std::deque<Channel>::iterator channel = channels.begin(); channel != channels.end(); channel++)
-	{
-		if(channel->findUser(index))
-		{
-			channel->removeClient(index);
-		}
-	}
+	std::cout << color::boldwhite << "║ " << color::yellow << "ls ch: " << color::reset << "list all channels" << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "ls users: " << color::reset << "list all users" << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "info user: " << color::reset << "print user info" << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "info ch: " << color::reset << "print channel info" << '\n';
+	std::cout << color::boldwhite << "║ " << color::yellow << "info server: " << color::reset << "print server info" << '\n';
 }

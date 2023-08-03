@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ecamara <ecamara@student.42.fr>            +#+  +:+       +#+         #
+#    By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/10 17:30:24 by ullorent          #+#    #+#              #
-#    Updated: 2023/06/08 17:42:27 by ecamara          ###   ########.fr        #
+#    Updated: 2023/08/01 19:00:18 by ullorent         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,23 +15,25 @@ NAME = ircserv
 CPPSRC = src/Server.cpp \
 src/Client.cpp \
 src/Channel.cpp \
-src/UsersData.cpp \
 main.cpp \
-src/ErrorHandler.cpp\
 src/Utils.cpp\
-src/OperBlock.cpp
+src/ServerData.cpp\
+src/Commands.cpp
 
 CPPINCLUDE = include/Server.hpp \
 include/Channel.hpp \
 include/Client.hpp \
-include/UsersData.hpp \
-include/defines.hpp	\
+include/defines.h	\
 include/Utils.hpp\
-include/OperBlock.hpp
+include/commands.hpp\
+include/ServerData.hpp\
+include/ServerDataStructs.h\
+include/cmd_reply.h\
+include/ErrorHandler.hpp\
 
 CPPOBJ = $(CPPSRC:.cpp=.o)
 
-CPPFLAGS = -Wall -Werror -Wextra -O2 -std=c++98 #-g3 -fsanitize=address
+CPPFLAGS = -Wall -Werror -Wextra -O2 -std=c++98 -g3 -fsanitize=address
 CC = clang++
 
 all: $(NAME)
@@ -44,7 +46,7 @@ $(NAME): $(CPPOBJ) $(CPPINCLUDE)
 	@echo "\033[92mircserv has been successfully compiled!\033[0m"
 
 clean:
-	@rm -rf src/*.o
+	@rm -rf $(CPPOBJ)
 	@rm -rf src/*.dSYM
 
 fclean: clean

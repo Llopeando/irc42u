@@ -1,57 +1,69 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Channel.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/07/27 17:44:08 by ullorent          #+#    #+#             */
+/*   Updated: 2023/08/03 18:13:18 by ullorent         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include "defines.hpp"
+#include "defines.h"
+
+
 #include "Utils.hpp"
+#include "ServerDataStructs.h"
 
 #include <iostream>
-//#include <cstring>
-//#include <cstdlib>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string>
-//#include <cstdio>
 #include <poll.h>
 #include <deque>
-#include "Client.hpp"
-#include "UsersData.hpp"
+
+START_SERVER_DATA_NAMESPACE
+
+class ServerData;
 
 class Channel
 {
 	public:
-		typedef std::chrono::system_clock t_chrono;
-
-		Channel(std::string name, std::string username, UsersData *data);
+		Channel(std::string name, std::string username, ServerData *data);
 		~Channel();
 
+		uint32_t operator[](uint32_t idx)const{return users[idx];}
+		uint32_t operator[](uint32_t idx){return users[idx];}
+
 		std::string			getCreator() const;
-		std::time_t			getCreationDate()const;
+		std::string			getCreationDate()const;
 		void				setCreationDate(std::time_t);
 		std::string			getName()const;
-		std::string			getUserList()const;
-		void 				addClient(clientIt index);
-		void				removeClient(clientIt indexAct);
-		void 				broadcast(clientIt sender, std::string const &msg);
-		//void				refresh(uint32_t indexAct);
-		//void				flushLog(Client &user, uint32_t user_pos);
+		void				addClient(clientIt index);
+		eFlags				removeClient(clientIt indexAct);
 		void				setTopic(std::string topic);
 		std::string			getTopic( void)const;
 		uint32_t			getNumUser( void)const;
 		uint32_t			findUser(clientIt indexAct)const;
+		void				shiftClients(clientIt index);
 
 	private:
 
-		void		sendInfoChannel(uint32_t user_pos, std::string const &str);
+		void	sendInfoChannel(uint32_t user_pos, std::string const &str);
 		uint32_t numOfUsers;
-		UsersData *data;
+		ServerData *data;
 		std::string name;
 		std::string topic;
 		std::deque<uint32_t> users;
-		//std::deque<uint32_t>msgIndexUsr; //ultimo mensaje leido
 		std::string creator;
-		std::deque<std::string> msg_log;
 		std::time_t creationDate;
 };
+
+END_SERVER_DATA_NAMESPACE
 
 #endif
