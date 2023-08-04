@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   defines.h                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/07/27 17:43:44 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/03 20:01:27 by ullorent         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef DEFINES_H
 #define DEFINES_H
 
@@ -17,6 +5,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "Utils.hpp"
+
+#define DEBUG_FILE "logging/log.txt"
+
+#define DEBUG true
 
 #define SERVER_FAILURE -1
 

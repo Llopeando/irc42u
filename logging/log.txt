@@ -1,0 +1,1349 @@
+[Fri Aug  4 20:06:47 2023
+]: Server created.
+[Fri Aug  4 20:06:51 2023
+]: PASS hola
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [] - Username: [] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 0
+║ Users:
+
+
+[Fri Aug  4 20:06:51 2023
+]: NICK ullorent
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [] - Username: [] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 0
+║ Users:
+
+
+[Fri Aug  4 20:06:51 2023
+]: USER ullorent 0 * ullorent
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 0
+║ Users:
+
+
+[Fri Aug  4 20:06:52 2023
+]: PASS hola
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [] - Username: [] [6]
+║ [3] Nick: [] - Username: [] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:06:52 2023
+]: NICK eperaita
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [] - Username: [] [6]
+║ [3] Nick: [] - Username: [] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:06:52 2023
+]: USER eperaita 0 * eperaita
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [] - Username: [] [6]
+║ [3] Nick: [eperaita] - Username: [] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:06:55 2023
+]: QUIT Leaving...
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [] - Username: [] [6]
+║ [3] Nick: [eperaita] - Username: [eperaita] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 2
+║ Users:
+	ullorent eperaita 
+
+
+[Fri Aug  4 20:06:59 2023
+]: PASS hola
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:07:00 2023
+]: OPER ullorent a
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:07:08 2023
+]: NICK ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:07:14 2023
+]: USER ecamara 0 * a
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:07:26 2023
+]: KILL ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 2
+║ Users:
+	ullorent ecamara 
+
+
+[Fri Aug  4 20:07:39 2023
+]: PASS hola
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:07:39 2023
+]: NICK eperaita
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:07:39 2023
+]: USER eperaita 0 * eperaita
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:07:42 2023
+]: PASS hola
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [eperaita] [6]
+║ [3] Nick: [] - Username: [] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 2
+║ Users:
+	ullorent eperaita 
+
+
+[Fri Aug  4 20:07:42 2023
+]: NICK ecamara2
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [eperaita] [6]
+║ [3] Nick: [] - Username: [] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 2
+║ Users:
+	ullorent eperaita 
+
+
+[Fri Aug  4 20:07:42 2023
+]: USER ecamara2 0 * :Eneko Camara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [eperaita] [6]
+║ [3] Nick: [ecamara2] - Username: [] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 2
+║ Users:
+	ullorent eperaita 
+
+
+[Fri Aug  4 20:07:47 2023
+]: PASS hoal
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [eperaita] [6]
+║ [3] Nick: [ecamara2] - Username: [ecamara2] [7]
+║ [4] Nick: [] - Username: [] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 3
+║ Users:
+	ullorent eperaita ecamara2 
+
+
+[Fri Aug  4 20:07:56 2023
+]: PASS hola
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [eperaita] [6]
+║ [3] Nick: [ecamara2] - Username: [ecamara2] [7]
+║ [4] Nick: [] - Username: [] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 3
+║ Users:
+	ullorent eperaita ecamara2 
+
+
+[Fri Aug  4 20:08:00 2023
+]: NICK ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [eperaita] [6]
+║ [3] Nick: [ecamara2] - Username: [ecamara2] [7]
+║ [4] Nick: [] - Username: [] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 3
+║ Users:
+	ullorent eperaita ecamara2 
+
+
+[Fri Aug  4 20:08:20 2023
+]: USER ecamara 0 * : a
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [eperaita] [6]
+║ [3] Nick: [ecamara2] - Username: [ecamara2] [7]
+║ [4] Nick: [ecamara] - Username: [] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 3
+║ Users:
+	ullorent eperaita ecamara2 
+
+
+[Fri Aug  4 20:08:38 2023
+]: KILL ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [eperaita] [6]
+║ [3] Nick: [ecamara2] - Username: [ecamara2] [7]
+║ [4] Nick: [ecamara] - Username: [ecamara] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 4
+║ Users:
+	ullorent eperaita ecamara2 ecamara 
+
+
+[Fri Aug  4 20:09:01 2023
+]: OPER ecamara a
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [eperaita] [6]
+║ [3] Nick: [ecamara2] - Username: [ecamara2] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691172407
+║ Num of users: 3
+║ Users:
+	ullorent eperaita ecamara2 
+
+
+[Fri Aug  4 20:09:07 2023
+]: KILL ullorent
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita] - Username: [eperaita] [6]
+║ [3] Nick: [ecamara2] - Username: [ecamara2] [7]
+║ Back Users: 
+[2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [] - Username: [] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	ullorent ecamara 
+
+
+[Fri Aug  4 20:01:26 2023
+]: PASS hola
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [] [7]
+║ [4] Nick: [] - Username: [] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	ullorent ecamara 
+
+
+[Fri Aug  4 20:01:26 2023
+]: NICK eperaita
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [] [7]
+║ [4] Nick: [] - Username: [] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	ullorent ecamara 
+
+
+[Fri Aug  4 20:01:26 2023
+]: USER eperaita 0 * eperaita
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [] [7]
+║ [4] Nick: [] - Username: [] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [eperaita] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	ullorent ecamara 
+
+
+[Fri Aug  4 20:01:26 2023
+]: NICK eperaita_
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [] [7]
+║ [4] Nick: [] - Username: [eperaita] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	ullorent ecamara  
+
+
+[Fri Aug  4 20:01:31 2023
+]: USER eperaita    0 * : eperaita
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	ullorent ecamara eperaita_ 
+
+
+[Fri Aug  4 20:01:50 2023
+]: USER eperait 0 * : epe
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	ullorent ecamara eperaita_ 
+
+
+[Fri Aug  4 20:02:00 2023
+]: OPER eperaita a
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 4
+║ Users:
+	ullorent ecamara eperaita_ eperaita 
+
+
+[Fri Aug  4 20:02:01 2023
+]: NICK ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [5] Nick: [] - Username: [] [9]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 4
+║ Users:
+	ullorent ecamara eperaita_ eperaita 
+
+
+[Fri Aug  4 20:02:01 2023
+]: USER ecamara 0 * :Eneko Camara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [5] Nick: [] - Username: [] [9]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 4
+║ Users:
+	ullorent ecamara eperaita_ eperaita 
+
+
+[Fri Aug  4 20:02:01 2023
+]: NICK Nickname is already in use_
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [5] Nick: [] - Username: [] [9]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 4
+║ Users:
+	ullorent ecamara eperaita_ eperaita 
+
+
+[Fri Aug  4 20:02:09 2023
+]: KILL ullorent
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [5] Nick: [Nickname] - Username: [] [9]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 4
+║ Users:
+	ullorent ecamara eperaita_ eperaita 
+
+
+[Fri Aug  4 20:02:15 2023
+]: PASS hola
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [Nickname] - Username: [] [9]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [5] Nick: [] - Username: [] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ullorent] - Username: [ullorent]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	ecamara Nickname eperaita 
+
+
+[Fri Aug  4 20:02:15 2023
+]: NICK ullorent
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [Nickname] - Username: [] [9]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [5] Nick: [] - Username: [] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ullorent] - Username: [ullorent]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	ecamara Nickname eperaita 
+
+
+[Fri Aug  4 20:02:15 2023
+]: USER ullorent 0 * ullorent
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [Nickname] - Username: [] [9]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [5] Nick: [ullorent] - Username: [] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [ullorent] - Username: [ullorent]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	ecamara Nickname eperaita 
+
+
+[Fri Aug  4 20:02:26 2023
+]: OPER ullorent a
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [Nickname] - Username: [] [9]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [5] Nick: [ullorent] - Username: [ullorent] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 4
+║ Users:
+	ecamara Nickname eperaita ullorent 
+
+
+[Fri Aug  4 20:02:28 2023
+]: NICK nc
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [Nickname] - Username: [] [9]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [5] Nick: [ullorent] - Username: [ullorent] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 4
+║ Users:
+	ecamara Nickname eperaita ullorent 
+
+
+[Fri Aug  4 20:02:34 2023
+]: KILL nc
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [Nickname] - Username: [] [9]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [nc] - Username: [eperait] [7]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [5] Nick: [ullorent] - Username: [ullorent] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 4
+║ Users:
+	ecamara Nickname nc ullorent 
+
+
+[Fri Aug  4 20:02:49 2023
+]: KILL ecmara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [Nickname] - Username: [] [9]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [ullorent] - Username: [ullorent] [5]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	ecamara Nickname eperaita_ 
+
+
+[Fri Aug  4 20:02:52 2023
+]: KILL ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [Nickname] - Username: [] [9]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [ullorent] - Username: [ullorent] [5]
+║ [4] Nick: [eperaita_] - Username: [eperaita] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	ecamara Nickname eperaita_ 
+
+
+[Fri Aug  4 20:03:03 2023
+]: HJGFDHGSF 
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita_] - Username: [eperaita] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	eperaita_ ullorent 
+
+
+[Fri Aug  4 20:03:10 2023
+]: KILL ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita_] - Username: [eperaita] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	eperaita_ ullorent 
+
+
+[Fri Aug  4 20:03:14 2023
+]: LUSERS 
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita_] - Username: [eperaita] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	eperaita_ ullorent 
+
+
+[Fri Aug  4 20:03:15 2023
+]: NICK ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [3] Nick: [] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	eperaita_ ullorent 
+
+
+[Fri Aug  4 20:03:15 2023
+]: USER ecamara 0 * :Eneko Camara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [3] Nick: [ecamara] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	eperaita_ ullorent 
+
+
+[Fri Aug  4 20:03:16 2023
+]: KILL nc
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [3] Nick: [ecamara] - Username: [ecamara] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	eperaita_ ullorent ecamara 
+
+
+[Fri Aug  4 20:03:24 2023
+]: KILL ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [3] Nick: [ecamara] - Username: [ecamara] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	eperaita_ ullorent ecamara 
+
+
+[Fri Aug  4 20:03:25 2023
+]: KILL ullorent
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [eperaita_] - Username: [eperaita] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	eperaita_ ullorent 
+
+
+[Fri Aug  4 20:03:38 2023
+]: PASS hola
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [2] Nick: [] - Username: [] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+║ [3] Nick: [ullorent] - Username: [ullorent]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 1
+║ Users:
+	eperaita_ 
+
+
+[Fri Aug  4 20:03:38 2023
+]: NICK ullorent
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [2] Nick: [] - Username: [] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+║ [3] Nick: [ullorent] - Username: [ullorent]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 1
+║ Users:
+	eperaita_ 
+
+
+[Fri Aug  4 20:03:38 2023
+]: USER ullorent 0 * ullorent
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [2] Nick: [ullorent] - Username: [] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+║ [3] Nick: [ullorent] - Username: [ullorent]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 1
+║ Users:
+	eperaita_ 
+
+
+[Fri Aug  4 20:03:38 2023
+]: KILL eperaita_
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [eperaita_] - Username: [eperaita] [8]
+║ [2] Nick: [ullorent] - Username: [ullorent] [5]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	eperaita_ ullorent 
+
+
+[Fri Aug  4 20:03:54 2023
+]: NICK ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+║ [3] Nick: [eperaita_] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:03:54 2023
+]: USER ecamara 0 * :Eneko Camara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [] [6]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [ecamara] - Username: [ecamara]
+║ [3] Nick: [eperaita_] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 1
+║ Users:
+	ullorent 
+
+
+[Fri Aug  4 20:03:59 2023
+]: PASS hola
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [] - Username: [] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [eperaita_] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	ullorent ecamara 
+
+
+[Fri Aug  4 20:03:59 2023
+]: NICK eperaita
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [] - Username: [] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [eperaita_] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	ullorent ecamara 
+
+
+[Fri Aug  4 20:03:59 2023
+]: USER eperaita 0 * eperaita
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [] [7]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+║ [2] Nick: [eperaita_] - Username: [eperaita]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 2
+║ Users:
+	ullorent ecamara 
+
+
+[Fri Aug  4 20:04:17 2023
+]: NICK ecamara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperaita] [7]
+║ [4] Nick: [] - Username: [] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	ullorent ecamara eperaita 
+
+
+[Fri Aug  4 20:04:17 2023
+]: USER ecamara 0 * :Eneko Camara
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperaita] [7]
+║ [4] Nick: [] - Username: [] [8]
+║ Back Users: 
+║ [0] Nick: [Root] - Username: []
+║ [1] Nick: [nc] - Username: [eperait]
+
+║ [0]	Lobby
+
+║ Name: Lobby
+║ Topic: 
+║ Creator: 
+║ Creation Date: 1691171927
+║ Num of users: 3
+║ Users:
+	ullorent ecamara eperaita 
+
+
+[Fri Aug  4 20:04:17 2023
+]: NICK Nickname is already in use_
+║ [0] Nick: [Root] - Username: [] [3]
+║ [1] Nick: [ullorent] - Username: [ullorent] [5]
+║ [2] Nick: [ecamara] - Username: [ecamara] [6]
+║ [3] Nick: [eperaita] - Username: [eperaita] [7]
+║ [4] Nick: [] - Username: [] [8]
+║ Back Users: 

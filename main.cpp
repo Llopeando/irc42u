@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/07/31 12:36:06 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/03 20:12:54 by ullorent         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "include/Server.hpp"
 
 void	serverCreateInfo(char **argv, int argc, sd::t_serverInput *serverInfo)
@@ -31,18 +19,21 @@ void	serverCreateInfo(char **argv, int argc, sd::t_serverInput *serverInfo)
 int	main(int argc, char *argv[])
 {
 	sd::t_serverInput serverInfo;
+	Server	*server;
 	
 	serverInfo.IP = utils::printIp();
 	try {
 		serverCreateInfo(argv + 1, argc, &serverInfo);
+		server = new Server(serverInfo);
 	}
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
-
-	Server	*server = new Server(serverInfo);
-	server->run2();
+	if (DEBUG)
+		server->run2();
+	else
+		server->run();
 	delete server;
 	return (0);
 }

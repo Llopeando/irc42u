@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ullorent <ullorent@student.42urduliz.co    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/07/27 17:43:28 by ullorent          #+#    #+#             */
-/*   Updated: 2023/08/03 19:58:35 by ullorent         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
@@ -55,6 +43,7 @@ class Server
 		sd::t_serverInput serverInfo;
 		sd::ServerData serverData;
 		pthread_t serverThread;
+		std::fstream logFile;
 
 		void		acceptConnection();
 		void		listenConnection();
@@ -72,13 +61,19 @@ class Server
 		std::string	readTCPInput(int client_fd, sd::clientIt index);
 		void		setCommands();
 
+
+		/*LOGGING*/
+		void	log(const std::string str);
+		void	logServerStatus();
+		void	logTimeVal(const std::string str);
+
 		static void *lauchWrapper(void *data);
 		void	lauch();
 		void	minishell();
-		void	printAllChannNames() const;
-		void	printAllUsers() const ;
-		void	printAllUsersBack() const ;
-		void	printLobbyInfo()const;
+		void	printAllChannNames(bool color) const;
+		void	printAllUsers(bool color) const ;
+		void	printAllUsersBack(bool color) const ;
+		void	printLobbyInfo(bool color)const;
 		void	printChannelInfo(const std::string& chName) const;
 		void	printUserInfo(const std::string& nickname) const;
 		void	printServerInfo()const;
