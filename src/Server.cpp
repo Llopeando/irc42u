@@ -169,8 +169,8 @@ eFlags Server::handleInput(sd::clientIt index, std::string input)
 	}
 	if (DEBUG)
 	{
-		logTimeVal(input);
-		logServerStatus();
+		logServerStatus(input);
+		//logTimeVal(input);
 	}
 	eFlags output = cmd::callFunction(arguments[0], package);
 	
@@ -229,6 +229,8 @@ void Server::handleEvents(sd::pollfdIt index)
 			}
 			if (!exited) 		//eSuccess / eError / eRemoveChannel / eNoSuchFUnction / eReordered / eRemoveClientChannel / eRemoveChannel -> todas son validas y siguen corriendo el bucle, emptyBuffer() y sigue
 				serverData[(sd::clientIt)index].emptyBuffer();
+			if (DEBUG)
+				logServerStatus("FINISH");
 		}
 	}
 }
@@ -407,7 +409,7 @@ void Server::printAllUsers(bool color)const
 	{
 		for (sd::clientIt user = 0; user < serverData.getNumOfClients(); user++)
 		{
-			std::cout << color::boldwhite << "║ [" << std::to_string(user) << "] " << color::green << "Nick: [" << color::reset << serverData[user].getNickname() << "] - " << color::yellow << "Username: [" << color::reset << serverData[user].getUsername() << "] [" << serverData[(sd::pollfdIt)user].fd << "]" << color::reset << '\n';
+			std::cout << color::boldwhite << "║ [" << std::setw(5) << std::to_string(user) << "] " << color::green << "Nick: [" << color::reset << serverData[user].getNickname() << "] - " << color::yellow << "Username: [" << color::reset << serverData[user].getUsername() << "] [" << serverData[(sd::pollfdIt)user].fd << "]" << color::reset << '\n';
 		}
 	}
 	else
@@ -572,13 +574,16 @@ void Server::logTimeVal(const std::string str)
 {
 	const std::time_t now = utils::t_chrono::to_time_t(utils::t_chrono::now());
 	std::string nowS =  std::ctime(&now);
-	log('[' + nowS + "]: " + str);
+	log('[' + nowS.substr(0, nowS.size() - 1) + "]: " + str);
 }
 
-void Server::logServerStatus()
+void Server::logServerStatus(std::string str)
 {
 	std::streambuf *coutbuf = std::cout.rdbuf();
 	std::cout.rdbuf(logFile.rdbuf());
+	const std::time_t now = utils::t_chrono::to_time_t(utils::t_chrono::now());
+	std::string nowS =  std::ctime(&now);
+	std::cout << '[' << nowS.substr(0, nowS.size() - 1) << "]: " << str << '\n';
 
 	printAllUsers(false);
 	printAllUsersBack(false);

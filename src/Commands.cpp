@@ -109,7 +109,10 @@ eFlags	nick(CmdInput& input)
 eFlags	user(CmdInput& input)
 {
 	if (input.serverData[input.index].getAuthentificied() == sd::eAuthentified)
+	{
+		//std::cout << "kick out\n";
 		return eError;
+	}
 	if (input.arguments.size() < 5 || input.arguments[1].empty()) 
 	{
 		error::error(input, error::ERR_NEEDMOREPARAMS); //NO ARGS
@@ -120,9 +123,15 @@ eFlags	user(CmdInput& input)
 		error::error(input, error::ERR_ALREADYREGISTERED); 
 		return eError;
 	}
+	if (!(input.serverData[input.index].getAuthentificied() & sd::eNick))
+	{
+		//std::cout << "kick out 2\n";
+		return eError;
+	}
 	if (input.serverData.findUsernameBack(input.arguments[1])) //ESTA EN BACK 
 	{
 		input.serverData.transferIndex(input.index, input.arguments[1]);
+		input.serverData[input.index].setAuthentificied(sd::eUser);
 	}
 	else
 	{
@@ -763,6 +772,12 @@ eFlags	kill(CmdInput& input)
 	}
 	sd::clientIt target_user = input.serverData.findNickname(input.arguments[1]);
 	if (!target_user)
+	{
+		error::error(input, error::ERR_NOSUCHNICK, input.arguments[1]);
+		return eError;
+	}
+
+	if (input.serverData[target_user].getAuthentificied() != sd::eAuthentified)
 	{
 		error::error(input, error::ERR_NOSUCHNICK, input.arguments[1]);
 		return eError;

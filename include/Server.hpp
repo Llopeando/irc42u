@@ -64,7 +64,7 @@ class Server
 
 		/*LOGGING*/
 		void	log(const std::string str);
-		void	logServerStatus();
+		void	logServerStatus(std::string str = "");
 		void	logTimeVal(const std::string str);
 
 		static void *lauchWrapper(void *data);

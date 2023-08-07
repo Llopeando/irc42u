@@ -8,7 +8,7 @@
 
 #define DEBUG_FILE "logging/log.txt"
 
-#define DEBUG true
+#define DEBUG false
 
 #define SERVER_FAILURE -1
 

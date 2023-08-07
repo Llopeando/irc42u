@@ -30,10 +30,10 @@ int	main(int argc, char *argv[])
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
-	if (DEBUG)
+	//if (DEBUG)
+	//	server->run2();
+	//else
 		server->run2();
-	else
-		server->run();
 	delete server;
 	return (0);
 }

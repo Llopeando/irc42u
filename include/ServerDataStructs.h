@@ -11,9 +11,9 @@ START_SERVER_DATA_NAMESPACE
 
 enum Authentified{
 	eNone = 0,
-	ePass = 1,
-	eNick = 2,
-	eUser = 4,
+	ePass = 2,
+	eNick = 4,
+	eUser = 8,
 	eAuthentified = ePass | eNick | eUser,
 };
 
