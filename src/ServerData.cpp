@@ -68,12 +68,14 @@ void	ServerData::addClient(pollfd userPollfd,Client newClient)
 void	ServerData::setSocket(pollfd &server, t_serverInput &serverInfo) {
 	if ((server.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SERVER_FAILURE)
 	{
-		perror("socket failed");
+		
+			perror("socket failed");
 		exit(EXIT_FAILURE);
 	}
 	if (bind(server.fd, (const struct sockaddr*)&serverInfo.address, sizeof(serverInfo.address)) == SERVER_FAILURE)
 	{
-		perror("socket bind failed");
+		
+			perror("socket bind failed");
 		exit(EXIT_FAILURE);
 	}
 	fcntl(server.fd, F_SETFL, O_NONBLOCK);

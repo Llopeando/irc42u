@@ -23,15 +23,15 @@ def spawn_nc_client(server_address, port):
 
 commandPool = [
 	"QUIT",
-	#"JOIN #a",
-	#"PART #a",
-	#"PRIVMSG #a",
-	#"PRIVMSG ullorent hahhahaaha",
-	#"TOPIC #a topicazoooo",
- 	#"TOPIC #a",
-	#"NOTICE #a aaaaaaa",
-	#"MOTD",
-	#"HELP",
+	"JOIN #a",
+	"PART #a",
+	"PRIVMSG #a",
+	"PRIVMSG ullorent hahhahaaha",
+	"TOPIC #a topicazoooo",
+ 	"TOPIC #a",
+	"NOTICE #a aaaaaaa",
+	"MOTD",
+	"HELP",
 ]
 
 def send(client, message):
@@ -55,13 +55,13 @@ def cmdAll(clients : [], cmd: str, fFilter= None):
 
 # Example usage
 server_address = "localhost"
-port = 12345
+port = 12346
 password = "PASS hola"
 
 nick_messages = "NICK client"
 user_messages = "USER client"
 
-numOfClients = 50
+numOfClients = 15
 
 clients = []
 

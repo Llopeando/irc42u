@@ -9,12 +9,12 @@
 Server::Server(sd::t_serverInput &serverInput) :
 	serverInfo(serverInput),serverData(serverInfo)
 {
-	if (DEBUG)
+	if (LOG)
 	{
-		logFile.open(DEBUG_FILE, std::ios::in | std::ios::out);
+		logFile.open(LOG_FILE, std::ios::in | std::ios::out);
 		if (!logFile.is_open())
 		{
-			throw std::runtime_error(std::string("Failed to open file") + DEBUG_FILE);
+			throw std::runtime_error(std::string("Failed to open file") + LOG_FILE);
 		}
 		logTimeVal("Server created.");
 	}
@@ -70,10 +70,12 @@ void	Server::checkFds(int events)
 /* ------------------------------------------------------------ */
 
 void	Server::listenConnection() {
-	std::cout << "Server started, im listening" << std::endl;
+	
+		std::cout << "Server started, im listening" << std::endl;
 	if (listen(serverData[(sd::pollfdIt)0].fd, 3) == SERVER_FAILURE)
 	{
-		std::cerr << color::red << "ERROR: listening process failure\n" << color::reset; 
+		
+			std::cerr << color::red << "ERROR: listening process failure\n" << color::reset; 
 		exit(EXIT_FAILURE);
 	}
 }
@@ -83,12 +85,14 @@ std::string getHostName(int fd)
 	struct sockaddr_in clientAddr;
 	socklen_t clientAddrLen = sizeof(clientAddr);
 	if (getpeername(fd, (struct sockaddr *)&clientAddr, &clientAddrLen) == -1) {
-		std::cerr << color::red << "ERROR: getpeername() failed\n" << color::reset; 
+		
+			std::cerr << color::red << "ERROR: getpeername() failed\n" << color::reset; 
 		exit(1);
 	}
 	char ipStr[INET_ADDRSTRLEN];// Convert the IP address from binary to string representation
 	if (inet_ntop(AF_INET, &(clientAddr.sin_addr), ipStr, INET_ADDRSTRLEN) == nullptr) {
-		std::cerr << color::red << "ERROR: inet process failure\n" << color::reset; 
+		
+			std::cerr << color::red << "ERROR: inet process failure\n" << color::reset; 
 		exit(1);
 	}
 	return std::string(ipStr);
@@ -101,7 +105,8 @@ void	Server::acceptConnection() {
 
 	if ((new_client.fd = accept(serverData[(sd::pollfdIt)0].fd, (struct sockaddr *)&serverInfo.address, &size)) == SERVER_FAILURE)
 	{
-		std::cerr << color::red << "ERROR: Connection refused\n" << color::reset; 
+		
+			std::cerr << color::red << "ERROR: Connection refused\n" << color::reset; 
 		return;
 	}
 	new_client.events = POLLOUT | POLLIN;
@@ -164,14 +169,9 @@ eFlags Server::handleInput(sd::clientIt index, std::string input)
 	cmd::CmdInput package(arguments, serverData, index);
 
 	if (serverData[index].getAuthentificied() != sd::eAuthentified && arguments[0] != "NICK" && arguments[0] != "USER" && arguments[0] != "PASS")
-	{
 		return eError;
-	}
-	if (DEBUG)
-	{
+	if (LOG)
 		logServerStatus(input);
-		//logTimeVal(input);
-	}
 	eFlags output = cmd::callFunction(arguments[0], package);
 	
 	// Algunas eFLAG necesitan gestion:
@@ -229,7 +229,7 @@ void Server::handleEvents(sd::pollfdIt index)
 			}
 			if (!exited) 		//eSuccess / eError / eRemoveChannel / eNoSuchFUnction / eReordered / eRemoveClientChannel / eRemoveChannel -> todas son validas y siguen corriendo el bucle, emptyBuffer() y sigue
 				serverData[(sd::clientIt)index].emptyBuffer();
-			if (DEBUG)
+			if (LOG)
 				logServerStatus("FINISH");
 		}
 	}
@@ -253,7 +253,8 @@ std::string Server::readTCPInput(int client_fd, sd::clientIt index) {
 	recvMsgSize = recv(client_fd, echoBuffer, sizeof(echoBuffer) - 1, 0);
 	if (recvMsgSize == SERVER_FAILURE)
 	{
-		std::cerr << color::red << "ERROR: recv failed\n" << color::reset;
+		
+			std::cerr << color::red << "ERROR: recv failed\n" << color::reset;
 		return (std::string(""));
 	}
 	else if (recvMsgSize == 0) {
@@ -286,7 +287,8 @@ void Server::lauch()
 		events = poll(serverData.getPollfdData(), static_cast<nfds_t>(serverData.pollfdSize()), serverData.getConfig().maxusers);
 		if (events < 0)
 		{
-			std::cerr << color::red << "ERROR: poll() - error-event detected\n" << color::reset; 
+			
+				std::cerr << color::red << "ERROR: poll() - error-event detected\n" << color::reset; 
 			return;
 		}
 		if (events != 0)
@@ -305,13 +307,15 @@ void	Server::run2()
 {
 	if(pthread_create(&serverThread, NULL, lauchWrapper, this))
 	{
-		std::cerr << color::red << "ERROR: Error creating thread\n" << color::reset; 
+		
+			std::cerr << color::red << "ERROR: Error creating thread\n" << color::reset; 
 		return ;
 	}
 	minishell();
 	if(pthread_join(serverThread, NULL))
 	{
-		std::cerr << color::red << "ERROR: Error joining thread\n" << color::reset; 
+		
+			std::cerr << color::red << "ERROR: Error joining thread\n" << color::reset; 
 		return ;
 	}
 }
@@ -409,7 +413,7 @@ void Server::printAllUsers(bool color)const
 	{
 		for (sd::clientIt user = 0; user < serverData.getNumOfClients(); user++)
 		{
-			std::cout << color::boldwhite << "║ [" << std::setw(5) << std::to_string(user) << "] " << color::green << "Nick: [" << color::reset << serverData[user].getNickname() << "] - " << color::yellow << "Username: [" << color::reset << serverData[user].getUsername() << "] [" << serverData[(sd::pollfdIt)user].fd << "]" << color::reset << '\n';
+			std::cout << color::boldwhite << "║ [" << std::setw(3) << std::to_string(user) << "] " << color::green << "Nick: [" << color::reset << serverData[user].getNickname() << "] - " << color::yellow << "Username: [" << color::reset << serverData[user].getUsername() << "] [" << serverData[(sd::pollfdIt)user].fd << "]" << color::reset << '\n';
 		}
 	}
 	else

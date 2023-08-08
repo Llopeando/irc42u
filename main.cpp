@@ -20,7 +20,7 @@ int	main(int argc, char *argv[])
 {
 	sd::t_serverInput serverInfo;
 	Server	*server;
-	
+
 	serverInfo.IP = utils::printIp();
 	try {
 		serverCreateInfo(argv + 1, argc, &serverInfo);
@@ -30,10 +30,10 @@ int	main(int argc, char *argv[])
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
-	//if (DEBUG)
-	//	server->run2();
-	//else
+	if (MINISHELL)
 		server->run2();
+	else
+		server->run();
 	delete server;
 	return (0);
 }

@@ -1,14 +1,31 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#ifndef DEBUG_MODE
+#define DEBUG false
+#else
+#define DEBUG true
+#endif
+
+#ifndef LOG_MODE
+#define LOG false
+#define LOG_FILE "default_log.txt"
+#else
+#define LOG true
+#define LOG_FILE "logging/log.txt"
+#endif
+
+#ifndef MINISHELL_MODE
+#define MINISHELL false
+#else
+#define MINISHELL true
+#endif
+
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "Utils.hpp"
 
-#define DEBUG_FILE "logging/log.txt"
-
-#define DEBUG false
 
 #define SERVER_FAILURE -1
 
